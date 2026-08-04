@@ -27,7 +27,9 @@ The scripts, **in load order** — the order is load-bearing, see below:
 | File | What's there |
 |---|---|
 | `js/data.js` | `REASONS` (4 thesis drivers), `S` (20 scenarios), `ITEMS` (5 purchasables) |
-| `js/world.js` | `W`/`H` world size, `B` buildings, `ROADS` |
+| `js/world.js` | `W`/`H` (4200x2400), `DISTRICTS`, `B` buildings, `ROADS` |
+| `js/cars.js` | `CARS` tiers, trips budget, district gating, `roomDealer()` |
+| `js/econ.js` | cross-cutting money maths: `housingMonthly()`, `jobPay()`, `fixedCosts()` |
 | `js/state.js` | tuning constants, all mutable globals, `$`/`money`/`shuffle`, `expenses()`/`income()`, `hud()`, `toast()` |
 | `js/city.js` | `resize()`, `draw()`, `door()`, `nearBuilding()`, `blocked()`, keyboard + touch input, `step()`, `promptFor()` |
 | `js/rooms.js` | `enter()`/`leave()`, `roomShop`, `roomVenue`, `roomApt` |
@@ -305,6 +307,22 @@ The drawdown trigger exists specifically so position size is a real decision. Me
 per cell, high conviction for a competent player carries **15% closure risk for the same 68%
 strong-win rate** as standard sizing — strictly worse. For a coin-flip player it is 68% closure.
 Without that trigger, size had no downside at any skill level.
+
+### 6f. Districts and cars
+
+The city is 4200x2400 across five districts. `districtAt(x)` maps a coordinate to a district, and
+`blocked()` returns true for any district whose `req` exceeds `carTier` — so an unreachable district
+is **physically unreachable**, not merely discouraged. `nearGate()` drives the prompt that explains
+which car opens it.
+
+A car tier buys four separate things, which is why it is never a stat bump: district access, speed
+(1.9 → 8.2, on a map big enough that it matters), **trips** — a monthly errand budget that every
+non-office visit spends — and a running cost that scales from $150 to $3,200 a month.
+
+Trips are the mechanical answer to "what is reachable per session". `FREE_VISITS` exempts the office
+and home; everything else costs one, refilled at month rollover by `tripsPerMonth()`. So a better car
+literally buys more decisions per month, and the exotic's monthly burden is larger than the starting
+apartment's rent.
 
 **Metric gating** is what the shop items plug into, and it's all read at render time in `roomOffice`:
 

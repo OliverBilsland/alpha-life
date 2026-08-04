@@ -2,6 +2,7 @@
 /* No webfonts are loaded (the game must run with no network), so canvas text
    uses the same system stacks the CSS falls back to. */
 const CANVAS_COND='700 13px "IBM Plex Sans Condensed","Avenir Next Condensed","Arial Narrow",-apple-system,sans-serif';
+const CANVAS_DIST='700 26px "IBM Plex Sans Condensed","Avenir Next Condensed","Arial Narrow",-apple-system,sans-serif';
 const CANVAS_MONO='400 10px "IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace';
 const cv=$('cv'),cx=cv.getContext('2d');
 let VW=0,VH=0,DPR=1;
@@ -14,9 +15,23 @@ function draw(){
   cx.fillStyle='#171A1E';cx.fillRect(0,0,VW,VH);
   cx.save();cx.translate(-cam.x,-cam.y);
 
-  // ground blocks
-  cx.fillStyle='#1D2126';
-  for(let x=0;x<W;x+=200)for(let y=0;y<H;y+=200){cx.fillRect(x+4,y+4,192,192);}
+  // district bands
+  DISTRICTS.forEach(d=>{
+    const open=districtOpen(d);
+    cx.fillStyle=d.c;
+    for(let x=d.x0;x<d.x1;x+=200)for(let y=0;y<H;y+=200)
+      cx.fillRect(x+4,y+4,Math.min(192,d.x1-x-8),192);
+    if(!open){cx.fillStyle='#0A0C0E9E';cx.fillRect(d.x0,0,d.x1-d.x0,H);}
+    // checkpoint stripe on the boundary
+    if(d.x0>0){
+      cx.fillStyle=open?'#3A4048':'#6E4A2E';
+      for(let y=0;y<H;y+=48) cx.fillRect(d.x0-5,y,10,26);
+    }
+    cx.fillStyle=open?'#EDEFEA20':'#EDEFEA38';
+    cx.font=CANVAS_DIST; cx.textAlign='center';
+    cx.fillText(open?d.n:d.n+'  ·  '+carNeededFor(d).n.toUpperCase()+' REQUIRED',
+      (d.x0+d.x1)/2, 62);
+  });
   // roads
   cx.fillStyle='#25292F';ROADS.forEach(r=>cx.fillRect(r.x,r.y,r.w,r.h));
   cx.strokeStyle='#3A4048';cx.lineWidth=2;cx.setLineDash([22,20]);
@@ -71,7 +86,9 @@ function nearBuilding(){
 }
 function blocked(x,y){
   for(const b of B){ if(x>b.x-14&&x<b.x+b.w+14&&y>b.y-14&&y<b.y+b.h+14) return true; }
-  return x<16||y<16||x>W-16||y>H-16;
+  if(x<16||y<16||x>W-16||y>H-16) return true;
+  /* district checkpoints: an unreachable district is genuinely unreachable */
+  return !districtOpen(districtAt(x));
 }
 
 /* ==================== INPUT ==================== */
@@ -109,7 +126,7 @@ function step(){
 }
 function simulate(){
   {
-    const sp=P.driving?4.1:1.9;
+    const sp=carSpeed();
     let dx=(keys['d']||keys['arrowright']?1:0)-(keys['a']||keys['arrowleft']?1:0)+tv.x;
     let dy=(keys['s']||keys['arrowdown']?1:0)-(keys['w']||keys['arrowup']?1:0)+tv.y;
     const m=Math.hypot(dx,dy);
@@ -120,11 +137,23 @@ function simulate(){
     if(!blocked(P.x,ny))P.y=ny;
 
     const b=nearBuilding(),pr=$('prompt');
+    const gate=nearGate();
     if(b){pr.classList.add('on');
       pr.innerHTML=`Enter ${b.n}<small>${promptFor(b)}</small>`;
-      $('actBtn').classList.add('live');}
+      $('actBtn').classList.toggle('live',canVisit(b.id));}
+    else if(gate){pr.classList.add('on');
+      pr.innerHTML=`${gate.n} is closed to you<small>Needs a ${carNeededFor(gate).n}</small>`;
+      $('actBtn').classList.remove('live');}
     else{pr.classList.remove('on');$('actBtn').classList.remove('live');}
   }
+}
+/* the first locked district within a short walk of the player */
+function nearGate(){
+  for(const d of DISTRICTS){
+    if(districtOpen(d)) continue;
+    if(Math.abs(P.x-d.x0)<150) return d;
+  }
+  return null;
 }
 function promptFor(b){
   if(b.id==='office') return sessionsLeft>0? sessionsLeft+' trading sessions left':'No sessions left \u2014 go home';

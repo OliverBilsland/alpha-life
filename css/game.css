@@ -316,3 +316,8 @@
       calc(28px + env(safe-area-inset-bottom))}
     .sp-btn{padding:19px 50px}
   }
+
+  /* car / progression cards */
+  .carstat{display:flex;flex-wrap:wrap;gap:5px 14px;margin-top:9px;font-family:var(--mono);
+    font-size:9.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-3)}
+  .carstat span{white-space:nowrap}

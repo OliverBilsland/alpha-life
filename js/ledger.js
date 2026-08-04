@@ -39,6 +39,7 @@ function renderPayday(inc,exp,forced){
     if(offer){roomFundOffer();return;}
     if(last){finish();return;}
     month++;sessionsLeft=ROUNDS_PER_MONTH;monthPnl=0;
+    trips=tripsPerMonth();research=researchPerMonth();
     inRoom=null;$('ov').classList.remove('on');
     P.x=330;P.y=470;hud();toast('Month '+month+'. Five sessions.');
   });
@@ -50,6 +51,8 @@ function finish(){
   gameOver=true;
   const sound=quad.gpgo+quad.gpbo,lucky=quad.bpgo,net=port+cash;
   const bought=Object.keys(owned).map(k=>ITEMS[k]?ITEMS[k].n:k);
+  if(carTier>0) bought.push(CARS[carTier].n);
+  if(homeTier>0) bought.push(HOMES[Math.min(homeTier,HOMES.length-1)].n);
   if(appLive||appLeft>0)bought.push('Side app');
   let v;
   if(sound>=14)v='You read the businesses correctly most of the time. That is the skill the game exists to build \u2014 the money follows it eventually, not reliably.';

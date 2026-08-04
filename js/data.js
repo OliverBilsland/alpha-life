@@ -25,7 +25,6 @@ const S=[
 {sector:'Data centers',a:{t:'KEYSTONE DIGITAL',d:'Hyperscale, pre-leased pipeline',g:17,m:30,l:6.2,p:38,f:68},b:{t:'ARDEN INFRASTRUCTURE',d:'Colocation, enterprise tenants',g:10,m:34,l:4.1,p:26,f:75},better:'a',driver:'growth',market:'a',street:'Leverage screens flag Keystone. Lease backlog is not in the screens.',why:'Both carry the leverage this asset class always carries \u2014 the difference is what the debt buys. Keystone pre-leased to investment-grade tenants before breaking ground, converting leverage into contracted revenue.'}];
 
 const ITEMS={
- car:{n:'Used car',cost:4500,ef:'You stop walking. The city gets smaller, and the analyst job across town opens up. Salary +$1,800/mo, $150/mo to run.'},
  acct:{n:'Accounting course',cost:1500,ef:'Adds cash conversion to every company card. Several names are unreadable without it.'},
  term:{n:'Market terminal',cost:6000,ef:'Shows how the street is positioned before you commit. Crowding is where the surprises come from.'},
  apt:{n:'Better apartment',cost:5000,ef:'A room you can think in. Focus decays half as fast. Rent +$600/mo.'},

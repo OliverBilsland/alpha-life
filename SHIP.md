@@ -1,6 +1,6 @@
 # Shipping Alpha Life to the App Store
 
-Alpha Life is a static web app: HTML, CSS, and fourteen classic `<script>` files. **No build step, no
+Alpha Life is a static web app: HTML, CSS, and a set of classic `<script>` files. **No build step, no
 bundler, no dependencies, no network access at runtime.** That makes wrapping it straightforward, but
 Apple will not accept a plain website — the sections below cover what has to be added and exactly how.
 

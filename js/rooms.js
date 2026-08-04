@@ -1,12 +1,15 @@
 /* ==================== ROOMS ==================== */
 function enter(b){
+  if(!canVisit(b.id)){
+    toast('No trips left this month. A better car buys more of them.');return;}
+  spendTrip(b.id);
   inRoom=b.id; $('ov').classList.add('on'); $('exitBtn').classList.add('on');
   $('prompt').classList.remove('on');
   if(b.id==='office') roomOffice();
   else if(b.id==='apt') roomApt();
   else if(b.id==='bar') roomVenue('THE LONG ROOM','Bar',80,2,'A quiet drink and an hour not thinking about the market. Cheap, partial.');
   else if(b.id==='club') roomVenue('MERIDIAN CLUB','Members only',250,5,'Loud, expensive, and full of people who allocate capital. Full focus.');
-  else if(b.id==='dealer') roomShop('VOSS MOTORS','Used cars',['car']);
+  else if(b.id==='dealer') roomDealer();
   else if(b.id==='school') roomShop('CITY INSTITUTE','Courses',['acct','term']);
   else if(b.id==='realtor') roomShop('HALE PROPERTY','Leasing',['apt']);
   else if(b.id==='tech') roomShop('BYTE WORKS','Dev studio',['app']);
