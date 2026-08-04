@@ -1,0 +1,625 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>Alpha Life — the city</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans+Condensed:wght@600;700&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper:#E7E9E3;--card:#FCFCFA;--ink:#15181C;--ink-2:#5A6068;--ink-3:#8A9099;
+    --rule:#CBCEC6;--rule-2:#DFE1DA;--process:#2B4C7E;--gain:#1B6B4A;--loss:#A32D2D;--warn:#8A5A12;
+    --sans:"IBM Plex Sans",-apple-system,sans-serif;
+    --cond:"IBM Plex Sans Condensed","IBM Plex Sans",sans-serif;
+    --mono:"IBM Plex Mono",ui-monospace,Menlo,monospace;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+  html,body{height:100%;background:#0E1013;color:var(--ink);font-family:var(--sans);
+    font-variant-numeric:tabular-nums;overflow:hidden;-webkit-font-smoothing:antialiased}
+  #game{position:fixed;inset:0}
+  canvas{display:block;width:100%;height:100%;touch-action:none}
+
+  /* HUD */
+  .hud{position:fixed;top:0;left:0;right:0;padding:10px 14px;display:flex;gap:14px;
+    justify-content:space-between;align-items:center;pointer-events:none;flex-wrap:wrap;
+    background:linear-gradient(#0E1013EE,#0E101300)}
+  .pod{display:flex;gap:14px;flex-wrap:wrap}
+  .st{font-family:var(--mono);font-size:11px;letter-spacing:.06em;color:#8E959C}
+  .st b{display:block;font-size:15px;font-weight:600;color:#EDEFEA;letter-spacing:0}
+  .st b.up{color:#5FC48F} .st b.down{color:#E07777} .st b.warn{color:#E0B063}
+  .st b.proc{color:#7FA6DB}
+
+  .prompt{position:fixed;left:50%;bottom:26px;transform:translateX(-50%);
+    background:#EDEFEA;color:#15181C;padding:10px 18px;font-family:var(--cond);font-weight:700;
+    font-size:14px;letter-spacing:.1em;text-transform:uppercase;opacity:0;transition:.18s;
+    pointer-events:none;white-space:nowrap;text-align:center}
+  .prompt.on{opacity:1}
+  .prompt small{display:block;font-family:var(--mono);font-size:9.5px;letter-spacing:.1em;
+    color:#5A6068;font-weight:400;margin-top:3px}
+
+  .toast{position:fixed;left:50%;top:70px;transform:translateX(-50%);background:#15181C;
+    color:#EDEFEA;padding:10px 16px;font-size:13px;opacity:0;transition:.3s;pointer-events:none;
+    max-width:88vw;text-align:center;line-height:1.4}
+  .toast.on{opacity:1}
+
+  /* touch */
+  #stick{position:fixed;left:18px;bottom:18px;width:118px;height:118px;border-radius:50%;
+    background:#EDEFEA1A;border:1px solid #EDEFEA33;display:none;touch-action:none}
+  #knob{position:absolute;left:50%;top:50%;width:46px;height:46px;margin:-23px 0 0 -23px;
+    border-radius:50%;background:#EDEFEAAA}
+  #actBtn{position:fixed;right:20px;bottom:34px;width:78px;height:78px;border-radius:50%;
+    background:#EDEFEA;color:#15181C;border:none;font-family:var(--cond);font-weight:700;
+    font-size:14px;letter-spacing:.06em;display:none;opacity:.35;transition:.15s}
+  #actBtn.live{opacity:1}
+  body.touch #stick,body.touch #actBtn{display:block}
+
+  /* interior overlay */
+  .ov{position:fixed;inset:0;background:#0E1013F2;overflow-y:auto;display:none;z-index:50;
+    -webkit-overflow-scrolling:touch}
+  .ov.on{display:block}
+  .sheet{max-width:900px;margin:0 auto;padding:22px 18px 90px;background:var(--paper);min-height:100%}
+  .roomhd{display:flex;justify-content:space-between;align-items:baseline;gap:12px;
+    padding-bottom:14px;border-bottom:1px solid var(--rule);margin-bottom:20px;flex-wrap:wrap}
+  .roomhd h2{font-family:var(--cond);font-weight:700;font-size:26px;letter-spacing:.03em;text-transform:uppercase}
+  .roomhd .sub{font-family:var(--mono);font-size:10px;letter-spacing:.13em;text-transform:uppercase;color:var(--ink-3)}
+  .exit{position:fixed;top:14px;right:14px;z-index:60;background:var(--ink);color:var(--paper);
+    border:none;padding:10px 16px;font-family:var(--cond);font-weight:700;font-size:12px;
+    letter-spacing:.13em;text-transform:uppercase;cursor:pointer;display:none}
+  .exit.on{display:block}
+
+  .cards{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+  .co{background:var(--card);border:1px solid var(--rule);padding:16px;cursor:pointer;
+    text-align:left;font:inherit;color:inherit;transition:.15s;position:relative}
+  .co[aria-pressed="true"]{border-color:var(--ink);box-shadow:0 0 0 1px var(--ink)}
+  .co .tick{font-family:var(--cond);font-weight:700;font-size:21px;letter-spacing:.04em;line-height:1.05}
+  .co .desc{font-size:11.5px;color:var(--ink-2);margin:5px 0 14px;min-height:30px;line-height:1.4}
+  .m{display:flex;justify-content:space-between;padding:6px 0;border-top:1px solid var(--rule-2)}
+  .m .lbl{font-family:var(--mono);font-size:8.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-3)}
+  .m .val{font-family:var(--mono);font-size:14px;font-weight:500}
+  .m.locked .val{color:var(--ink-3);font-style:italic}
+  .m.redact .val{color:var(--loss)}
+  .m.extra .lbl{color:var(--process)}
+  .street{margin-top:12px;padding:10px 12px;background:#F2F4EE;border-left:2px solid var(--process);
+    font-size:12px;line-height:1.5;color:var(--ink-2)}
+  .street b{font-family:var(--mono);font-size:8.5px;letter-spacing:.12em;text-transform:uppercase;
+    color:var(--process);display:block;margin-bottom:4px}
+  .step{margin-top:22px}
+  .steplbl{font-family:var(--mono);font-size:9.5px;letter-spacing:.13em;text-transform:uppercase;
+    color:var(--ink-2);margin-bottom:8px;display:flex;justify-content:space-between}
+  .steplbl em{font-style:normal;text-transform:none;letter-spacing:0;color:var(--ink-3);font-size:11px}
+  .grid4{display:grid;grid-template-columns:repeat(4,1fr);gap:7px}
+  .grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:7px}
+  .rz{background:transparent;border:1px solid var(--rule);padding:10px 9px;cursor:pointer;
+    font:inherit;color:var(--ink-2);text-align:left;transition:.15s;line-height:1.25}
+  .rz b{display:block;font-family:var(--cond);font-weight:700;font-size:12.5px;color:var(--ink);
+    text-transform:uppercase;letter-spacing:.03em}
+  .rz small{font-size:10px;color:var(--ink-3)}
+  .rz[aria-pressed="true"]{border-color:var(--process);box-shadow:0 0 0 1px var(--process);background:#fff}
+  .rz:disabled{opacity:.4}
+  .btn{width:100%;background:var(--ink);color:var(--paper);border:none;padding:15px;
+    font-family:var(--cond);font-weight:700;font-size:14px;letter-spacing:.16em;
+    text-transform:uppercase;cursor:pointer;margin-top:20px;transition:.15s}
+  .btn:disabled{background:var(--rule);color:var(--ink-3)}
+  .btn.ghost{background:transparent;border:1px solid var(--ink);color:var(--ink)}
+  .btn.ghost:hover{background:var(--ink);color:var(--paper)}
+
+  .reveal{margin-top:20px;border:1px solid var(--ink);background:var(--card)}
+  .rvtop{display:flex;border-bottom:1px solid var(--rule)}
+  .chip{flex:1;padding:13px 14px;border-right:1px solid var(--rule)}
+  .chip:last-child{border-right:none}
+  .chip .k{font-family:var(--mono);font-size:8.5px;letter-spacing:.13em;text-transform:uppercase;
+    color:var(--ink-3);display:block;margin-bottom:4px}
+  .chip .v{font-family:var(--cond);font-weight:700;font-size:17px}
+  .chip .d{font-family:var(--mono);font-size:10.5px;margin-top:3px;color:var(--ink-2)}
+  .rvb{padding:16px 14px}
+  .rvb h4{font-family:var(--cond);font-weight:700;font-size:15px;margin-bottom:7px}
+  .rvb p{font-size:13px;line-height:1.6;color:var(--ink-2);margin-bottom:9px}
+  .rvb p:last-child{margin-bottom:0}
+  .twist{border-left:2px solid var(--loss);padding-left:11px;color:var(--ink)!important}
+  .qn{font-family:var(--mono);font-size:9.5px;letter-spacing:.13em;text-transform:uppercase;
+    padding:10px 14px;border-top:1px solid var(--rule);color:var(--ink-2)}
+
+  .items{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .item{border:1px solid var(--rule);padding:14px;text-align:left;font:inherit;background:transparent;
+    cursor:pointer;transition:.15s}
+  .item:hover:not(:disabled){border-color:var(--ink);background:#fff}
+  .item:disabled{opacity:.42;cursor:default}
+  .item.owned{opacity:1;border-color:var(--gain);background:#F1F6F2}
+  .item .nm{font-family:var(--cond);font-weight:700;font-size:14.5px;text-transform:uppercase;
+    letter-spacing:.03em;display:flex;justify-content:space-between;gap:8px}
+  .item .pr{font-family:var(--mono);font-size:12.5px;color:var(--ink-2)}
+  .item .ef{font-size:11.5px;color:var(--ink-2);margin-top:6px;line-height:1.45}
+  .item .rec{font-family:var(--mono);font-size:10px;color:var(--warn);margin-top:5px}
+  .ledger{border:1px solid var(--rule);background:var(--card);padding:16px;margin-bottom:18px}
+  .lr{display:flex;justify-content:space-between;padding:6px 0;font-family:var(--mono);font-size:12.5px;
+    border-bottom:1px solid var(--rule-2)}
+  .lr:last-child{border-bottom:none;border-top:1px solid var(--ink);margin-top:5px;padding-top:9px;font-weight:600}
+  .lr span:first-child{font-family:var(--sans);color:var(--ink-2)}
+  .lr .pos{color:var(--gain)} .lr .neg{color:var(--loss)}
+  .note{font-size:13px;line-height:1.6;color:var(--ink-2);margin-bottom:14px}
+  .note.k{color:var(--ink);border-left:2px solid var(--process);padding-left:12px}
+  .rrow{display:flex;gap:7px;flex-wrap:wrap;margin-top:10px}
+  .rbtn{border:1px solid var(--rule);background:transparent;font:inherit;font-family:var(--mono);
+    font-size:12px;padding:8px 12px;cursor:pointer}
+  .rbtn:hover:not(:disabled){border-color:var(--process);color:var(--process)}
+  .rbtn:disabled{opacity:.4}
+  .sig{margin-top:32px;padding-top:18px;border-top:1px solid var(--rule)}
+  .grid2{display:grid;grid-template-columns:84px 1fr 1fr;gap:1px;background:var(--rule);border:1px solid var(--rule)}
+  .gh{background:var(--paper);padding:8px 9px;font-family:var(--mono);font-size:8.5px;
+    letter-spacing:.1em;text-transform:uppercase;color:var(--ink-3)}
+  .gq{background:var(--card);padding:12px;min-height:64px}
+  .gq .n{font-family:var(--mono);font-size:20px;font-weight:600}
+  .gq .t{font-size:10px;color:var(--ink-3);margin-top:3px;line-height:1.3}
+  .gq[data-q="gpgo"] .n{color:var(--gain)}.gq[data-q="gpbo"] .n{color:var(--process)}
+  .gq[data-q="bpgo"] .n{color:var(--ink-3)}.gq[data-q="bpbo"] .n{color:var(--loss)}
+
+  @media (max-width:660px){
+    .cards,.items{grid-template-columns:1fr}
+    .grid4{grid-template-columns:1fr 1fr}
+    .rvtop{flex-direction:column}
+    .chip{border-right:none;border-bottom:1px solid var(--rule)}
+    .hud{font-size:10px} .st b{font-size:13px}
+    .grid2{grid-template-columns:56px 1fr 1fr}
+  }
+</style>
+</head>
+<body>
+<div id="game"><canvas id="cv"></canvas></div>
+
+<div class="hud">
+  <div class="pod">
+    <div class="st">PORTFOLIO<b id="hPort">$10,000</b></div>
+    <div class="st">CASH<b id="hCash">$2,000</b></div>
+  </div>
+  <div class="pod">
+    <div class="st">FOCUS<b id="hFocus">5</b></div>
+    <div class="st">SESSIONS<b id="hSess">5</b></div>
+    <div class="st">MONTH<b id="hMonth">1</b></div>
+  </div>
+</div>
+
+<div class="prompt" id="prompt"></div>
+<div class="toast" id="toast"></div>
+<div id="stick"><div id="knob"></div></div>
+<button id="actBtn">ENTER</button>
+
+<button class="exit" id="exitBtn">Leave</button>
+<div class="ov" id="ov"><div class="sheet" id="sheet"></div></div>
+
+<script>
+/* ==================== DATA ==================== */
+const REASONS=[{id:'growth',name:'Growth',hint:'Revenue'},{id:'profit',name:'Profitability',hint:'Margin'},
+{id:'balance',name:'Balance sheet',hint:'Leverage'},{id:'value',name:'Valuation',hint:'Multiple'}];
+
+const S=[
+{sector:'Semiconductors',a:{t:'NORTHGATE MICRO',d:'Leading-edge logic foundry',g:34,m:28,l:.4,p:22,f:71},b:{t:'CALDWELL SEMI',d:'Legacy analog, mature markets',g:6,m:31,l:.9,p:11,f:88},better:'a',driver:'growth',market:'a',street:'Consensus underweight Northgate on cycle timing. Positioning is light.',why:'The cycle inflected and Northgate\u2019s order book compounded for eight quarters. Caldwell\u2019s better margin and conversion were mature-business artifacts with no volume growth to lever them. 22\u00d7 for 34% growth beat 11\u00d7 for 6%.'},
+{sector:'Regional banking',a:{t:'MERIDIAN TRUST',d:'Deposit-funded commercial lender',g:9,m:34,l:1.2,p:8,f:79},b:{t:'PARKVIEW FINANCIAL',d:'Wholesale-funded, fast growth',g:4,m:30,l:3.8,p:6,f:44},better:'a',driver:'balance',market:'a',street:'Street rates both buy. Nobody is modelling a funding shock.',why:'Parkview looked cheaper on every headline measure. But funding structure is the entire business model in banking, and 3.8\u00d7 against wholesale deposits is a run risk, not a discount.'},
+{sector:'Apparel retail',a:{t:'VELLA BRANDS',d:'Fast fashion, aggressive expansion',g:28,m:9,l:3.4,p:26,f:22},b:{t:'HARROW & CO',d:'Mid-market, disciplined footprint',g:11,m:14,l:1.1,p:15,f:81},better:'b',driver:'balance',market:'a',street:'Vella is a crowded long. Momentum funds own 14% of float.',why:'Vella\u2019s growth was funded by inventory and leases, not cash \u2014 22% conversion on a 9% margin at 3.4\u00d7 leaves no room for one bad season.',twist:'The market did not care for four more quarters. Vella rerated to 34\u00d7 before the model broke. Being early is the most expensive way to be right.'},
+{sector:'Oil & gas',a:{t:'BASIN RIDGE',d:'Shale, acreage-led growth',g:45,m:22,l:4.6,p:9,f:31},b:{t:'CORVID ENERGY',d:'Diversified, hedged output',g:12,m:18,l:1.3,p:14,f:76},better:'b',driver:'balance',market:'b',street:'Price decks assume the strip holds. Few stress-test covenants.',why:'A 4.6\u00d7 levered producer converting 31% to cash is a call option on the commodity, not a business. When the strip fell 30%, covenants bound before the wells depleted.'},
+{sector:'Pharmaceuticals',a:{t:'ALDEN THERAPEUTICS',d:'Two drugs, near patent expiry',g:3,m:32,l:1.9,p:9,f:91},b:{t:'KESTREL PHARMA',d:'Broad mid-stage pipeline',g:14,m:26,l:2.2,p:19,f:64},better:'b',driver:'growth',market:'b',street:'Alden screens as deep value on every quant model.',why:'Alden\u2019s 9\u00d7 was the market pricing a cliff it could see. High margin and 91% conversion on revenue that vanishes in 2027 is a liquidation, not quality. The 3% growth line was the tell.'},
+{sector:'Airlines',a:{t:'ALTUS AIR',d:'Low-cost, rapid fleet growth',g:22,m:8,l:5.2,p:12,f:38},b:{t:'CORDEL AIRWAYS',d:'Network carrier, owned fleet',g:19,m:11,l:2.4,p:15,f:69},better:'b',driver:'balance',market:'b',street:'Consensus prefers Altus on unit cost. Leverage treated as a footnote.',why:'Airlines are a leverage business wearing an operations costume. Faster growth on a worse margin with double the debt survives only in good weather. Cordel\u2019s owned fleet was collateral when credit closed.'},
+{sector:'Luxury goods',a:{t:'MAISON REVEL',d:'Heritage brand, controlled retail',g:16,m:27,l:.6,p:31,f:86},b:{t:'ATELIER NORD',d:'Accessible luxury, wholesale',g:18,m:12,l:2.1,p:17,f:58},better:'a',driver:'profit',market:'b',street:'Unusual options activity in Atelier. Someone is positioned for an event.',why:'27% versus 12% in the same category is not operational skill \u2014 it is pricing power, the only durable moat in luxury.',twist:'Atelier won the year on a takeover at a 40% premium. M&A is the largest single source of good-process-bad-outcome in research.'},
+{sector:'Media',a:{t:'LUMEN STREAM',d:'Subscriber growth, heavy content spend',g:25,m:4,l:4.1,p:90,f:12},b:{t:'GRAYSON MEDIA',d:'Cable networks, cash-rich decline',g:8,m:21,l:1.6,p:13,f:94},better:'b',driver:'value',market:'b',street:'Lumen is the most-owned growth name. Grayson is universally hated.',why:'At 90\u00d7 and 12% conversion, Lumen needed a decade of flawless execution to justify entry. Grayson at 13\u00d7 converting 94% was priced for decline and declined less than feared.'},
+{sector:'Homebuilding',a:{t:'STONEFIELD HOMES',d:'Land-light, option contracts',g:19,m:17,l:.3,p:7,f:74},b:{t:'ARBOR RESIDENTIAL',d:'Owned land bank',g:24,m:15,l:2.9,p:9,f:41},better:'a',driver:'balance',market:'a',street:'Both near book. Street sees them as interchangeable rate plays.',why:'Homebuilders die of land, not demand. Stonefield optioned lots instead of owning them, so when starts fell it walked from deposits rather than carrying inventory.'},
+{sector:'Distribution',a:{t:'HALVERSON SUPPLY',d:'Regional MRO distributor',g:7,m:13,l:1.8,p:18,f:72},b:{t:'DEEPWELL INDUSTRIAL',d:'National, private-label mix',g:7,m:19,l:1.7,p:17,f:78},better:'b',driver:'profit',market:'b',street:'No differentiated view. Both rated hold.',why:'Identical growth, leverage and multiple \u2014 the only difference was six points of margin from private label and purchasing scale. When everything else is matched, the margin gap is the quality gap.'},
+{sector:'E-commerce',a:{t:'TANDEM COMMERCE',d:'Marketplace, dominant share',g:30,m:15,l:.2,p:12,f:83},b:{t:'ORRIN GROUP',d:'Owned inventory, thinner scale',g:11,m:9,l:1.4,p:20,f:49},better:'a',driver:'value',market:'b',street:'Foreign investors exiting the jurisdiction wholesale. Flows one-directional.',why:'Three times the growth at a better margin, 83% conversion, almost no debt \u2014 at a 40% discount to the weaker operator. That is a dislocation, not a growth call.',twist:'A regulatory review froze the multiple for six quarters. Right on every metric; the discount widened before it closed.'},
+{sector:'Telecom',a:{t:'BRIDGEPORT TEL',d:'Copper incumbent, high payout',g:2,m:24,l:3.1,p:8,f:52},b:{t:'NORWICH COMMS',d:'Fiber build, reinvesting',g:5,m:20,l:2.0,p:12,f:33},better:'b',driver:'value',market:'b',street:'Income funds hold Bridgeport for yield. Coverage thin either way.',why:'8\u00d7 looked like value, but those earnings funded a dividend from a shrinking copper base at 3.1\u00d7. Norwich\u2019s weak conversion was capex building an asset; Bridgeport\u2019s was maintenance on a melting one.'},
+{sector:'Restaurants',a:{t:'CINDER & OAK',d:'Fast-casual, 6% of footprint built',g:21,m:11,l:2.6,p:28,f:67},b:{t:'MARLOWE DINING',d:'Casual dining, mature base',g:9,m:18,l:1.0,p:19,f:85},better:'a',driver:'growth',market:'a',street:'Street models 400 units. Management guides to 1,100.',why:'Marlowe had the better margin and cleaner balance sheet, and neither mattered. Cinder & Oak had 94% of its unit runway left, and unit count compounds while margin does not.'},
+{sector:'Utilities',a:{t:'CASCADE POWER',d:'Regulated, large capex program',g:4,m:22,l:5.8,p:17,f:29},b:{t:'FAIRMONT ENERGY',d:'Regulated, build cycle complete',g:3,m:20,l:3.9,p:16,f:73},better:'b',driver:'balance',market:'a',street:'A rate case lands this quarter. Nobody has handicapped it publicly.',why:'Utilities are bond proxies financed with actual bonds. At 5.8\u00d7 into a rising-rate cycle, Cascade refinanced at prices that destroyed the returns the capex was built to earn.',twist:'Cascade won the period on a constructive rate case passing financing costs to ratepayers. Regulated outcomes are decided by commissions, not spreadsheets.'},
+{sector:'Payments',a:{t:'PILOT PAY',d:'Merchant acquiring, land-grab pricing',g:38,m:6,l:.1,p:65,f:18},b:{t:'STRATTON NETWORKS',d:'Payment rails, entrenched',g:15,m:33,l:1.2,p:24,f:89},better:'b',driver:'profit',market:'b',street:'Pilot is the consensus disruptor long. Stratton called a melting ice cube.',why:'Pilot bought growth by underpricing \u2014 38% top line converting to a 6% margin and 18% cash. Stratton earned 33% on rails nobody could replicate. Margin tells you whether you own the network or rent it.'},
+{sector:'Mining',a:{t:'REDSTONE MINERALS',d:'Copper, peak-price realizations',g:41,m:29,l:1.1,p:6,f:87},b:{t:'GALEN RESOURCES',d:'Diversified, mid-cycle assets',g:12,m:16,l:2.7,p:10,f:61},better:'b',driver:'value',market:'b',street:'Redstone screens as the cheapest large-cap miner in two decades.',why:'6\u00d7 on peak-cycle earnings \u2014 the cheapest-looking multiple in a commodity appears exactly at the top, and strong conversion at the peak confirms it rather than refuting it. Normalize the deck and 6\u00d7 becomes 19\u00d7.'},
+{sector:'Automotive',a:{t:'HOLLAND MOTOR',d:'Legacy OEM, combustion mix',g:9,m:7,l:1.4,p:6,f:47},b:{t:'AXIOM VEHICLES',d:'Electric platform, ramping',g:33,m:14,l:.5,p:44,f:55},better:'b',driver:'growth',market:'b',street:'Holland is the value crowd\u2019s largest position. Axiom heavily shorted.',why:'The uncomfortable one: Axiom was better on growth, margin, leverage and conversion, and lost only on the multiple. Holland was cheap because its mix was structurally shrinking. Four of five metrics agreed \u2014 the fifth was what everyone anchored on.'},
+{sector:'Healthcare',a:{t:'WESTMARK HEALTH',d:'Acute hospitals, strong payer mix',g:8,m:15,l:4.4,p:11,f:77},b:{t:'LINDEN CARE',d:'Rural, thin reimbursement',g:6,m:12,l:2.1,p:14,f:59},better:'a',driver:'profit',market:'b',street:'A reimbursement rule is out for comment. Most models assume no change.',why:'The reflex is to fear 4.4\u00d7, but hospital leverage is serviced by predictable cash \u2014 77% conversion says the cash is real. The payer mix behind the margin was the asset.',twist:'A rule change compressed the best-paying service line mid-year. Correct read of the business, adverse read of the regulator.'},
+{sector:'Consumer staples',a:{t:'ORCHARD MILLS',d:'Branded food, premium shelf',g:12,m:16,l:2.8,p:21,f:80},b:{t:'BAYSIDE FOODS',d:'Private-label manufacturer',g:6,m:23,l:1.5,p:19,f:66},better:'a',driver:'growth',market:'a',street:'Street sees Bayside as the margin winner. Volume mix under-analysed.',why:'In inflation the question is who raises price without losing volume. Orchard\u2019s 12% was almost all price and mix passing through \u2014 proof of brand. Bayside\u2019s fatter margin came from contracts that reset against it.'},
+{sector:'Data centers',a:{t:'KEYSTONE DIGITAL',d:'Hyperscale, pre-leased pipeline',g:17,m:30,l:6.2,p:38,f:68},b:{t:'ARDEN INFRASTRUCTURE',d:'Colocation, enterprise tenants',g:10,m:34,l:4.1,p:26,f:75},better:'a',driver:'growth',market:'a',street:'Leverage screens flag Keystone. Lease backlog is not in the screens.',why:'Both carry the leverage this asset class always carries \u2014 the difference is what the debt buys. Keystone pre-leased to investment-grade tenants before breaking ground, converting leverage into contracted revenue.'}];
+
+/* ==================== WORLD ==================== */
+const W=2000,H=1500;
+const B=[
+ {id:'office', x:820, y:120, w:360,h:230,n:'ARDENT CAPITAL',s:'Your desk',c:'#2B3A4F'},
+ {id:'apt',    x:150, y:170, w:250,h:200,n:'APARTMENT 4B',s:'Home',c:'#4A4036'},
+ {id:'bar',    x:170, y:900, w:230,h:170,n:'THE LONG ROOM',s:'Bar',c:'#5A3A32'},
+ {id:'club',   x:1520,y:960, w:290,h:210,n:'MERIDIAN CLUB',s:'Members only',c:'#3E2C46'},
+ {id:'dealer', x:1500,y:180, w:320,h:200,n:'VOSS MOTORS',s:'Used cars',c:'#3A4A3E'},
+ {id:'school', x:760, y:940, w:330,h:220,n:'CITY INSTITUTE',s:'Courses',c:'#33454A'},
+ {id:'realtor',x:200, y:560, w:220,h:150,n:'HALE PROPERTY',s:'Leasing',c:'#4A4453'},
+ {id:'tech',   x:1540,y:570, w:250,h:170,n:'BYTE WORKS',s:'Dev studio',c:'#2E4440'},
+];
+const ROADS=[
+ {x:0,y:430,w:W,h:110},{x:0,y:790,w:W,h:110},{x:0,y:1210,w:W,h:110},
+ {x:470,y:0,w:110,h:H},{x:1200,y:0,w:110,h:H},{x:1860,y:0,w:110,h:H}
+];
+
+/* ==================== STATE ==================== */
+const ROUNDS_PER_MONTH=5, MONTHS=4, WIN_R=.25, LOSE_R=.18;
+const CONV=[{id:'small',n:'Small',pct:.10},{id:'std',n:'Standard',pct:.25},{id:'high',n:'High conviction',pct:.45}];
+let order=[],idx=0,port=10000,cash=2000,xp=0,streak=0,best=0,focus=5;
+let salary=2400,rent=1200,owned={},appLeft=0,appLive=false;
+let sessionsLeft=ROUNDS_PER_MONTH, month=1, monthPnl=0, peak=10000, maxDD=0;
+let pick=null,reason=null,conv='std',locked=false,inRoom=null,gameOver=false;
+const quad={gpgo:0,gpbo:0,bpgo:0,bpbo:0};
+const P={x:330,y:470,vx:0,vy:0,dir:0,driving:false};
+
+const $=i=>document.getElementById(i);
+const money=n=>(n<0?'\u2212$':'$')+Math.abs(Math.round(n)).toLocaleString();
+const shuffle=a=>{for(let i=a.length-1;i>0;i--){const j=Math.random()*(i+1)|0;[a[i],a[j]]=[a[j],a[i]];}return a;};
+const expenses=()=>rent+(owned.car?150:0)+(owned.apt?600:0);
+const income=()=>salary+(owned.car?1800:0)+(appLive?700:0);
+
+function hud(){
+  $('hPort').textContent=money(port);
+  $('hPort').className=port>10000?'up':port<10000?'down':'';
+  $('hCash').textContent=money(cash);
+  $('hCash').className=cash<expenses()?'warn':'';
+  $('hFocus').textContent=focus; $('hFocus').className=focus<3?'warn':'';
+  $('hSess').textContent=sessionsLeft;
+  $('hMonth').textContent=month+' / '+MONTHS;
+}
+let toastT;
+function toast(m){const t=$('toast');t.textContent=m;t.classList.add('on');
+  clearTimeout(toastT);toastT=setTimeout(()=>t.classList.remove('on'),2600);}
+
+/* ==================== RENDER ==================== */
+const cv=$('cv'),cx=cv.getContext('2d');
+let VW=0,VH=0,DPR=1;
+function resize(){DPR=Math.min(devicePixelRatio||1,2);VW=innerWidth;VH=innerHeight;
+  cv.width=VW*DPR;cv.height=VH*DPR;cx.setTransform(DPR,0,0,DPR,0,0);}
+addEventListener('resize',resize);resize();
+
+function draw(){
+  const cam={x:Math.max(0,Math.min(W-VW,P.x-VW/2)),y:Math.max(0,Math.min(H-VH,P.y-VH/2))};
+  cx.fillStyle='#171A1E';cx.fillRect(0,0,VW,VH);
+  cx.save();cx.translate(-cam.x,-cam.y);
+
+  // ground blocks
+  cx.fillStyle='#1D2126';
+  for(let x=0;x<W;x+=200)for(let y=0;y<H;y+=200){cx.fillRect(x+4,y+4,192,192);}
+  // roads
+  cx.fillStyle='#25292F';ROADS.forEach(r=>cx.fillRect(r.x,r.y,r.w,r.h));
+  cx.strokeStyle='#3A4048';cx.lineWidth=2;cx.setLineDash([22,20]);
+  ROADS.forEach(r=>{cx.beginPath();
+    if(r.w>r.h){cx.moveTo(r.x,r.y+r.h/2);cx.lineTo(r.x+r.w,r.y+r.h/2);}
+    else{cx.moveTo(r.x+r.w/2,r.y);cx.lineTo(r.x+r.w/2,r.y+r.h);}cx.stroke();});
+  cx.setLineDash([]);
+
+  // buildings
+  B.forEach(b=>{
+    cx.fillStyle='#0C0E11';cx.fillRect(b.x+7,b.y+9,b.w,b.h);
+    cx.fillStyle=b.c;cx.fillRect(b.x,b.y,b.w,b.h);
+    cx.fillStyle='#00000033';cx.fillRect(b.x,b.y,b.w,26);
+    // windows
+    cx.fillStyle='#EDEFEA18';
+    for(let wx=b.x+18;wx<b.x+b.w-24;wx+=34)for(let wy=b.y+40;wy<b.y+b.h-40;wy+=32)cx.fillRect(wx,wy,18,16);
+    // door
+    const d=door(b);
+    cx.fillStyle='#EDEFEA';cx.fillRect(d.x-20,d.y-6,40,10);
+    cx.fillStyle='#EDEFEA';cx.font='700 13px "IBM Plex Sans Condensed",sans-serif';
+    cx.textAlign='center';cx.fillText(b.n,b.x+b.w/2,b.y+18);
+    cx.fillStyle='#EDEFEA88';cx.font='400 10px "IBM Plex Mono",monospace';
+    cx.fillText(b.s.toUpperCase(),b.x+b.w/2,b.y+b.h+18);
+  });
+
+  // player
+  cx.save();cx.translate(P.x,P.y);cx.rotate(P.dir);
+  if(P.driving){
+    cx.fillStyle='#00000055';cx.fillRect(-16,-9,34,20);
+    cx.fillStyle='#C8452F';cx.fillRect(-18,-11,36,22);
+    cx.fillStyle='#1A1D22';cx.fillRect(-6,-9,12,18);
+    cx.fillStyle='#F3E6A0';cx.fillRect(16,-9,4,6);cx.fillRect(16,3,4,6);
+  }else{
+    cx.fillStyle='#00000055';cx.beginPath();cx.arc(2,2,10,0,7);cx.fill();
+    cx.fillStyle='#EDEFEA';cx.beginPath();cx.arc(0,0,10,0,7);cx.fill();
+    cx.fillStyle='#2B4C7E';cx.fillRect(4,-4,7,8);
+  }
+  cx.restore();
+  cx.restore();
+}
+
+function door(b){return {x:b.x+b.w/2, y:b.y+b.h+4};}
+function nearBuilding(){
+  for(const b of B){const d=door(b);
+    if(Math.hypot(P.x-d.x,P.y-d.y)<62) return b;}
+  return null;
+}
+function blocked(x,y){
+  for(const b of B){ if(x>b.x-14&&x<b.x+b.w+14&&y>b.y-14&&y<b.y+b.h+14) return true; }
+  return x<16||y<16||x>W-16||y>H-16;
+}
+
+/* ==================== INPUT ==================== */
+const keys={};
+addEventListener('keydown',e=>{
+  keys[e.key.toLowerCase()]=true;
+  if((e.key==='e'||e.key==='E'||e.key==='Enter')&&!inRoom){const b=nearBuilding();if(b)enter(b);}
+  if(e.key==='Escape'&&inRoom&&inRoom!=='payday')leave();
+  if([' ','ArrowUp','ArrowDown','ArrowLeft','ArrowRight'].includes(e.key))e.preventDefault();
+});
+addEventListener('keyup',e=>keys[e.key.toLowerCase()]=false);
+let tv={x:0,y:0};
+if(matchMedia('(pointer:coarse)').matches){
+  document.body.classList.add('touch');
+  const st=$('stick'),kn=$('knob');let act=false,ox=0,oy=0;
+  const set=(dx,dy)=>{const d=Math.hypot(dx,dy),m=Math.min(d,46),a=Math.atan2(dy,dx);
+    const nx=Math.cos(a)*m,ny=Math.sin(a)*m;
+    kn.style.transform=`translate(${nx}px,${ny}px)`;tv={x:nx/46,y:ny/46};};
+  st.addEventListener('touchstart',e=>{act=true;const r=st.getBoundingClientRect();
+    ox=r.left+r.width/2;oy=r.top+r.height/2;e.preventDefault();},{passive:false});
+  st.addEventListener('touchmove',e=>{if(!act)return;const t=e.touches[0];
+    set(t.clientX-ox,t.clientY-oy);e.preventDefault();},{passive:false});
+  const end=()=>{act=false;tv={x:0,y:0};kn.style.transform='translate(0,0)';};
+  st.addEventListener('touchend',end);st.addEventListener('touchcancel',end);
+  $('actBtn').addEventListener('click',()=>{const b=nearBuilding();if(b&&!inRoom)enter(b);});
+}
+
+/* ==================== LOOP ==================== */
+function step(){
+  if(!inRoom&&!gameOver){
+    const sp=P.driving?4.1:1.9;
+    let dx=(keys['d']||keys['arrowright']?1:0)-(keys['a']||keys['arrowleft']?1:0)+tv.x;
+    let dy=(keys['s']||keys['arrowdown']?1:0)-(keys['w']||keys['arrowup']?1:0)+tv.y;
+    const m=Math.hypot(dx,dy);
+    if(m>1){dx/=m;dy/=m;}
+    if(m>.08){P.dir=Math.atan2(dy,dx);}
+    const nx=P.x+dx*sp, ny=P.y+dy*sp;
+    if(!blocked(nx,P.y))P.x=nx;
+    if(!blocked(P.x,ny))P.y=ny;
+
+    const b=nearBuilding(),pr=$('prompt');
+    if(b){pr.classList.add('on');
+      pr.innerHTML=`Enter ${b.n}<small>${promptFor(b)}</small>`;
+      $('actBtn').classList.add('live');}
+    else{pr.classList.remove('on');$('actBtn').classList.remove('live');}
+    draw();
+  }
+  requestAnimationFrame(step);
+}
+function promptFor(b){
+  if(b.id==='office') return sessionsLeft>0? sessionsLeft+' trading sessions left':'No sessions left \u2014 go home';
+  if(b.id==='apt') return sessionsLeft>0? 'Sleeping ends the month early':'End the month';
+  if(b.id==='bar') return '$80 \u00b7 restores 2 focus';
+  if(b.id==='club') return '$250 \u00b7 full focus, and people talk';
+  if(b.id==='dealer') return owned.car?'You already own the car':'Used car \u00b7 $4,500';
+  if(b.id==='school') return 'Courses \u00b7 accounting, terminal';
+  if(b.id==='realtor') return owned.apt?'You already moved':'Better apartment \u00b7 $5,000';
+  if(b.id==='tech') return appLive?'App is live':appLeft>0?'In build \u2014 '+appLeft+' mo':'Fund an app \u00b7 $7,500';
+  return '';
+}
+
+/* ==================== ROOMS ==================== */
+function enter(b){
+  inRoom=b.id; $('ov').classList.add('on'); $('exitBtn').classList.add('on');
+  $('prompt').classList.remove('on');
+  if(b.id==='office') roomOffice();
+  else if(b.id==='apt') roomApt();
+  else if(b.id==='bar') roomVenue('THE LONG ROOM','Bar',80,2,'A quiet drink and an hour not thinking about the market. Cheap, partial.');
+  else if(b.id==='club') roomVenue('MERIDIAN CLUB','Members only',250,5,'Loud, expensive, and full of people who allocate capital. Full focus.');
+  else if(b.id==='dealer') roomShop('VOSS MOTORS','Used cars',['car']);
+  else if(b.id==='school') roomShop('CITY INSTITUTE','Courses',['acct','term']);
+  else if(b.id==='realtor') roomShop('HALE PROPERTY','Leasing',['apt']);
+  else if(b.id==='tech') roomShop('BYTE WORKS','Dev studio',['app']);
+}
+function leave(){
+  inRoom=null;$('ov').classList.remove('on');$('exitBtn').classList.remove('on');
+  P.y+=30; hud();
+}
+$('exitBtn').addEventListener('click',()=>{if(inRoom!=='payday')leave();});
+
+const ITEMS={
+ car:{n:'Used car',cost:4500,ef:'You stop walking. The city gets smaller, and the analyst job across town opens up. Salary +$1,800/mo, $150/mo to run.'},
+ acct:{n:'Accounting course',cost:1500,ef:'Adds cash conversion to every company card. Several names are unreadable without it.'},
+ term:{n:'Market terminal',cost:6000,ef:'Shows how the street is positioned before you commit. Crowding is where the surprises come from.'},
+ apt:{n:'Better apartment',cost:5000,ef:'A room you can think in. Focus decays half as fast. Rent +$600/mo.'},
+ app:{n:'Fund a side app',cost:7500,ef:'Three months to build, then $700/mo. Income that does not depend on your calls.'}
+};
+
+function roomShop(title,sub,ids){
+  $('sheet').innerHTML=`<div class="roomhd"><h2>${title}</h2><span class="sub">${sub} \u00b7 cash ${money(cash)}</span></div>
+    <div class="items">${ids.map(k=>{const it=ITEMS[k];
+      const own=owned[k]||(k==='app'&&(appLive||appLeft>0));
+      const dis=own||cash<it.cost;
+      return `<button class="item ${own?'owned':''}" data-k="${k}" ${dis?'disabled':''}>
+        <div class="nm"><span>${it.n}</span><span class="pr">${own?(k==='app'&&appLeft>0?'BUILDING':'OWNED'):money(it.cost)}</span></div>
+        <div class="ef">${it.ef}</div></button>`}).join('')}</div>
+    <p class="note" style="margin-top:18px">${cash<Math.min(...ids.map(k=>ITEMS[k].cost))?'Not enough cash. The portfolio is where the money is \u2014 but selling it to buy things is how people stay poor while looking rich.':'Cash spent here leaves the portfolio permanently smaller than it would have been.'}</p>`;
+  document.querySelectorAll('.item:not([disabled])').forEach(el=>el.addEventListener('click',()=>{
+    const k=el.dataset.k,it=ITEMS[k];
+    if(cash<it.cost)return; cash-=it.cost;
+    if(k==='app'){appLeft=3;} else {owned[k]=true;}
+    if(k==='car'){P.driving=true;toast('You bought the car. Everything just got closer.');}
+    if(k==='acct')toast('Cash conversion now shows on every card.');
+    if(k==='term')toast('Terminal installed. You can see the crowd now.');
+    if(k==='apt')toast('You moved. Focus will hold longer.');
+    if(k==='app')toast('Build started. Three months to revenue.');
+    hud();roomShop(title,sub,ids);
+  }));
+}
+
+function roomVenue(title,sub,cost,gain,copy){
+  const can=cash>=cost;
+  $('sheet').innerHTML=`<div class="roomhd"><h2>${title}</h2><span class="sub">${sub} \u00b7 cash ${money(cash)}</span></div>
+    <p class="note">${copy}</p>
+    <p class="note">Focus is at <strong>${focus}</strong>. Below 3, you start missing metrics on the cards \u2014 you read the same companies with less information.</p>
+    <button class="btn" id="buy" ${can?'':'disabled'}>${can?`Stay a while \u00b7 ${money(cost)}`:'Not enough cash'}</button>
+    <p class="note k" style="margin-top:18px">This is consumption. It buys you nothing you can sell. It is also the only way to keep reading five metrics instead of three \u2014 which is the argument for spending money on yourself, made honestly.</p>`;
+  if(can)$('buy').addEventListener('click',()=>{
+    cash-=cost; focus=Math.min(5,focus+gain); hud();
+    toast(gain>=5?'Focus restored.':'Focus +'+gain);
+    leave();
+  });
+}
+
+function roomApt(){
+  $('sheet').innerHTML=`<div class="roomhd"><h2>APARTMENT 4B</h2><span class="sub">${owned.apt?'Upgraded':'Rent '+money(rent)+'/mo'}</span></div>
+    <p class="note">${sessionsLeft>0?`You still have <strong>${sessionsLeft}</strong> trading session${sessionsLeft>1?'s':''} this month. Sleeping now forfeits them.`:'The month is done. Sleep, and the bills come due.'}</p>
+    <div class="ledger">
+      <div class="lr"><span>Portfolio</span><span>${money(port)}</span></div>
+      <div class="lr"><span>Cash</span><span>${money(cash)}</span></div>
+      <div class="lr"><span>Monthly income</span><span class="pos">+${money(income())}</span></div>
+      <div class="lr"><span>Monthly expenses</span><span class="neg">\u2212${money(expenses())}</span></div>
+      <div class="lr"><span>Net monthly</span><span class="${income()-expenses()>=0?'pos':'neg'}">${income()-expenses()>=0?'+':''}${money(income()-expenses())}</span></div>
+    </div>
+    <button class="btn" id="sleep">${sessionsLeft>0?'Sleep anyway \u2014 end month '+month:'End month '+month}</button>
+    <button class="btn ghost" id="stay">Back out</button>`;
+  $('sleep').addEventListener('click',payday);
+  $('stay').addEventListener('click',leave);
+}
+
+/* ---------- office / market ---------- */
+function roomOffice(){
+  if(sessionsLeft<=0){
+    $('sheet').innerHTML=`<div class="roomhd"><h2>ARDENT CAPITAL</h2><span class="sub">Desk closed</span></div>
+      <p class="note">No sessions left this month. The market will be here. Go home and settle up.</p>
+      <button class="btn ghost" id="out">Leave the office</button>`;
+    $('out').addEventListener('click',leave);return;
+  }
+  pick=null;reason=null;locked=false;
+  const s=S[order[idx]];
+  const red = focus<3 ? (focus<1?['m','l']:['m']) : [];
+  const row=(l,v,c)=>`<div class="m ${c||''}"><span class="lbl">${l}</span><span class="val">${v}</span></div>`;
+  $('sheet').innerHTML=`<div class="roomhd"><h2>ARDENT CAPITAL</h2>
+      <span class="sub">Month ${month} \u00b7 session ${ROUNDS_PER_MONTH-sessionsLeft+1} of ${ROUNDS_PER_MONTH} \u00b7 ${s.sector}</span></div>
+    ${focus<3?`<p class="note" style="color:var(--warn)">Focus ${focus}. You are reading these cards tired \u2014 ${red.length} metric${red.length>1?'s are':' is'} unreadable.</p>`:''}
+    <div class="cards">${['a','b'].map(k=>{const c=s[k];return `
+      <button class="co" data-k="${k}" aria-pressed="false">
+        <div class="tick">${c.t}</div><div class="desc">${c.d}</div>
+        ${row('Revenue growth',c.g+'%')}
+        ${row('Operating margin',red.includes('m')?'\u2014':c.m+'%',red.includes('m')?'redact':'')}
+        ${row('Debt / EBITDA',red.includes('l')?'\u2014':c.l.toFixed(1)+'\u00d7',red.includes('l')?'redact':'')}
+        ${row('P / E',c.p+'\u00d7')}
+        ${owned.acct?row('Cash conversion',c.f+'%','extra'):row('Cash conversion','locked','locked')}
+      </button>`}).join('')}</div>
+    ${owned.term?`<div class="street"><b>Terminal \u00b7 street positioning</b>${s.street}</div>`:''}
+    <div class="step"><div class="steplbl"><span>What drives your call?</span></div>
+      <div class="grid4">${REASONS.map(r=>`<button class="rz" data-r="${r.id}" aria-pressed="false"><b>${r.name}</b><small>${r.hint}</small></button>`).join('')}</div></div>
+    <div class="step"><div class="steplbl"><span>Position size</span><em>Portfolio ${money(port)}</em></div>
+      <div class="grid3">${CONV.map(c=>`<button class="rz cv" data-c="${c.id}" aria-pressed="${c.id===conv}"><b>${c.n}</b><small>${money(port*c.pct)} at risk</small></button>`).join('')}</div></div>
+    <button class="btn" id="go" disabled>Commit position</button>
+    <div id="rev"></div>${sigHTML()}`;
+  document.querySelectorAll('.co').forEach(el=>el.addEventListener('click',()=>{if(locked)return;
+    pick=el.dataset.k;document.querySelectorAll('.co').forEach(x=>x.setAttribute('aria-pressed',String(x.dataset.k===pick)));sync();}));
+  document.querySelectorAll('.rz[data-r]').forEach(el=>el.addEventListener('click',()=>{if(locked)return;
+    reason=el.dataset.r;document.querySelectorAll('.rz[data-r]').forEach(x=>x.setAttribute('aria-pressed',String(x.dataset.r===reason)));sync();}));
+  document.querySelectorAll('.cv').forEach(el=>el.addEventListener('click',()=>{if(locked)return;
+    conv=el.dataset.c;document.querySelectorAll('.cv').forEach(x=>x.setAttribute('aria-pressed',String(x.dataset.c===conv)));}));
+  $('go').addEventListener('click',commit);
+}
+function sync(){$('go').disabled=!(pick&&reason);}
+function sigHTML(){
+  const c=(q,t)=>`<div class="gq" data-q="${q}"><span class="n">${quad[q]}</span><div class="t">${t}</div></div>`;
+  return `<section class="sig"><div class="steplbl"><span>Decision quality</span><em>Process scored separately from money</em></div>
+    <div class="grid2"><div class="gh"></div><div class="gh">Made money</div><div class="gh">Lost money</div>
+    <div class="gh">Sound</div>${c('gpgo','Right call, rewarded')}${c('gpbo','Right call, market disagreed')}
+    <div class="gh">Unsound</div>${c('bpgo','Wrong call, got lucky')}${c('bpbo','Wrong call, punished')}</div></section>`;
+}
+
+function commit(){
+  if(locked||!pick||!reason)return;locked=true;
+  const s=S[order[idx]];
+  const sound=pick===s.better&&reason===s.driver, won=pick===s.market;
+  const size=port*CONV.find(c=>c.id===conv).pct;
+  const delta=won?size*WIN_R:-size*LOSE_R;
+  port+=delta;monthPnl+=delta;
+  peak=Math.max(peak,port);maxDD=Math.max(maxDD,(peak-port)/peak);
+  if(sound){xp+=100;streak++;best=Math.max(best,streak);}else streak=0;
+  focus=Math.max(0,focus-(owned.apt?(idx%2?1:0):1));
+  const q=sound?(won?'gpgo':'gpbo'):(won?'bpgo':'bpbo');quad[q]++;
+  const QN={gpgo:'Sound process, good outcome',gpbo:'Sound process, bad outcome',
+    bpgo:'Unsound process, good outcome',bpbo:'Unsound process, bad outcome'};
+  const rN=REASONS.find(r=>r.id===reason).name,dN=REASONS.find(r=>r.id===s.driver).name;
+  $('go').style.display='none';
+  $('rev').innerHTML=`<div class="reveal"><div class="rvtop">
+      <div class="chip"><span class="k">Position result</span>
+        <span class="v" style="color:${won?'var(--gain)':'var(--loss)'}">${won?'+':''}${money(delta)}</span>
+        <div class="d">Portfolio ${money(port)}</div></div>
+      <div class="chip"><span class="k">Process</span>
+        <span class="v" style="color:${sound?'var(--process)':'var(--ink-3)'}">${sound?'Sound':'Unsound'}</span>
+        <div class="d">${sound?'+100 XP':(pick===s.better?'Right name, wrong reason \u2014 you said '+rN+', it was '+dN:'Wrong name')}</div></div>
+      <div class="chip"><span class="k">Streak</span><span class="v">${streak}</span>
+        <div class="d">${sound?'Extended':'Reset'}</div></div></div>
+    <div class="rvb"><h4>${s[s.market].t} outperformed \u00b7 the call was ${s[s.better].t} on ${dN.toLowerCase()}</h4>
+      <p>${s.why}</p>${s.twist?`<p class="twist">${s.twist}</p>`:''}</div>
+    <div class="qn">${QN[q]}</div></div>
+    <button class="btn" id="nx">Next</button>
+    <button class="btn ghost" id="lv">Leave the office</button>`;
+  idx++;sessionsLeft--;hud();
+  $('nx').addEventListener('click',()=>{ if(sessionsLeft>0&&idx<S.length) roomOffice(); else roomOffice(); $('ov').scrollTop=0;});
+  $('lv').addEventListener('click',leave);
+}
+
+/* ---------- payday ---------- */
+function payday(){
+  inRoom='payday';$('exitBtn').classList.remove('on');
+  const inc=income(),exp=expenses();
+  cash+=inc-exp;
+  if(appLeft>0){appLeft--;if(appLeft===0)appLive=true;}
+  let forced=0;
+  if(cash<0){forced=-cash;port-=forced;cash=0;}
+  renderPayday(inc,exp,forced);
+}
+function renderPayday(inc,exp,forced){
+  const last = month>=MONTHS || idx>=S.length;
+  $('sheet').innerHTML=`<div class="roomhd"><h2>Month ${month} closed</h2><span class="sub">${last?'Final settlement':'Bills, then back out'}</span></div>
+    ${forced?`<p class="note" style="color:var(--warn)">Expenses exceeded cash. ${money(forced)} was liquidated from the portfolio to cover the gap \u2014 the most expensive way to fund a lifestyle.</p>`:''}
+    <div class="ledger">
+      <div class="lr"><span>Trading P&amp;L</span><span class="${monthPnl>=0?'pos':'neg'}">${monthPnl>=0?'+':''}${money(monthPnl)}</span></div>
+      <div class="lr"><span>Salary${owned.car?' (analyst role)':''}</span><span class="pos">+${money(salary+(owned.car?1800:0))}</span></div>
+      ${appLive?`<div class="lr"><span>App revenue</span><span class="pos">+${money(700)}</span></div>`:''}
+      ${appLeft>0?`<div class="lr"><span>App in build</span><span>${appLeft} mo left</span></div>`:''}
+      <div class="lr"><span>Rent${owned.apt?' (upgraded)':''}</span><span class="neg">\u2212${money(rent+(owned.apt?600:0))}</span></div>
+      ${owned.car?`<div class="lr"><span>Car running costs</span><span class="neg">\u2212${money(150)}</span></div>`:''}
+      <div class="lr"><span>Cash</span><span>${money(cash)}</span></div>
+    </div>
+    <div class="steplbl"><span>Move money</span><em>Position size scales with portfolio</em></div>
+    <div class="rrow">
+      ${[500,2000,5000].map(v=>`<button class="rbtn" data-r="${v}" ${cash<v?'disabled':''}>Invest ${money(v)}</button>`).join('')}
+      <button class="rbtn" data-r="all" ${cash<100?'disabled':''}>Invest all cash</button>
+      <button class="rbtn" data-w="2000" ${port<2000?'disabled':''}>Withdraw $2,000</button>
+    </div>
+    <button class="btn" id="ok">${last?'See where you ended up':'Start month '+(month+1)}</button>`;
+  document.querySelectorAll('.rbtn[data-r]').forEach(el=>el.addEventListener('click',()=>{
+    const v=el.dataset.r==='all'?cash:+el.dataset.r;if(cash<v)return;cash-=v;port+=v;hud();renderPayday(inc,exp,0);}));
+  document.querySelectorAll('.rbtn[data-w]').forEach(el=>el.addEventListener('click',()=>{
+    const v=+el.dataset.w;if(port<v)return;port-=v;cash+=v;hud();renderPayday(inc,exp,0);}));
+  $('ok').addEventListener('click',()=>{
+    if(last){finish();return;}
+    month++;sessionsLeft=ROUNDS_PER_MONTH;monthPnl=0;
+    inRoom=null;$('ov').classList.remove('on');
+    P.x=330;P.y=470;hud();toast('Month '+month+'. Five sessions.');
+  });
+  hud();
+}
+
+function finish(){
+  gameOver=true;
+  const sound=quad.gpgo+quad.gpbo,lucky=quad.bpgo,net=port+cash;
+  const bought=Object.keys(owned).map(k=>ITEMS[k]?ITEMS[k].n:k);
+  if(appLive||appLeft>0)bought.push('Side app');
+  let v;
+  if(sound>=14)v='You read the businesses correctly most of the time. That is the skill the game exists to build \u2014 the money follows it eventually, not reliably.';
+  else if(sound>=9)v='Roughly coin-flip on process. Check which axis you kept citing \u2014 most people default to growth or valuation and miss the balance-sheet calls entirely.';
+  else v='Process was weak. Worth asking whether you picked the company that looked cheap, or the one that was actually better.';
+  $('sheet').innerHTML=`<div class="roomhd"><h2>Four months later</h2><span class="sub">Final</span></div>
+    <div class="ledger">
+      <div class="lr"><span>Portfolio</span><span>${money(port)}</span></div>
+      <div class="lr"><span>Cash</span><span>${money(cash)}</span></div>
+      <div class="lr"><span>Max drawdown</span><span>${(maxDD*100).toFixed(1)}%</span></div>
+      <div class="lr"><span>Sound decisions</span><span>${sound} of ${idx}</span></div>
+      <div class="lr"><span>Right for wrong reasons</span><span>${lucky}</span></div>
+      <div class="lr"><span>Net worth</span><span>${money(net)}</span></div>
+    </div>
+    <p class="note"><strong>Bought:</strong> ${bought.length?bought.join(', '):'nothing \u2014 you ran the whole game frugal'}</p>
+    <p class="note">${v}</p>
+    <p class="note k">The question this build exists to answer: did driving to the club feel like part of the game, or like a menu with a map on top? If the world is doing work, you should remember the drive after you bought the car.</p>
+    <button class="btn" onclick="location.reload()">Play again</button>`;
+  $('exitBtn').classList.remove('on');
+}
+
+/* ==================== GO ==================== */
+order=shuffle([...S.keys()]);
+hud();step();
+toast('WASD or arrows to move. Walk to a door and press E.');
+</script>
+</body>
+</html>
