@@ -6,6 +6,9 @@ let salary=2400,rent=1200,owned={},appLeft=0,appLive=false;
 let sessionsLeft=ROUNDS_PER_MONTH, month=1, monthPnl=0, peak=10000, maxDD=0;
 let pick=null,reason=null,conv='std',locked=false,inRoom=null,gameOver=false;
 let genSeed=(Math.random()*2147483647)|0;
+/* lifecycle gates, owned by shell.js but declared here so step() -- which boot.js
+   starts before shell.js loads -- can read them without a temporal-dead-zone throw */
+let paused=false, splashDone=false;
 const quad={gpgo:0,gpbo:0,bpgo:0,bpbo:0};
 const P={x:330,y:470,vx:0,vy:0,dir:0,driving:false};
 

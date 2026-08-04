@@ -1,7 +1,7 @@
 # Alpha Life — Architecture
 
-Ten files, no build step, no modules, no bundler, no dependencies except two Google Fonts links.
-`index.html` is a bare DOM skeleton plus one stylesheet link and nine `<script>` tags; the scripts are
+No build step, no modules, no bundler, and — since Phase 5 — **no external dependencies at all**.
+`index.html` is a bare DOM skeleton plus one stylesheet link and fourteen `<script>` tags; the scripts are
 **classic scripts, not ES modules**, so they share one global scope and the game still opens by
 double-clicking the file. The whole thing runs off two surfaces:
 
@@ -39,6 +39,7 @@ The scripts, **in load order** — the order is load-bearing, see below:
 | `js/feel.js` | `moment()` beat layer, HUD pulse wrapper — presentation only |
 | `js/boot.js` | shuffle the deck, paint HUD, start the loop, tutorial toast |
 | `js/persist.js` | localStorage save/load, autosave wrappers, `newGame()` |
+| `js/shell.js` | title screen, pause/resume, lifecycle |
 
 **Why the order matters.** Almost nothing executes at parse time — the files are overwhelmingly
 `function` declarations and `const`/`let` initializers — but three things do:
@@ -46,6 +47,9 @@ The scripts, **in load order** — the order is load-bearing, see below:
 - `city.js` runs `resize()` immediately and does `const cv=$('cv')`, so it must follow `state.js`
   (which defines `$`) and the DOM (all scripts sit at the end of `<body>`).
 - `boot.js` starts the game, so it must follow everything it calls.
+- `shell.js` must come **after** `persist.js` — it reads persist's own `saved` result to tell a
+  fresh run from a resumed one. Re-reading storage would not work, because persist writes an initial
+  save on a fresh boot.
 - `persist.js` must come **after** `boot.js`. `boot.js` shuffles a fresh deck and calls `hud()`; if
   the autosave wrapper were already installed, that call would overwrite the save with default state
   before it was ever read.
@@ -353,6 +357,27 @@ additions with no state.
 touch devices, so every hover rule was moved and `:active` press states added in their place. Touch
 targets grow under `@media (pointer:coarse)` and the controls respect `env(safe-area-inset-*)`.
 `prefers-reduced-motion` collapses every animation added here.
+
+---
+
+## 6e. Shell and lifecycle
+
+`step()` is gated on two flags declared in `state.js`: `splashDone` and `paused`. They live there
+rather than in `shell.js` on purpose — `boot.js` starts the loop before `shell.js` parses, so a flag
+declared in `shell.js` would be in the temporal dead zone when `step()` first ran. An earlier version
+wrapped `step()` instead and leaked exactly one frame of simulation before the gate applied.
+
+The loop still calls `draw()` while gated, only skipping `simulate()`, so the city is rendered and
+ready underneath the title screen rather than appearing on dismissal.
+
+`shell.js` shows the title screen (*Begin*, or *Continue* with a live summary of where the save left
+off), and pauses on `visibilitychange`/`pagehide`, saving as it goes. Returning to a room auto-resumes
+because rooms are static; returning to the city waits for an explicit tap so the player is not dropped
+mid-drive.
+
+**Offline is a hard constraint.** There are no webfonts, no CDN, no `fetch`. Canvas text uses
+`CANVAS_COND`/`CANVAS_MONO` system stacks mirroring the CSS fallbacks. `SHIP.md` documents how to
+self-host IBM Plex to restore the intended typography.
 
 ---
 

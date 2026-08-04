@@ -4,13 +4,37 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
 <title>Alpha Life — the city</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans+Condensed:wght@600;700&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<meta name="theme-color" content="#0E1013">
+<meta name="description" content="A stock-analysis game wrapped in a small drivable city. Process is scored separately from money.">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Alpha Life">
+<meta name="mobile-web-app-capable" content="yes">
+<link rel="icon" href="assets/icons/icon-32.png" sizes="32x32">
+<link rel="apple-touch-icon" href="assets/icons/icon-180.png">
+<link rel="manifest" href="manifest.webmanifest">
 <link rel="stylesheet" href="css/game.css">
 </head>
 <body>
 <div id="game"><canvas id="cv"></canvas></div>
+
+<div class="splash on" id="splash">
+  <div class="sp-inner">
+    <div class="sp-mark" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
+    <h1>ALPHA LIFE</h1>
+    <p class="sp-sub">Process is scored separately from money</p>
+    <button class="sp-btn" id="splashBtn">Loading</button>
+    <p class="sp-foot" id="splashFoot"></p>
+  </div>
+</div>
+
+<div class="pausecard" id="pause">
+  <div class="sp-inner">
+    <h1>PAUSED</h1>
+    <p class="sp-sub" id="pauseSub">Progress saved</p>
+    <button class="sp-btn" id="pauseBtn">Resume</button>
+  </div>
+</div>
 
 <div class="hud">
   <div class="pod">
@@ -48,5 +72,6 @@
 <script src="js/feel.js"></script>
 <script src="js/boot.js"></script>
 <script src="js/persist.js"></script>
+<script src="js/shell.js"></script>
 </body>
 </html>

@@ -1,9 +1,9 @@
   :root{
     --paper:#E7E9E3;--card:#FCFCFA;--ink:#15181C;--ink-2:#5A6068;--ink-3:#8A9099;
     --rule:#CBCEC6;--rule-2:#DFE1DA;--process:#2B4C7E;--gain:#1B6B4A;--loss:#A32D2D;--warn:#8A5A12;
-    --sans:"IBM Plex Sans",-apple-system,sans-serif;
-    --cond:"IBM Plex Sans Condensed","IBM Plex Sans",sans-serif;
-    --mono:"IBM Plex Mono",ui-monospace,Menlo,monospace;
+    --sans:"IBM Plex Sans",-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+    --cond:"IBM Plex Sans Condensed","Avenir Next Condensed","Arial Narrow","IBM Plex Sans",-apple-system,BlinkMacSystemFont,sans-serif;
+    --mono:"IBM Plex Mono",ui-monospace,SFMono-Regular,Menlo,Consolas,"Liberation Mono",monospace;
   }
   *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
   html,body{height:100%;background:#0E1013;color:var(--ink);font-family:var(--sans);
@@ -282,4 +282,37 @@
   @media (prefers-reduced-motion:reduce){
     *,*::before,*::after{animation-duration:.001ms!important;animation-iteration-count:1!important;
       transition-duration:.001ms!important}
+  }
+
+  /* ==================== SHELL: title + pause ==================== */
+  .splash,.pausecard{position:fixed;inset:0;z-index:90;background:#0E1013;
+    display:flex;align-items:center;justify-content:center;padding:28px;
+    opacity:0;visibility:hidden;pointer-events:none;transition:opacity .32s ease,visibility 0s .32s}
+  .splash.on,.pausecard.on{opacity:1;visibility:visible;pointer-events:auto;
+    transition:opacity .32s ease,visibility 0s}
+  .pausecard{background:#0E1013F5;z-index:80}
+  .sp-inner{text-align:center;max-width:460px;width:100%}
+  .sp-inner h1{font-family:var(--cond);font-weight:700;color:#EDEFEA;
+    font-size:clamp(38px,11vw,68px);letter-spacing:.16em;line-height:1}
+  .sp-sub{font-family:var(--mono);font-size:11px;letter-spacing:.15em;text-transform:uppercase;
+    color:#8E959C;margin-top:14px;line-height:1.7}
+  .sp-btn{margin-top:34px;background:#EDEFEA;color:#15181C;border:none;padding:17px 46px;
+    font-family:var(--cond);font-weight:700;font-size:15px;letter-spacing:.18em;
+    text-transform:uppercase;cursor:pointer;transition:.15s;-webkit-user-select:none;user-select:none}
+  .sp-btn:active{transform:scale(.98)}
+  .sp-foot{font-family:var(--mono);font-size:10.5px;letter-spacing:.08em;color:#5A6068;
+    margin-top:22px;line-height:1.6}
+  /* the quadrant grid, which is the whole game in one mark */
+  .sp-mark{width:74px;height:74px;margin:0 auto 26px;display:grid;
+    grid-template-columns:1fr 1fr;grid-template-rows:1fr 1fr;gap:5px}
+  .sp-mark i{display:block;animation:markIn .5s both}
+  .sp-mark i:nth-child(1){background:#1B6B4A;animation-delay:.03s}
+  .sp-mark i:nth-child(2){background:#2B4C7E;animation-delay:.10s}
+  .sp-mark i:nth-child(3){background:#5A6068;animation-delay:.17s}
+  .sp-mark i:nth-child(4){background:#A32D2D;animation-delay:.24s}
+  @keyframes markIn{from{opacity:0;transform:scale(.6)}to{opacity:1;transform:none}}
+  @media (pointer:coarse){
+    .splash,.pausecard{padding:calc(28px + env(safe-area-inset-top)) 28px
+      calc(28px + env(safe-area-inset-bottom))}
+    .sp-btn{padding:19px 50px}
   }

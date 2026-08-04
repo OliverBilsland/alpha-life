@@ -1,4 +1,8 @@
 /* ==================== RENDER ==================== */
+/* No webfonts are loaded (the game must run with no network), so canvas text
+   uses the same system stacks the CSS falls back to. */
+const CANVAS_COND='700 13px "IBM Plex Sans Condensed","Avenir Next Condensed","Arial Narrow",-apple-system,sans-serif';
+const CANVAS_MONO='400 10px "IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace';
 const cv=$('cv'),cx=cv.getContext('2d');
 let VW=0,VH=0,DPR=1;
 function resize(){DPR=Math.min(devicePixelRatio||1,2);VW=innerWidth;VH=innerHeight;
@@ -35,9 +39,9 @@ function draw(){
     const lit=near&&near.id===b.id;
     if(lit){cx.fillStyle='#EDEFEA22';cx.fillRect(d.x-34,d.y-16,68,30);}
     cx.fillStyle=lit?'#FFFFFF':'#EDEFEA';cx.fillRect(d.x-20,d.y-6,40,10);
-    cx.fillStyle='#EDEFEA';cx.font='700 13px "IBM Plex Sans Condensed",sans-serif';
+    cx.fillStyle='#EDEFEA';cx.font=CANVAS_COND;
     cx.textAlign='center';cx.fillText(b.n,b.x+b.w/2,b.y+18);
-    cx.fillStyle='#EDEFEA88';cx.font='400 10px "IBM Plex Mono",monospace';
+    cx.fillStyle='#EDEFEA88';cx.font=CANVAS_MONO;
     cx.fillText(b.s.toUpperCase(),b.x+b.w/2,b.y+b.h+18);
   });
 
@@ -98,6 +102,13 @@ if(matchMedia('(pointer:coarse)').matches){
 /* ==================== LOOP ==================== */
 function step(){
   if(!inRoom&&!gameOver){
+    if(splashDone&&!paused) simulate();
+    draw();
+  }
+  requestAnimationFrame(step);
+}
+function simulate(){
+  {
     const sp=P.driving?4.1:1.9;
     let dx=(keys['d']||keys['arrowright']?1:0)-(keys['a']||keys['arrowleft']?1:0)+tv.x;
     let dy=(keys['s']||keys['arrowdown']?1:0)-(keys['w']||keys['arrowup']?1:0)+tv.y;
@@ -113,9 +124,7 @@ function step(){
       pr.innerHTML=`Enter ${b.n}<small>${promptFor(b)}</small>`;
       $('actBtn').classList.add('live');}
     else{pr.classList.remove('on');$('actBtn').classList.remove('live');}
-    draw();
   }
-  requestAnimationFrame(step);
 }
 function promptFor(b){
   if(b.id==='office') return sessionsLeft>0? sessionsLeft+' trading sessions left':'No sessions left \u2014 go home';
