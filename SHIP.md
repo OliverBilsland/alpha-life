@@ -43,7 +43,7 @@ something crept in that needs a server.
 | App icons, 15 sizes | `assets/icons/icon-<N>.png` | Opaque, truecolour, square, no alpha, no rounded corners |
 | Web manifest | `manifest.webmanifest` | `display:fullscreen`, theme `#0E1013` |
 | Title / loading screen | `#splash` in `index.html`, `js/shell.js` | Shows *Continue* with a live save summary, else *Begin* |
-| Pause / resume | `js/shell.js` | Saves on hide/blur/pagehide; resume card when returning outdoors |
+| Lifecycle | `js/shell.js` | Saves on hide/blur/pagehide; the game does not pause |
 | iOS web-app meta | `index.html` `<head>` | `apple-mobile-web-app-capable`, status bar style, apple-touch-icon |
 | Safe-area handling | `css/game.css` | `env(safe-area-inset-*)` on HUD, joystick, action button, sheets |
 
@@ -206,7 +206,7 @@ native APIs.
 - [ ] Fund arc reachable and completable; both win and closure endings seen
 - [ ] `New game` clears the save and the title screen returns to *Begin*
 - [ ] Rotate the device mid-game; rotate inside a room
-- [ ] Background the app mid-drive, return, confirm the pause card and correct resume
+- [ ] Background the app mid-drive, return, confirm it kept running and the save is intact
 - [ ] Icon renders on the home screen with no white corners or halo
 - [ ] Launch storyboard shows, with no white flash into the game
 - [ ] `ITSAppUsesNonExemptEncryption` set

@@ -749,10 +749,15 @@ wrapped `step()` instead and leaked exactly one frame of simulation before the g
 The loop still calls `draw()` while gated, only skipping `simulate()`, so the city is rendered and
 ready underneath the title screen rather than appearing on dismissal.
 
-`shell.js` shows the title screen (*Begin*, or *Continue* with a live summary of where the save left
-off), and pauses on `visibilitychange`/`pagehide`, saving as it goes. Returning to a room auto-resumes
-because rooms are static; returning to the city waits for an explicit tap so the player is not dropped
-mid-drive.
+`shell.js` shows the title screen — *Start New Life*, or *Continue* with a live summary of where the
+save left off.
+
+**The game never pauses.** Clicking or tabbing away only triggers a save; the run keeps going and
+comes back exactly as it was. This is safe because saving never depended on pausing: `persist.js`
+saves on `visibilitychange`, `pagehide` and `blur`, on every `hud()` call, and on a position poll —
+five independent paths, none of which touch the (now removed) pause. And payday double-charging is
+prevented by `persist.js` restoring **into** the payday screen when `inRoom === 'payday'`, which was
+never related to pausing either. Both are asserted directly in `t5-ship`.
 
 **Offline is a hard constraint.** There are no webfonts, no CDN, no `fetch`. Canvas text uses
 `CANVAS_COND`/`CANVAS_MONO` system stacks mirroring the CSS fallbacks. `SHIP.md` documents how to

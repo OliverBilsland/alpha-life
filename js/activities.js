@@ -214,7 +214,7 @@ function rollEncounter(){
   return pool[0];
 }
 function maybeEncounter(){
-  if(inRoom||gameOver||!splashDone||paused) return;
+  if(inRoom||gameOver||!splashDone) return;
   if(encounterCooldown>0){encounterCooldown--;return;}
   /* a better car is out more, and meets more */
   const chance=0.00035*(1+carTier*0.55);

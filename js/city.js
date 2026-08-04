@@ -68,7 +68,7 @@ if(matchMedia('(pointer:coarse)').matches){
 /* ==================== LOOP ==================== */
 function step(){
   if(!inRoom&&!gameOver){
-    if(splashDone&&!paused){ simulate(); stepLife(); maybeEncounter(); }
+    if(splashDone){ simulate(); stepLife(); maybeEncounter(); }
     draw();
   }
   requestAnimationFrame(step);

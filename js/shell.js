@@ -2,9 +2,9 @@
    Title screen, pause/resume, and lifecycle. Loads last, after persist.js, so
    it can tell a fresh run from a resumed one. Owns no game state. */
 
-/* `paused` and `splashDone` are declared in state.js and read directly by step().
-   Wrapping step() here instead would leak one frame of simulation, because
-   boot.js schedules the first callback before this file runs. */
+/* `splashDone` is declared in state.js and read directly by step(). Wrapping
+   step() here instead would leak one frame of simulation, because boot.js
+   schedules the first callback before this file runs. */
 
 /* ---------- title ---------- */
 function showSplash(){
@@ -29,30 +29,18 @@ function dismissSplash(){
   save();
 }
 
-/* ---------- pause ---------- */
-function pauseGame(){
-  /* Paused may only appear after a real pause: never before the player has
-     started, never over the title screen, never on a finished run. */
-  if(paused||!splashDone||gameOver) return;
-  if($('splash')&&$('splash').classList.contains('on')) return;
-  paused=true; save();
-  $('pauseSub').textContent=inRoom?'Progress saved':'Progress saved · the city is where you left it';
-  $('pause').classList.add('on');
-}
-function resumeGame(){
-  if(!paused) return;
-  paused=false;
-  $('pause').classList.remove('on');
-}
+/* ---------- lifecycle ----------
+   The game does NOT pause when you click away. Losing focus only triggers a
+   save, so a run keeps going in the background and comes back exactly as it
+   was.
 
-document.addEventListener('visibilitychange',()=>{
-  if(document.visibilityState==='hidden') pauseGame();
-  /* rooms are static, so returning to one needs no acknowledgement */
-  else if(inRoom) resumeGame();
-});
+   Safe because saving never depended on pausing: persist.js saves on
+   visibilitychange, pagehide and blur, on every hud() call, and on a position
+   poll. And payday double-charging is prevented by persist.js restoring INTO
+   the payday screen when inRoom==='payday' -- also nothing to do with pause. */
 addEventListener('blur',()=>{try{save();}catch(e){}});
-addEventListener('pagehide',pauseGame);
-
-$('pauseBtn').addEventListener('click',resumeGame);
+document.addEventListener('visibilitychange',()=>{
+  if(document.visibilityState==='hidden'){try{save();}catch(e){}}
+});
 bindHudTerms();
 showSplash();
