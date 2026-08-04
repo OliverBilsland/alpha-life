@@ -348,6 +348,12 @@ The city is 4200x2400 across five districts. `districtAt(x)` maps a coordinate t
 is **physically unreachable**, not merely discouraged. `nearGate()` drives the prompt that explains
 which car opens it.
 
+**Old Town and Midtown are both open on foot** (`req: 0`). Midtown holds Voss Motors, so gating it
+behind a car was a chicken-and-egg — you could not walk in and look at cars until you already owned
+one. The consequence, stated plainly: the tier-1 car no longer opens a district. It buys speed, the
+analyst seat and a running cost; The Heights, Harbour and The Coast are still gated at tiers 2, 3
+and 4.
+
 A car tier buys four separate things, which is why it is never a stat bump: district access, speed
 (1.9 → 8.2, on a map big enough that it matters), a running cost that scales from $150 to $3,200 a
 month, and upkeep — `carCond` decays with use, and a neglected car simply **will not start**, putting

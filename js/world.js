@@ -1,12 +1,16 @@
 /* ==================== WORLD ====================
-   Five districts across a 4200x2400 city. Districts are gated by car tier:
-   districtAt() feeds blocked(), so an ungated district is physically
-   unreachable rather than merely discouraged. */
+   Five districts across a 4200x2400 city. The outer three are gated by car
+   tier: districtAt() feeds blocked(), so an ungated district is physically
+   unreachable rather than merely discouraged.
+
+   Old Town and Midtown are both open on foot. Midtown holds the dealership, so
+   gating it behind a car was a chicken-and-egg -- you could not go and look at
+   cars until you already owned one. */
 const W=4200,H=2400;
 
 const DISTRICTS=[
  {id:'old',    x0:0,    x1:1180, req:0, n:'OLD TOWN',    c:'#1D2126'},
- {id:'mid',    x0:1180, x1:2180, req:1, n:'MIDTOWN',     c:'#1E242B'},
+ {id:'mid',    x0:1180, x1:2180, req:0, n:'MIDTOWN',     c:'#1E242B'},
  {id:'heights',x0:2180, x1:3080, req:2, n:'THE HEIGHTS', c:'#20262E'},
  {id:'harbour',x0:3080, x1:3760, req:3, n:'HARBOUR',     c:'#1C2429'},
  {id:'coast',  x0:3760, x1:4200, req:4, n:'THE COAST',   c:'#22282C'}
