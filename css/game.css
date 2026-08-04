@@ -20,6 +20,10 @@
   .st b{display:block;font-size:15px;font-weight:600;color:#EDEFEA;letter-spacing:0}
   .st b.up{color:#5FC48F} .st b.down{color:#E07777} .st b.warn{color:#E0B063}
   .st b.proc{color:#7FA6DB}
+  #newBtn{pointer-events:auto;align-self:center;background:transparent;
+    border:1px solid #EDEFEA33;color:#8E959C;font-family:var(--mono);font-size:9.5px;
+    letter-spacing:.12em;text-transform:uppercase;padding:6px 10px;cursor:pointer;transition:.15s}
+  #newBtn:hover{border-color:#EDEFEA66;color:#EDEFEA}
 
   .prompt{position:fixed;left:50%;bottom:26px;transform:translateX(-50%);
     background:#EDEFEA;color:#15181C;padding:10px 18px;font-family:var(--cond);font-weight:700;

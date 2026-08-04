@@ -62,6 +62,6 @@ function finish(){
     <p class="note"><strong>Bought:</strong> ${bought.length?bought.join(', '):'nothing \u2014 you ran the whole game frugal'}</p>
     <p class="note">${v}</p>
     <p class="note k">The question this build exists to answer: did driving to the club feel like part of the game, or like a menu with a map on top? If the world is doing work, you should remember the drive after you bought the car.</p>
-    <button class="btn" onclick="location.reload()">Play again</button>`;
+    <button class="btn" onclick="newGame()">Play again</button>`;
   $('exitBtn').classList.remove('on');
 }
