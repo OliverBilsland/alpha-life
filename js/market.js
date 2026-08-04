@@ -1,9 +1,11 @@
 /* ---------- office / market ---------- */
 function roomOffice(){
   if(sessionsLeft<=0){
-    $('sheet').innerHTML=`<div class="roomhd"><h2>ARDENT CAPITAL</h2><span class="sub">Desk closed</span></div>
+    $('sheet').innerHTML=`<div class="roomhd"><h2>ARDENT CAPITAL</h2><span class="sub">Desk closed</span>
+      <button class="refbtn" id="refBtn">How scoring works</button></div>
       <p class="note">No sessions left this month. The market will be here. Go home and settle up.</p>
       <button class="btn ghost" id="out">Leave the office</button>`;
+    $('refBtn').addEventListener('click',roomRef);
     $('out').addEventListener('click',leave);return;
   }
   pick=null;reason=null;locked=false;
@@ -11,7 +13,9 @@ function roomOffice(){
   const red = focus<3 ? (focus<1?['m','l']:['m']) : [];
   const row=(l,v,c)=>`<div class="m ${c||''}"><span class="lbl">${l}</span><span class="val">${v}</span></div>`;
   $('sheet').innerHTML=`<div class="roomhd"><h2>ARDENT CAPITAL</h2>
-      <span class="sub">Month ${month} \u00b7 session ${ROUNDS_PER_MONTH-sessionsLeft+1} of ${ROUNDS_PER_MONTH} \u00b7 ${s.sector}</span></div>
+      <span class="sub">Month ${month} \u00b7 session ${ROUNDS_PER_MONTH-sessionsLeft+1} of ${ROUNDS_PER_MONTH} \u00b7 ${s.sector}</span>
+      <button class="refbtn" id="refBtn">How scoring works</button></div>
+    ${tutPanel()}
     ${focus<3?`<p class="note" style="color:var(--warn)">Focus ${focus}. You are reading these cards tired \u2014 ${red.length} metric${red.length>1?'s are':' is'} unreadable.</p>`:''}
     <div class="cards">${['a','b'].map(k=>{const c=s[k];return `
       <button class="co" data-k="${k}" aria-pressed="false">
@@ -36,6 +40,8 @@ function roomOffice(){
   document.querySelectorAll('.cv').forEach(el=>el.addEventListener('click',()=>{if(locked)return;
     conv=el.dataset.c;document.querySelectorAll('.cv').forEach(x=>x.setAttribute('aria-pressed',String(x.dataset.c===conv)));}));
   $('go').addEventListener('click',commit);
+  $('refBtn').addEventListener('click',roomRef);
+  tutBind();
 }
 function sync(){$('go').disabled=!(pick&&reason);}
 function sigHTML(){
@@ -61,6 +67,7 @@ function commit(){
     bpgo:'Unsound process, good outcome',bpbo:'Unsound process, bad outcome'};
   const rN=REASONS.find(r=>r.id===reason).name,dN=REASONS.find(r=>r.id===s.driver).name;
   $('go').style.display='none';
+  const rb=$('refBtn'); if(rb) rb.style.display='none';
   $('rev').innerHTML=`<div class="reveal"><div class="rvtop">
       <div class="chip"><span class="k">Position result</span>
         <span class="v" style="color:${won?'var(--gain)':'var(--loss)'}">${won?'+':''}${money(delta)}</span>
@@ -73,6 +80,7 @@ function commit(){
     <div class="rvb"><h4>${s[s.market].t} outperformed \u00b7 the call was ${s[s.better].t} on ${dN.toLowerCase()}</h4>
       <p>${s.why}</p>${s.twist?`<p class="twist">${s.twist}</p>`:''}</div>
     <div class="qn">${QN[q]}</div></div>
+    ${tutAfter()}
     <button class="btn" id="nx">Next</button>
     <button class="btn ghost" id="lv">Leave the office</button>`;
   idx++;sessionsLeft--;hud();

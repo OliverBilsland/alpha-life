@@ -115,6 +115,34 @@
   .qn{font-family:var(--mono);font-size:9.5px;letter-spacing:.13em;text-transform:uppercase;
     padding:10px 14px;border-top:1px solid var(--rule);color:var(--ink-2)}
 
+  /* tutorial + reference */
+  .refbtn{background:transparent;border:1px solid var(--rule);color:var(--ink-2);
+    font-family:var(--mono);font-size:9px;letter-spacing:.11em;text-transform:uppercase;
+    padding:7px 11px;cursor:pointer;transition:.15s;margin-left:auto}
+  .refbtn:hover{border-color:var(--process);color:var(--process)}
+  .coach{border:1px solid var(--process);background:#F2F4EE;padding:0 0 14px;margin-bottom:20px}
+  .coach.after{margin:16px 0 0;padding:14px}
+  .coachhd{display:flex;justify-content:space-between;align-items:center;gap:10px;
+    background:var(--process);color:var(--paper);padding:8px 14px;font-family:var(--mono);
+    font-size:9px;letter-spacing:.13em;text-transform:uppercase}
+  .coachskip{background:transparent;border:1px solid #FFFFFF55;color:var(--paper);font:inherit;
+    padding:4px 9px;cursor:pointer;transition:.15s}
+  .coachskip:hover{background:#FFFFFF22}
+  .coach h4{font-family:var(--cond);font-weight:700;font-size:17px;padding:14px 14px 0}
+  .coachb{font-size:13px;line-height:1.65;color:var(--ink-2);padding:7px 14px 0}
+  .coach.after .coachb{padding:0}
+  .coachb ul{margin:9px 0 0 18px}
+  .coachb li{margin-bottom:5px}
+  .coachb em{color:var(--process);font-style:normal;font-family:var(--mono);font-size:11px}
+  .reftab{border:1px solid var(--rule);background:var(--card)}
+  .reftab>div{display:grid;grid-template-columns:150px 1fr 110px;gap:10px;padding:10px 12px;
+    border-bottom:1px solid var(--rule-2);font-size:12px;align-items:baseline}
+  .reftab>div:last-child{border-bottom:none}
+  .reftab b{font-family:var(--cond);font-size:13px}
+  .reftab span{color:var(--ink-2)}
+  .reftab em{font-style:normal;font-family:var(--mono);font-size:10px;color:var(--process);
+    text-align:right}
+
   .items{display:grid;grid-template-columns:1fr 1fr;gap:10px}
   .item{border:1px solid var(--rule);padding:14px;text-align:left;font:inherit;background:transparent;
     cursor:pointer;transition:.15s}

@@ -32,6 +32,7 @@ The scripts, **in load order** — the order is load-bearing, see below:
 | `js/city.js` | `resize()`, `draw()`, `door()`, `nearBuilding()`, `blocked()`, keyboard + touch input, `step()`, `promptFor()` |
 | `js/rooms.js` | `enter()`/`leave()`, `roomShop`, `roomVenue`, `roomApt` |
 | `js/market.js` | `roomOffice()`, `sync()`, `sigHTML()`, `commit()` — the actual game |
+| `js/tutorial.js` | `TUT` coach steps, `tutPanel()`/`tutAfter()`/`tutBind()`, `roomRef()` reference screen |
 | `js/ledger.js` | `payday()`, `renderPayday()`, `finish()` |
 | `js/boot.js` | shuffle the deck, paint HUD, start the loop, tutorial toast |
 | `js/persist.js` | localStorage save/load, autosave wrappers, `newGame()` |
@@ -255,6 +256,26 @@ the scenarios themselves never do.
 Growth and P/E are never hidden — you always have enough to make *a* call, just not always enough to
 make the right one. Note the asymmetry: focus hides metrics you'd otherwise have, purchases reveal
 metrics you'd otherwise never see.
+
+---
+
+## 6a. Onboarding
+
+`tutorial.js` holds three coach steps in `TUT`, one per idea, keyed to the first three trades
+(`tutActive() === tutOn && idx < 3`). `roomOffice()` calls `tutPanel()` above the cards and
+`commit()` calls `tutAfter()` inside the reveal, so each idea is introduced before a trade and
+closed out after it. Order: metrics and the reason requirement → sizing and the process/outcome
+split → focus decay and redaction.
+
+The panel carries its own **Skip tutorial** button; skipping sets `tutOn=false`, which persists.
+Nothing in `TUT` touches trade maths — it is presentation only, so the tutorial cannot alter a
+result.
+
+`roomRef()` is the permanent reference, reachable from a **How scoring works** button in the office
+header (including when the desk is closed). It reads `CONV`, `WIN_R` and `LOSE_R` live rather than
+restating them, so it cannot drift from the balance. It's hidden during a reveal — `commit()` sets
+`#refBtn` to `display:none` alongside `#go` — so navigating away can't discard an explanation the
+player is mid-way through reading.
 
 ---
 
