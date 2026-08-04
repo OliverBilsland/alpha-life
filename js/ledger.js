@@ -64,6 +64,8 @@ function renderPayday(inc,exp,forced){
     if(last){finish();return;}
     month++;sessionsLeft=ROUNDS_PER_MONTH;monthPnl=0;
     stepPropertyMarket();
+    tips=tips.filter(t=>t.i>=idx);
+    owned.rateread=false;
     trips=tripsPerMonth();research=researchPerMonth();gymMonth=false;floorMonth=false;
     inRoom=null;$('ov').classList.remove('on');
     P.x=330;P.y=470;hud();toast('Month '+month+'. Five sessions.');

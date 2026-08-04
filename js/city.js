@@ -14,6 +14,7 @@ function draw(){
   drawGround(cx,cam,VW,VH);
   drawRoads(cx);
   drawLamps(cx,cam,VW);
+  drawLife(cx,cam,VW,VH);
   drawDistrictLabels(cx,cam,VW);
 
   const near=nearBuilding();
@@ -66,7 +67,7 @@ if(matchMedia('(pointer:coarse)').matches){
 /* ==================== LOOP ==================== */
 function step(){
   if(!inRoom&&!gameOver){
-    if(splashDone&&!paused) simulate();
+    if(splashDone&&!paused){ simulate(); stepLife(); maybeEncounter(); }
     draw();
   }
   requestAnimationFrame(step);
@@ -118,6 +119,18 @@ function promptFor(b){
   if(b.id==='club') return '$250 \u00b7 full focus, and people talk';
   if(b.id==='dealer') return owned.car?'You already own the car':'Used car \u00b7 $4,500';
   if(b.id==='school') return 'Courses \u00b7 accounting, terminal';
+  if(b.id==='annex') return 'Bottle service, tips, and people who talk';
+  if(b.id==='rest') return 'Eat \u00b7 moves relationships along';
+  if(b.id==='board') return eventDone===month?'You have taken this month\u2019s':eventFor(month).n;
+  if(b.id==='gym') return 'Raise the focus ceiling for the month';
+  if(b.id==='rostrum') return 'Buy standing outright';
+  if(b.id==='headland') return 'Turn contacts into capital';
+  if(b.id==='floor') return 'Buy a sixth trading session';
+  if(b.id==='prime') return 'Which desks are open to you';
+  if(b.id==='bank') return 'Credit against your title';
+  if(b.id==='recruit') return 'Seats, and what they need';
+  if(b.id==='pbank') return 'Credit against your balance sheet';
+  if(b.id==='estates') return 'High-end property';
   if(b.id==='realtor') return owned.apt?'You already moved':'Better apartment \u00b7 $5,000';
   if(b.id==='tech') return appLive?'App is live':appLeft>0?'In build \u2014 '+appLeft+' mo':'Fund an app \u00b7 $7,500';
   return '';

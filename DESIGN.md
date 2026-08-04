@@ -312,6 +312,25 @@ previously have*? A higher price for a bigger effect is not depth, it is inflati
 What did not get built: extra car tiers, extra home tiers, higher-paying seats. Every one of those
 would have been a bigger number at a higher price, which is the thing this rule exists to refuse.
 
+## Rule 13 — Consumption converts, or it does not ship
+
+Every activity has to hand something back: information, access, capital, or time. A pure money sink
+is a punishment for playing, and a pure cosmetic is a lie about depth.
+
+The nightclub is the sharpest case. It sells **tips**, and a tip tells you where the money went —
+never which business deserved it. So a player can buy a tip, trade it, make money, and land in
+`bpgo`: *wrong call, got lucky*. The screen says as much before they commit. That is Rule 1 made
+purchasable: you can buy the outcome and you still cannot buy the process.
+
+The rest follow the same shape. Restaurants advance relationships but introduce nobody, so meeting
+and maturing are separate decisions. The monthly event is one opportunity with a price and a return —
+including a compliance review that pays reputation on your *sound rate*, the only place in the game
+where process converts directly into standing. Street encounters are the only system that gives
+things for free, and they are gated on the car, which was paid for.
+
+Ambient life is the one exception, and it is deliberate: pedestrians and traffic convert into nothing
+at all. They are there so the city reads as inhabited, which is Rule 11's job, not this one's.
+
 ## The through-line
 
 Money is the score everyone watches and the one the game refuses to grade you on. Information is what

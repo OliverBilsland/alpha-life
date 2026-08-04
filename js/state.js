@@ -16,6 +16,8 @@ let propIndex=1, propHist=[1];           /* housing.js -- the property market */
 let reviewedAt=0, reviewedSound=0;       /* careers.js -- performance reviews */
 let met={};                              /* social.js -- relationships */
 let lastReview=null, rennUsed=false;
+let tips=[], eventDone=0;                /* activities.js */
+let encounterCooldown=600, pendingEncounter=null;
 let sessionsLeft=ROUNDS_PER_MONTH, month=1, monthPnl=0, peak=10000, maxDD=0;
 let pick=null,reason=null,conv='std',locked=false,inRoom=null,gameOver=false;
 let genSeed=(Math.random()*2147483647)|0;

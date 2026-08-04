@@ -275,3 +275,67 @@ function drawDistrictLabels(cx,cam,VW){
     for(let y=0;y<H;y+=52) cx.fillRect(d.x0-5,y,10,28);
   }
 }
+
+/* ==================== AMBIENT LIFE ====================
+   The city is inhabited: pedestrians walk the pavements, traffic runs the roads,
+   and windows flicker. All procedural, all deterministic in layout, and all
+   purely decorative -- nothing here touches collision or state. */
+
+const CROWD=[], TRAFFIC=[];
+function seedLife(){
+  CROWD.length=0; TRAFFIC.length=0;
+  const r=rngFor('crowd');
+  for(let i=0;i<90;i++){
+    const road=ROADS[Math.floor(r()*ROADS.length)];
+    const horiz=road.w>road.h;
+    CROWD.push({
+      x:road.x+r()*road.w, y:horiz?road.y+road.h+10+r()*26:road.y+r()*road.h,
+      dir:r()<0.5?-1:1, horiz, sp:0.22+r()*0.30, ph:r(),
+      c:['#E8574B','#3FBFA0','#E9A93C','#8FA3FF','#D98AC4','#F0E0C0'][Math.floor(r()*6)]
+    });
+  }
+  for(let i=0;i<34;i++){
+    const road=ROADS[Math.floor(r()*ROADS.length)];
+    const horiz=road.w>road.h;
+    TRAFFIC.push({
+      x:road.x+r()*road.w, y:road.y+(horiz?road.h*0.3+r()*road.h*0.4:r()*road.h),
+      dir:r()<0.5?-1:1, horiz, sp:1.1+r()*1.9,
+      c:['#7C7060','#3E5F8A','#8A4038','#4A6E52','#6A5A7A'][Math.floor(r()*5)]
+    });
+  }
+}
+function stepLife(){
+  for(const p of CROWD){
+    if(p.horiz) p.x+=p.sp*p.dir; else p.y+=p.sp*p.dir;
+    p.ph=(p.ph+p.sp*0.05)%1;
+    if(p.x<-40) p.x=W+40; if(p.x>W+40) p.x=-40;
+    if(p.y<-40) p.y=H+40; if(p.y>H+40) p.y=-40;
+  }
+  for(const v of TRAFFIC){
+    if(v.horiz) v.x+=v.sp*v.dir; else v.y+=v.sp*v.dir;
+    if(v.x<-60) v.x=W+60; if(v.x>W+60) v.x=-60;
+    if(v.y<-60) v.y=H+60; if(v.y>H+60) v.y=-60;
+  }
+}
+function drawLife(cx,cam,VW,VH){
+  const vis=(o)=>o.x>cam.x-60&&o.x<cam.x+VW+60&&o.y>cam.y-60&&o.y<cam.y+VH+60;
+  for(const v of TRAFFIC){
+    if(!vis(v)||!districtOpen(districtAt(v.x))) continue;
+    cx.save(); cx.translate(v.x,v.y); cx.rotate(v.horiz?(v.dir>0?0:Math.PI):(v.dir>0?Math.PI/2:-Math.PI/2));
+    cx.fillStyle=PAL.shadow; cx.fillRect(-13,-6,28,15);
+    cx.fillStyle=v.c;        cx.fillRect(-14,-7,28,14);
+    cx.fillStyle='#151024';  cx.fillRect(-5,-5,9,10);
+    cx.fillStyle='#FFE7B0';  cx.fillRect(12,-5,3,3); cx.fillRect(12,2,3,3);
+    cx.restore();
+  }
+  for(const p of CROWD){
+    if(!vis(p)||!districtOpen(districtAt(p.x))) continue;
+    const bob=Math.abs(Math.sin(p.ph*Math.PI*2))*1.1;
+    cx.fillStyle=PAL.shadow;
+    cx.beginPath(); if(cx.ellipse) cx.ellipse(p.x,p.y+5,4.5,2,0,0,7); else cx.arc(p.x,p.y+5,4,0,7);
+    cx.fill();
+    cx.fillStyle='#2E3C74'; cx.fillRect(p.x-2.2,p.y-1-bob,4.4,6);
+    cx.fillStyle=p.c;       cx.fillRect(p.x-2.8,p.y-6-bob,5.6,5.5);
+    cx.fillStyle='#EFC08E'; cx.beginPath(); cx.arc(p.x,p.y-8.5-bob,2.4,0,7); cx.fill();
+  }
+}

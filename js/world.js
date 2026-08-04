@@ -21,6 +21,8 @@ const B=[
  {id:'school', x:700, y:1540,w:330,h:220,n:'CITY INSTITUTE', s:'Courses',c:'#33454A'},
  {id:'realtor',x:200, y:880, w:220,h:150,n:'HALE PROPERTY',  s:'Leasing',c:'#4A4453'},
  {id:'gym',    x:790, y:880, w:210,h:150,n:'THE YARD',       s:'Gym',c:'#3D4A3C'},
+ {id:'rest',   x:430, y:1500,w:230,h:170,n:"BRUNO'S",        s:'Dining',c:'#7A4030'},
+ {id:'board',  x:1120,y:880, w:230,h:150,n:'THE NOTICE',     s:'What is on',c:'#2E4658'},
 
  /* ---- Midtown: cars, employers, credit ---- */
  {id:'dealer', x:1290,y:220, w:340,h:210,n:'VOSS MOTORS',    s:'Cars',c:'#3A4A3E'},
@@ -30,6 +32,7 @@ const B=[
 
  /* ---- The Heights: status, networking, desk access ---- */
  {id:'club',   x:2260,y:250, w:290,h:210,n:'MERIDIAN CLUB',  s:'Members only',c:'#3E2C46'},
+ {id:'annex',  x:2660,y:250, w:300,h:200,n:'THE ANNEX',      s:'Nightclub',c:'#5A2C4E'},
  {id:'prime',  x:2250,y:1250,w:280,h:190,n:'PRIME BROKERAGE',s:'Desk access',c:'#25404A'},
  {id:'rostrum',x:2720,y:1250,w:300,h:200,n:'THE ROSTRUM',    s:'Benefit galas',c:'#4B3B2E'},
 

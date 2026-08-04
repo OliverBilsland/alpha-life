@@ -23,6 +23,7 @@ function roomOffice(){
       <span class="sub">Month ${month} \u00b7 session ${ROUNDS_PER_MONTH-sessionsLeft+1} of ${ROUNDS_PER_MONTH} \u00b7 ${s.sector}</span>
       <button class="refbtn" id="refBtn">How scoring works</button></div>
     ${tutPanel()}
+    ${tipHTML(s,idx)}
     ${red.length?`<p class="note" style="color:var(--warn)">Focus ${focus}. You are reading these cards tired — ${red.length} metric${red.length>1?'s are':' is'} unreadable.${canResearch()?` Your home office can recover ${research===1?'one':research}: ${red.map(k=>`<button class="rsrch" data-m="${k}">Research ${k==='m'?'operating margin':'debt / EBITDA'}</button>`).join(' ')}`:''}</p>`:''}
     <p class="instask">${INST.id==='short'?'Pick the business you would <strong>not</strong> own — you are selling it.'
       :INST.id==='pairs'?'Pick the business you <strong>own</strong>. The other leg is sold short automatically.'
@@ -49,7 +50,7 @@ function roomOffice(){
       <p class="instnote">${INST.teach}</p></div>
     ${INST.extra?`<div class="step"><div class="steplbl"><span>${INST.extra.label}</span><em>${INST.extra.hint}</em></div>
       ${INST.id==='bond'&&s.deflt&&(owned.credit||knows('ozal'))?`<p class="instnote" style="color:var(--loss)"><strong>Default warning.</strong> One of these issuers is not good for the coupon.</p>`:''}
-      ${INST.id==='bond'&&owned.credit?`<p class="instnote">Credit analysis: rates are set to move
+      ${INST.id==='bond'&&(owned.credit||owned.rateread)?`<p class="instnote">Credit analysis: rates are set to move
         <strong>${s.rate>0?'+':''}${Math.round(s.rate*100)}bp</strong> over this period.</p>`:''}
       ${INST.id==='short'&&owned.term&&s.crowded?`<p class="instnote">Terminal: <strong>${s[s.crowded].t}</strong>
         is already heavily shorted. General collateral is cheap for a reason.</p>`:''}

@@ -19,6 +19,9 @@ function enter(b){
   else if(b.id==='gym') roomGym();
   else if(b.id==='rostrum') roomRostrum();
   else if(b.id==='headland') roomHeadland();
+  else if(b.id==='annex') roomNightclub();
+  else if(b.id==='rest') roomRestaurant();
+  else if(b.id==='board') roomEvent();
   else if(b.id==='floor') roomFloor();
   else if(b.id==='pbank') roomPbank();
   else if(b.id==='estates') roomRealtor();

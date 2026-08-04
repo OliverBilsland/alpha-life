@@ -30,6 +30,7 @@ The scripts, **in load order** — the order is load-bearing, see below:
 | `js/world.js` | `W`/`H` (4200x2400), `DISTRICTS`, `B` buildings, `ROADS` |
 | `js/art.js` | the entire canvas layer: palette, ground, roads, lamps, buildings, character, car |
 | `js/cars.js` | `CARS` tiers, trips budget, district gating, `roomDealer()` |
+| `js/activities.js` | nightclub, restaurants, monthly events, street encounters, tips |
 | `js/social.js` | `rep`/`contacts`, gym, club, galas, Headland, exchange floor, base-rate display |
 | `js/careers.js` | `JOBS` ladder, `promote()`, credit line, `roomBank()`, `roomRecruit()` |
 | `js/housing.js` | `HOMES` tiers, focus slope/ceiling, research actions, hosting, `roomRealtor()` |
@@ -524,6 +525,32 @@ continuous rather than a one-off gate.
 **Lifestyle** gained five named people, each met at a different venue over repeat visits, each
 unlocking exactly one thing nothing else provides — Kestrel +25% capital, Moss the street line
 without a terminal, Vance cheaper borrow, Ozal advance default warnings, Renn one absorbed review.
+
+### 6m. Activities and world life
+
+`activities.js` holds things to do that convert consumption into one of four channels: **tips**
+(information), **access** (rep, contacts, relationships), **capital**, or **time** (trips, sessions,
+focus). Nothing in it is a pure sink.
+
+- **The Annex** (nightclub) sells three tiers of night. The cheapest gives no tips at all — access
+  has to be paid for. Bottle service and hosting produce `addTip()` entries.
+- **Bruno's** (restaurants) introduces nobody; it *advances* relationships already started, which
+  makes the venues that introduce people and the venue that matures them two different decisions.
+- **The Notice** shows one event per month, chosen deterministically by month index: earnings season
+  (+1 session), a conference (two tips), a rate decision (reveals bond rate moves without the
+  course), a listing (pays cash without touching your record), layoffs (contacts), a compliance
+  review (pays or costs reputation **on your process score**).
+- **Street encounters** fire while driving via `maybeEncounter()` in the loop, on a probability that
+  scales with car tier and behind a cooldown. Seven outcomes, good and bad — tips, cards, a
+  breakdown, a fine, a lost trip.
+
+**Tips are the clearest statement of Rule 1 in the whole game.** `tipHTML()` tells you which company
+the market rewarded — an *outcome*, never which business is better. Trading one can make money and
+still score `bpgo`, and the screen says so before you act.
+
+**Ambient life** lives in `art.js`: 90 pedestrians and 34 vehicles seeded by `seedLife()`, advanced
+by `stepLife()`, drawn by `drawLife()`. They wrap at the map edge, are hidden in locked districts,
+and touch nothing — no collision, no state.
 
 **Metric gating** is what the shop items plug into, and it's all read at render time in `roomOffice`:
 
