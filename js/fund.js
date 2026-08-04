@@ -96,12 +96,12 @@ function fundNoteHTML(){
   return '';
 }
 
-/* ---------- the offer, shown once, at the end of month four ---------- */
+/* ---------- the offer, shown once, the first month the rolling bar is cleared ---------- */
 function roomFundOffer(){
   inRoom='payday'; $('exitBtn').classList.remove('on');
   $('ov').classList.add('on'); enterRoom();
   $('sheet').innerHTML=`<div class="roomhd"><h2>An approach</h2>
-      <span class="sub">After month four</span></div>
+      <span class="sub">Month ${month}</span></div>
     <p class="note k">${recentSoundCount()} of your last ${recent.length} calls were sound. That is
       the number that got noticed — not the balance. Somebody has been reading your work and would like to allocate
       to it.</p>

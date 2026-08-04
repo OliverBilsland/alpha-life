@@ -27,7 +27,7 @@ function payday(){
   renderPayday(inc,exp,forced);
 }
 function renderPayday(inc,exp,forced){
-  /* ENDLESS: the only ending is bankruptcy. Month four hands you the outside-
+  /* ENDLESS: the only ending is bankruptcy. The tutorial arc hands you the outside-
      capital offer if you have earned it, and a fund closing puts you back on the
      desk rather than ending the run. */
   const last = bankrupt;
@@ -97,7 +97,8 @@ function finish(){
   if(sound>=14)v='You read the businesses correctly most of the time. That is the skill the game exists to build \u2014 the money follows it eventually, not reliably.';
   else if(sound>=9)v='Roughly coin-flip on process. Check which axis you kept citing \u2014 most people default to growth or valuation and miss the balance-sheet calls entirely.';
   else v='Process was weak. Worth asking whether you picked the company that looked cheap, or the one that was actually better.';
-  $('sheet').innerHTML=`<div class="roomhd"><h2>Four months later</h2><span class="sub">Final</span></div>
+  $('sheet').innerHTML=`<div class="roomhd"><h2>${month<=1?'One month in':month+' months in'}</h2>
+      <span class="sub">Where you stopped</span></div>
     <div class="ledger">
       <div class="lr"><span>Portfolio</span><span>${money(port)}</span></div>
       <div class="lr"><span>Cash</span><span>${money(cash)}</span></div>

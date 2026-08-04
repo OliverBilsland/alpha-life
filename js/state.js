@@ -1,4 +1,7 @@
 /* ==================== STATE ==================== */
+/* MONTHS is the length of the TUTORIAL ARC -- the twenty authored cases -- and
+   the earliest month outside capital can be offered. It is not a limit: the
+   game runs indefinitely (see endless.js). */
 const ROUNDS_PER_MONTH=5, MONTHS=4, WIN_R=.25, LOSE_R=.18;
 const CONV=[{id:'small',n:'Small',pct:.10},{id:'std',n:'Standard',pct:.25},
   {id:'high',n:'High conviction',pct:.45},{id:'conc',n:'Concentrated',pct:.65}];

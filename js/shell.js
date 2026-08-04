@@ -15,8 +15,8 @@ function showSplash(){
   btn.textContent=resumed?'Continue':'Start New Life';
   if(resumed){
     foot.textContent=arc===2
-      ? `Fund open · month ${month} of ${ARC2_END_MONTH} · ${money(aum)} under management`
-      : `Month ${month} of ${MONTHS} · ${sessionsLeft} session${sessionsLeft===1?'':'s'} left · ${money(port)}`;
+      ? `Fund open · month ${month} · ${money(aum)} under management`
+      : `Month ${month} · ch ${chapterOf(month)} · ${sessionsLeft} session${sessionsLeft===1?'':'s'} left · ${money(port)}`;
   }else{
     foot.textContent='WASD or arrows to move · walk to a door and press E';
   }

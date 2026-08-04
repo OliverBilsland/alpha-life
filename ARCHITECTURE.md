@@ -757,7 +757,9 @@ The loop still calls `draw()` while gated, only skipping `simulate()`, so the ci
 ready underneath the title screen rather than appearing on dismissal.
 
 `shell.js` shows the title screen — *Start New Life*, or *Continue* with a live summary of where the
-save left off.
+save left off. That summary reads `Month 7 · ch 2`, never `of 4`: `MONTHS` is the length of the
+tutorial arc and the earliest the fund can be offered, not a cap, and nothing on screen may imply
+otherwise. A test greps the source for any surviving `of ${MONTHS}` render.
 
 **The game never pauses.** Clicking or tabbing away only triggers a save; the run keeps going and
 comes back exactly as it was. This is safe because saving never depended on pausing: `persist.js`
