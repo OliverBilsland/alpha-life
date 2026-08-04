@@ -29,6 +29,7 @@ The scripts, **in load order** — the order is load-bearing, see below:
 | `js/data.js` | `REASONS` (4 thesis drivers), `S` (20 scenarios), `ITEMS` (5 purchasables) |
 | `js/world.js` | `W`/`H` (4200x2400), `DISTRICTS`, `B` buildings, `ROADS` |
 | `js/cars.js` | `CARS` tiers, trips budget, district gating, `roomDealer()` |
+| `js/housing.js` | `HOMES` tiers, focus slope/ceiling, research actions, hosting, `roomRealtor()` |
 | `js/econ.js` | cross-cutting money maths: `housingMonthly()`, `jobPay()`, `fixedCosts()` |
 | `js/state.js` | tuning constants, all mutable globals, `$`/`money`/`shuffle`, `expenses()`/`income()`, `hud()`, `toast()` |
 | `js/city.js` | `resize()`, `draw()`, `door()`, `nearBuilding()`, `blocked()`, keyboard + touch input, `step()`, `promptFor()` |
@@ -323,6 +324,31 @@ Trips are the mechanical answer to "what is reachable per session". `FREE_VISITS
 and home; everything else costs one, refilled at month rollover by `tripsPerMonth()`. So a better car
 literally buys more decisions per month, and the exotic's monthly burden is larger than the starting
 apartment's rent.
+
+### 6g. Housing
+
+Five tiers, each changing a *different* system rather than the same number harder:
+
+| Tier | Changes |
+|---|---|
+| Riverside one-bed | focus decay slope — a point every other session |
+| Warehouse loft | **home office**: research actions, and a focus ceiling of 6 |
+| Cavendish penthouse | **hosting**: converts the house into capital |
+| Coast estate | both at scale, ceiling 7 |
+
+`focusDecay()` returns `idx % home().decay === 0 ? 1 : 0`, so housing owns the *slope* while venues
+own the level and `focusCap()` owns the ceiling. Three systems, one resource, no overlap.
+
+**Research** is the loft's real payoff: `doResearch(key)` spends an action to un-redact one metric on
+the current card only, and `clearResearch()` wipes it at commit. It converts housing into an
+information system — the same currency the accounting course and terminal trade in — rather than a
+stat. It never touches the trade maths.
+
+**Rent versus buy is a genuine decision** because buying is harder on *both* axes: the loft costs
+$2,146/mo against $1,800 rent, and takes a $96,000 deposit out of the portfolio where it would have
+compounded. What comes back is equity (`homeEquity()`, counted in `netWorth()`), the office, and
+eventually a room worth hosting in. An earlier pass had buying cheaper monthly *and* equity-positive,
+which made it a free upgrade rather than a choice.
 
 **Metric gating** is what the shop items plug into, and it's all read at render time in `roomOffice`:
 

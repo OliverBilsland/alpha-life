@@ -321,3 +321,7 @@
   .carstat{display:flex;flex-wrap:wrap;gap:5px 14px;margin-top:9px;font-family:var(--mono);
     font-size:9.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-3)}
   .carstat span{white-space:nowrap}
+
+  .rsrch{background:var(--card);border:1px solid var(--process);color:var(--process);
+    font-family:var(--mono);font-size:10px;letter-spacing:.06em;padding:5px 9px;cursor:pointer;
+    margin:4px 3px 0 0;display:inline-block}

@@ -11,7 +11,7 @@ function enter(b){
   else if(b.id==='club') roomVenue('MERIDIAN CLUB','Members only',250,5,'Loud, expensive, and full of people who allocate capital. Full focus.');
   else if(b.id==='dealer') roomDealer();
   else if(b.id==='school') roomShop('CITY INSTITUTE','Courses',['acct','term']);
-  else if(b.id==='realtor') roomShop('HALE PROPERTY','Leasing',['apt']);
+  else if(b.id==='realtor') roomRealtor();
   else if(b.id==='tech') roomShop('BYTE WORKS','Dev studio',['app']);
 }
 function leave(){
@@ -52,14 +52,14 @@ function roomVenue(title,sub,cost,gain,copy){
     <button class="btn" id="buy" ${can?'':'disabled'}>${can?`Stay a while \u00b7 ${money(cost)}`:'Not enough cash'}</button>
     <p class="note k" style="margin-top:18px">This is consumption. It buys you nothing you can sell. It is also the only way to keep reading five metrics instead of three \u2014 which is the argument for spending money on yourself, made honestly.</p>`;
   if(can)$('buy').addEventListener('click',()=>{
-    cash-=cost; focus=Math.min(5,focus+gain); hud();
+    cash-=cost; focus=Math.min(focusCap(),focus+gain); hud();
     toast(gain>=5?'Focus restored.':'Focus +'+gain);
     leave();
   });
 }
 
 function roomApt(){
-  $('sheet').innerHTML=`<div class="roomhd"><h2>APARTMENT 4B</h2><span class="sub">${owned.apt?'Upgraded':'Rent '+money(rent)+'/mo'}</span></div>
+  $('sheet').innerHTML=`<div class="roomhd"><h2>${home().n.toUpperCase()}</h2><span class="sub">${home().own?'Owned · '+money(housingMonthly())+'/mo':'Rented · '+money(housingMonthly())+'/mo'}</span></div>
     <p class="note">${sessionsLeft>0?`You still have <strong>${sessionsLeft}</strong> trading session${sessionsLeft>1?'s':''} this month. Sleeping now forfeits them.`:'The month is done. Sleep, and the bills come due.'}</p>
     <div class="ledger">
       <div class="lr"><span>Portfolio</span><span>${money(port)}</span></div>
@@ -67,9 +67,13 @@ function roomApt(){
       <div class="lr"><span>Monthly income</span><span class="pos">+${money(income())}</span></div>
       <div class="lr"><span>Monthly expenses</span><span class="neg">\u2212${money(expenses())}</span></div>
       <div class="lr"><span>Net monthly</span><span class="${income()-expenses()>=0?'pos':'neg'}">${income()-expenses()>=0?'+':''}${money(income()-expenses())}</span></div>
+      ${homeEquity()?`<div class="lr"><span>Home equity</span><span>${money(homeEquity())}</span></div>`:''}
+      ${researchPerMonth()?`<div class="lr"><span>Research actions left</span><span>${research} of ${researchPerMonth()}</span></div>`:''}
     </div>
+    ${hostPower()?`<button class="btn ghost" id="host">Host a dinner · ${money(hostCost())}</button>`:''}
     <button class="btn" id="sleep">${sessionsLeft>0?'Sleep anyway \u2014 end month '+month:'End month '+month}</button>
     <button class="btn ghost" id="stay">Back out</button>`;
   $('sleep').addEventListener('click',payday);
   $('stay').addEventListener('click',leave);
+  if(hostPower()) $('host').addEventListener('click',roomHost);
 }

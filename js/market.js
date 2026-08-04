@@ -10,13 +10,13 @@ function roomOffice(){
   }
   pick=null;reason=null;locked=false;
   const s=scenarioAt(idx);
-  const red = focus<3 ? (focus<1?['m','l']:['m']) : [];
+  const red = (focus<3 ? (focus<1?['m','l']:['m']) : []).filter(k=>!revealed.includes(k));
   const row=(l,v,c)=>`<div class="m ${c||''}"><span class="lbl">${l}</span><span class="val">${v}</span></div>`;
   $('sheet').innerHTML=`<div class="roomhd"><h2>ARDENT CAPITAL</h2>
       <span class="sub">Month ${month} \u00b7 session ${ROUNDS_PER_MONTH-sessionsLeft+1} of ${ROUNDS_PER_MONTH} \u00b7 ${s.sector}</span>
       <button class="refbtn" id="refBtn">How scoring works</button></div>
     ${tutPanel()}
-    ${focus<3?`<p class="note" style="color:var(--warn)">Focus ${focus}. You are reading these cards tired \u2014 ${red.length} metric${red.length>1?'s are':' is'} unreadable.</p>`:''}
+    ${red.length?`<p class="note" style="color:var(--warn)">Focus ${focus}. You are reading these cards tired — ${red.length} metric${red.length>1?'s are':' is'} unreadable.${canResearch()?` Your home office can recover ${research===1?'one':research}: ${red.map(k=>`<button class="rsrch" data-m="${k}">Research ${k==='m'?'operating margin':'debt / EBITDA'}</button>`).join(' ')}`:''}</p>`:''}
     <div class="cards">${['a','b'].map(k=>{const c=s[k];return `
       <button class="co" data-k="${k}" aria-pressed="false">
         <div class="tick">${c.t}</div><div class="desc">${c.d}</div>
@@ -41,6 +41,9 @@ function roomOffice(){
     conv=el.dataset.c;document.querySelectorAll('.cv').forEach(x=>x.setAttribute('aria-pressed',String(x.dataset.c===conv)));}));
   $('go').addEventListener('click',commit);
   $('refBtn').addEventListener('click',roomRef);
+  document.querySelectorAll('.rsrch').forEach(el=>el.addEventListener('click',()=>{
+    if(doResearch(el.dataset.m)){toast('Recovered from your own notes.');roomOffice();}
+  }));
   tutBind();
 }
 function sizeBase(){return arc===2?aum:port;}
@@ -68,7 +71,7 @@ function commit(){
   }
   peak=Math.max(peak,port);maxDD=Math.max(maxDD,(peak-port)/peak);
   if(sound){xp+=100;streak++;best=Math.max(best,streak);}else streak=0;
-  focus=Math.max(0,focus-(owned.apt?(idx%2?1:0):1));
+  focus=Math.max(0,focus-focusDecay());
   const q=sound?(won?'gpgo':'gpbo'):(won?'bpgo':'bpbo');quad[q]++;
   const QN={gpgo:'Sound process, good outcome',gpbo:'Sound process, bad outcome',
     bpgo:'Unsound process, good outcome',bpbo:'Unsound process, bad outcome'};
@@ -90,7 +93,7 @@ function commit(){
     ${tutAfter()}
     <button class="btn" id="nx">Next</button>
     <button class="btn ghost" id="lv">Leave the office</button>`;
-  idx++;sessionsLeft--;hud();
+  idx++;sessionsLeft--;clearResearch();hud();
   $('nx').addEventListener('click',()=>{ if(sessionsLeft>0&&idx<S.length) roomOffice(); else roomOffice(); $('ov').scrollTop=0;});
   $('lv').addEventListener('click',leave);
 }

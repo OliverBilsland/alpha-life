@@ -27,6 +27,5 @@ const S=[
 const ITEMS={
  acct:{n:'Accounting course',cost:1500,ef:'Adds cash conversion to every company card. Several names are unreadable without it.'},
  term:{n:'Market terminal',cost:6000,ef:'Shows how the street is positioned before you commit. Crowding is where the surprises come from.'},
- apt:{n:'Better apartment',cost:5000,ef:'A room you can think in. Focus decays half as fast. Rent +$600/mo.'},
  app:{n:'Fund a side app',cost:7500,ef:'Three months to build, then $700/mo. Income that does not depend on your calls.'}
 };
