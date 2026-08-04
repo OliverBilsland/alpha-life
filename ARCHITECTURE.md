@@ -552,6 +552,39 @@ still score `bpgo`, and the screen says so before you act.
 by `stepLife()`, drawn by `drawLife()`. They wrap at the map edge, are hidden in locked districts,
 and touch nothing — no collision, no state.
 
+### 6n. Balance and exploit control
+
+Retuned again after Phases 2 and 3 added spendable content. Two genuine exploits were found by a
+probe that repeats every money-producing room three times and reports anything that pays twice:
+
+1. **Hosting was a pure money pump** — $9,000 in, $18,000 out, repeatable every trip. It now
+   *consumes* contacts (`hostNeeds()`), is once a month (`hostedMonth`), and pays a rate tied to
+   guests rather than to the house.
+2. **Contacts were worth a season of trading each** — $15,000 a head against $120 to make one at the
+   club, a 125× pump. `contactValue()` is now ~one good trade, the Headland caps at four a visit and
+   once a month (`headlandMonth`), and a club evening yields one contact instead of two.
+
+Everything repeatable now carries a month flag: `gymMonth`, `floorMonth`, `eventDone`, `hostedMonth`,
+`headlandMonth`. The exploit probe is kept as `p4-exploit.js` and re-runnable.
+
+**Tips are deliberately loss-making.** Three nights of bottle service costs $33,000 and the tips it
+produces returned $25,781 — you buy them for the outcome, not the arithmetic, and they still score
+`bpgo`.
+
+Measured across skill, 24 runs each (reaches arc 2 / fund closed / survives to month 20 / median net
+worth):
+
+| Accuracy | Arc 2 | Closed | Survives | Median net worth |
+|---|---|---|---|---|
+| Coin-flip | 21% | 21% | 0% | $15,180 |
+| Learning | 75% | 33% | 42% | $78,498 |
+| Good | 100% | 4% | 96% | $313,658 |
+| Expert | 100% | 0% | 100% | $420,215 |
+
+Money stays meaningful at both ends: month one nets $1,652 against a $4,500 car and a $1,500 course,
+and a PM at full lifestyle nets $4,398 of a $31,000 salary once tax, the estate and the exotic are
+paid.
+
 **Metric gating** is what the shop items plug into, and it's all read at render time in `roomOffice`:
 
 - `f` (cash conversion) renders as `locked` italic text unless `owned.acct`;

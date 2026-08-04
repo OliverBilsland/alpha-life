@@ -81,7 +81,8 @@ function roomClub(){
     <p class="note">Loud, expensive, and full of people who allocate capital.</p>
     ${member
       ? `<p class="note">As a member the room opens up: every evening here restores focus
-         <em>and</em> adds two contacts. Contacts are people who will take a call about money.</p>`
+         <em>and</em> adds a contact. Contacts are people who will take a call about money,
+         and they are spent when you actually ask.</p>`
       : `<p class="note">Guests get the bar and the noise. Members get introduced.
          Membership is ${money(CLUB_FEE)} a year and they will not take you below
          <strong>25 reputation</strong> — you have ${rep}.</p>`}
@@ -96,7 +97,7 @@ function roomClub(){
       focus; the membership buys the introductions that later become capital.</p>`;
   if(can) $('buy').addEventListener('click',()=>{
     cash-=cost; focus=Math.min(focusCap(),focus+5);
-    if(member){contacts+=2;rep+=1;}
+    if(member){contacts+=1;rep+=1;}
     const m=member?meetAt('club'):null;
     hud();
     if(m&&m.now) moment(m.p.n.toUpperCase(),m.p.role);
@@ -151,10 +152,12 @@ function roomRostrum(){
 
 /* ---------- the headland: contacts become committed capital ---------- */
 const HEADLAND_REP=50;
-function contactValue(){return arc===2?Math.round(aum*0.05):Math.max(14000,Math.round(port*0.06));}
+/* A contact should be worth roughly one good trade, not a season of them. It was
+   $15,000 a head against $120 to make one at the club -- a 125x pump. */
+function contactValue(){return arc===2?Math.round(aum*0.012):Math.max(4500,Math.round(port*0.015));}
 function roomHeadland(){
   const allowed=rep>=HEADLAND_REP;
-  const n=Math.min(contacts,6);
+  const n=headlandMonth===month?0:Math.min(contacts,4);
   const raise=n*contactValue();
   $('sheet').innerHTML=`<div class="roomhd"><h2>THE HEADLAND</h2>
       <span class="sub">Private club · needs ${HEADLAND_REP} reputation</span></div>
@@ -165,17 +168,18 @@ function roomHeadland(){
          <strong>${rep}</strong>. Galas, membership and a decent run of sound calls all count.</p>`}
     <div class="ledger">
       <div class="lr"><span>Contacts</span><span>${contacts}</span></div>
-      <div class="lr"><span>Convertible now</span><span>${n} (max six a visit)</span></div>
+      <div class="lr"><span>Convertible now</span><span>${headlandMonth===month?'none — once a month':n+' (max four a visit)'}</span></div>
       <div class="lr"><span>Per contact</span><span>${money(contactValue())}</span></div>
       <div class="lr"><span>Raise</span><span class="pos">+${money(raise)}</span></div>
     </div>
     <button class="btn" id="raise" ${allowed&&n>0?'':'disabled'}>${
-      !allowed?'Not seated':n?`Convert ${n} contact${n>1?'s':''} · ${money(raise)}`:'No contacts to convert'}</button>
+      !allowed?'Not seated':headlandMonth===month?'Already raised this month'
+      :n?`Convert ${n} contact${n>1?'s':''} · ${money(raise)}`:'No contacts to convert'}</button>
     <button class="btn ghost" id="hOut">Leave</button>`;
   if(allowed&&n>0) $('raise').addEventListener('click',()=>{
     const m=meetAt('headland');
     if(m&&m.now) moment(m.p.n.toUpperCase(),m.p.role);
-    contacts-=n;
+    contacts-=n; headlandMonth=month;
     if(arc===2){aum+=raise;aumStart+=raise;} else {port+=raise;}
     rep+=2; hud(); leave();
     moment('COMMITTED', money(raise)+' raised');

@@ -331,6 +331,23 @@ things for free, and they are gated on the car, which was paid for.
 Ambient life is the one exception, and it is deliberate: pedestrians and traffic convert into nothing
 at all. They are there so the city reads as inhabited, which is Rule 11's job, not this one's.
 
+## Rule 14 — If it can be repeated, it will be
+
+Every room that produces money gets asked one question: what happens if a player does this three
+times in a row? Two systems failed it and both were shipped before anyone noticed, which is why the
+question is now a test rather than a habit.
+
+Hosting paid double what it cost, every trip. Contacts cost $120 to make and converted at $15,000.
+Neither was a design decision; both were the arithmetic nobody had multiplied out.
+
+The fix is the same in both cases and it is the one that preserves the fiction: **a raise consumes
+the relationship it draws on, and happens once a month.** You cannot dine the same six people every
+Tuesday and expect a cheque each time.
+
+The general rule: anything that converts into capital carries a month flag. Anything that converts
+into *information* — tips — is allowed to be repeatable, because it is deliberately loss-making and
+scores as unsound anyway. Information you can grind for. Money you cannot.
+
 ## The through-line
 
 Money is the score everyone watches and the one the game refuses to grade you on. Information is what

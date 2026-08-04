@@ -72,28 +72,36 @@ const clearResearch=()=>{revealed=[];};
 
 /* ---------- hosting: turning a house into capital ---------- */
 function hostCost(){return [0,0,0,3200,9000][homeTier];}
+/* A dinner is for people you already know. It CONSUMES contacts rather than
+   manufacturing them, and happens once a month -- otherwise it was a pure money
+   pump: pay the caterer, receive twice the caterer, repeat. */
+const hostNeeds=()=>hostPower()*2;
 function hostGain(){
-  /* contacts convert to capital; a bigger house converts more of them */
-  return {rep:hostPower()*2, contacts:hostPower()*2,
-          capital:Math.round(hostPower()*(arc===2?aum*0.035:9000))};
+  const used=Math.min(contacts,hostNeeds());
+  return {rep:hostPower()*2, used,
+          capital:Math.round(used*(arc===2?aum*0.012:Math.max(3500,port*0.012)))};
 }
+const canHost=()=>hostPower()>0&&hostedMonth!==month&&contacts>=hostNeeds();
 function roomHost(){
   const c=hostCost(), g=hostGain();
-  const can=cash>=c&&hostPower()>0;
+  const can=cash>=c&&canHost();
   $('sheet').innerHTML=`<div class="roomhd"><h2>Host a dinner</h2>
       <span class="sub">${home().n} · cash ${money(cash)}</span></div>
     <p class="note">A table, a caterer, and eight people who allocate other people's money.
       This is what the square footage is actually for.</p>
     <div class="ledger">
       <div class="lr"><span>Cost</span><span class="neg">−${money(c)}</span></div>
+      <div class="lr"><span>Guests needed</span><span class="${contacts>=hostNeeds()?'':'neg'}">${hostNeeds()} contacts (you have ${contacts})</span></div>
       <div class="lr"><span>Reputation</span><span class="pos">+${g.rep}</span></div>
-      <div class="lr"><span>Contacts</span><span class="pos">+${g.contacts}</span></div>
       <div class="lr"><span>${arc===2?'New subscriptions':'Angel capital offered'}</span><span class="pos">+${money(g.capital)}</span></div>
     </div>
-    <button class="btn" id="doHost" ${can?'':'disabled'}>${can?'Host it · '+money(c):'Not enough cash'}</button>
+    <button class="btn" id="doHost" ${can?'':'disabled'}>${
+      hostedMonth===month?'Already hosted this month'
+      :contacts<hostNeeds()?'Not enough people to invite'
+      :cash<c?'Not enough cash':'Host it · '+money(c)}</button>
     <button class="btn ghost" id="hostBack">Not tonight</button>`;
   if(can) $('doHost').addEventListener('click',()=>{
-    cash-=c; rep+=g.rep; contacts+=g.contacts;
+    cash-=c; rep+=g.rep; contacts-=g.used; hostedMonth=month;
     if(arc===2){aum+=g.capital;aumStart+=g.capital;} else {port+=g.capital;}
     hud(); leave();
     moment('THE ROOM WORKED', money(g.capital)+' committed');

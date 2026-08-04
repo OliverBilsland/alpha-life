@@ -34,7 +34,7 @@ const CLUB_NIGHTS=[
   d:'Loud, cheap, and you will speak to nobody who matters.'},
  {id:'booth',  n:'Bottle service',    cost:2600,  rep:4, contacts:2, tip:1,
   d:'A booth, a bucket, and people come to you. Someone always says something.'},
- {id:'host',   n:'Host the room',     cost:11000, rep:12, contacts:5, tip:2,
+ {id:'host',   n:'Host the room',     cost:11000, rep:12, contacts:4, tip:2,
   d:'Your name on the table. Allocators drink for free and remember who paid.'}
 ];
 function roomNightclub(){
