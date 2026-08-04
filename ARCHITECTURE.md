@@ -1,8 +1,9 @@
 # Alpha Life — Architecture
 
-Everything lives in `index.html`: one `<style>` block, a small static DOM skeleton, and one
-`<script>` of plain globals and functions. No build step, no modules, no dependencies except two
-Google Fonts links. The whole thing runs off two surfaces:
+Ten files, no build step, no modules, no bundler, no dependencies except two Google Fonts links.
+`index.html` is a bare DOM skeleton plus one stylesheet link and nine `<script>` tags; the scripts are
+**classic scripts, not ES modules**, so they share one global scope and the game still opens by
+double-clicking the file. The whole thing runs off two surfaces:
 
 - a **canvas** (`#cv`) that draws the city and only the city, and
 - a **DOM overlay** (`.ov` / `#sheet`) that draws every interior, rendered by `innerHTML`.
@@ -12,28 +13,48 @@ stops drawing, and the sheet owns the screen.
 
 ---
 
-## 1. File layout, top to bottom
+## 1. File layout
 
-| Lines | Section | What's there |
-|---|---|---|
-| 10–166 | `<style>` | CSS variables (paper/ink palette, `--process`/`--gain`/`--loss`), HUD, prompt, toast, touch controls, and the whole interior design system: `.co` company cards, `.rz` choice buttons, `.reveal` result panel, `.ledger`, `.grid2` quadrant grid, one mobile breakpoint at 660px |
-| 168–189 | static DOM | canvas, HUD stat pods, `#prompt`, `#toast`, `#stick`/`#knob`/`#actBtn`, `#exitBtn`, `#ov`/`#sheet`. Everything else is generated |
-| 193–216 | `DATA` | `REASONS` (4 thesis drivers) and `S` (20 scenarios) |
-| 219–233 | `WORLD` | `W`/`H` world size, `B` buildings, `ROADS` |
-| 236–262 | `STATE` | tuning constants, all mutable globals, `$`/`money`/`shuffle`, `expenses()`/`income()`, `hud()`, `toast()` |
-| 265–329 | `RENDER` | `resize()`, `draw()`, `door()`, `nearBuilding()`, `blocked()` |
-| 332–354 | `INPUT` | keyboard map, touch joystick |
-| 357–388 | `LOOP` | `step()`, `promptFor()` |
-| 391–467 | `ROOMS` | `enter()`/`leave()`, `ITEMS`, `roomShop`, `roomVenue`, `roomApt` |
-| 470–549 | office/market | `roomOffice()`, `sync()`, `sigHTML()`, `commit()` |
-| 552–617 | payday/end | `payday()`, `renderPayday()`, `finish()` |
-| 620–622 | boot | shuffle the deck, paint HUD, start the loop, show the tutorial toast |
+`index.html` — canvas, HUD stat pods, `#prompt`, `#toast`, `#stick`/`#knob`/`#actBtn`, `#exitBtn`,
+`#ov`/`#sheet`, `#newBtn`. Everything else in the UI is generated at runtime.
+
+`css/game.css` — CSS variables (paper/ink palette, `--process`/`--gain`/`--loss`), HUD, prompt,
+toast, touch controls, and the whole interior design system: `.co` company cards, `.rz` choice
+buttons, `.reveal` result panel, `.ledger`, `.grid2` quadrant grid, one mobile breakpoint at 660px.
+
+The scripts, **in load order** — the order is load-bearing, see below:
+
+| File | What's there |
+|---|---|
+| `js/data.js` | `REASONS` (4 thesis drivers), `S` (20 scenarios), `ITEMS` (5 purchasables) |
+| `js/world.js` | `W`/`H` world size, `B` buildings, `ROADS` |
+| `js/state.js` | tuning constants, all mutable globals, `$`/`money`/`shuffle`, `expenses()`/`income()`, `hud()`, `toast()` |
+| `js/city.js` | `resize()`, `draw()`, `door()`, `nearBuilding()`, `blocked()`, keyboard + touch input, `step()`, `promptFor()` |
+| `js/rooms.js` | `enter()`/`leave()`, `roomShop`, `roomVenue`, `roomApt` |
+| `js/market.js` | `roomOffice()`, `sync()`, `sigHTML()`, `commit()` — the actual game |
+| `js/ledger.js` | `payday()`, `renderPayday()`, `finish()` |
+| `js/boot.js` | shuffle the deck, paint HUD, start the loop, tutorial toast |
+| `js/persist.js` | localStorage save/load, autosave wrappers, `newGame()` |
+
+**Why the order matters.** Almost nothing executes at parse time — the files are overwhelmingly
+`function` declarations and `const`/`let` initializers — but three things do:
+
+- `city.js` runs `resize()` immediately and does `const cv=$('cv')`, so it must follow `state.js`
+  (which defines `$`) and the DOM (all scripts sit at the end of `<body>`).
+- `boot.js` starts the game, so it must follow everything it calls.
+- `persist.js` must come **after** `boot.js`. `boot.js` shuffles a fresh deck and calls `hud()`; if
+  the autosave wrapper were already installed, that call would overwrite the save with default state
+  before it was ever read.
+
+Top-level `let`/`const` in a classic script live in the shared global lexical environment rather than
+on `globalThis`, which is why `persist.js` can assign `port`, `idx`, `order` and the rest by bare
+name across file boundaries, and why `quad`/`P` (declared `const`) must be mutated in place instead.
 
 ---
 
 ## 2. The render loop
 
-`step()` (357) is the only `requestAnimationFrame` callback, and it always re-schedules itself. It is
+`step()` (`city.js:94`) is the only `requestAnimationFrame` callback, and it always re-schedules itself. It is
 guarded:
 
 ```js
@@ -57,7 +78,7 @@ Per frame, in order:
    already own the car. The mobile `#actBtn` gets `.live` off the same test.
 4. **`draw()`.**
 
-`draw()` (271) is immediate-mode, painted fresh every frame, in strict painter's order:
+`draw()` (`city.js:8`) is immediate-mode, painted fresh every frame, in strict painter's order:
 
 - clamp a camera to `P` and the world bounds, `translate(-cam.x,-cam.y)`;
 - ground: a 200px grid of inset 192px blocks, giving the gutters that read as sidewalks;
@@ -110,7 +131,7 @@ enter(b)  →  inRoom = b.id
 leave()   →  inRoom = null, hide overlay, P.y += 30, hud()
 ```
 
-`enter()` (391) is a flat if/else chain mapping the eight building ids onto **four renderer shapes**:
+`enter()` (`rooms.js:2`) is a flat if/else chain mapping the eight building ids onto **four renderer shapes**:
 
 | Renderer | Buildings | Shape |
 |---|---|---|
@@ -126,14 +147,14 @@ line.
 **Rendering discipline:** every room writes a full `innerHTML` string, then immediately re-queries
 and binds listeners on the nodes it just created. Nothing is diffed and nothing is retained, so any
 state change re-renders the whole sheet — `roomShop` literally calls itself after a purchase
-(line 435), and `renderPayday` calls itself after each invest/withdraw click. Listeners die with the
+(`rooms.js:38`), and `renderPayday` calls itself after each invest/withdraw click. Listeners die with the
 nodes, so there's no accumulation.
 
 `leave()` nudges `P.y += 30` so you step *out* of the door radius; without it `nearBuilding()` would
 still be true and the prompt would re-fire immediately.
 
 **`'payday'` is a pseudo-room.** `payday()` sets `inRoom='payday'` — an id no building has — and
-hides `#exitBtn`. Both the Escape handler (336) and the exit-button handler (407) explicitly check
+hides `#exitBtn`. Both the Escape handler (`city.js:73`) and the exit-button handler (`rooms.js:18`) explicitly check
 `inRoom!=='payday'`, so the month-end settlement is the one screen you cannot walk out of. `finish()`
 leaves `gameOver=true` and the overlay up; the only exit is `location.reload()`.
 
@@ -141,8 +162,9 @@ leaves `gameOver=true` and the overlay up; the only exit is `location.reload()`.
 
 ## 5. Economy and state
 
-All state is module-level `let`s (238–243). There is no save, no serialization, no state object —
-reload is a full reset.
+All state is module-level `let`s in `state.js` — there is no state object, just named globals.
+Serialization is bolted on from outside by `persist.js` (§7) rather than designed in; the game files
+themselves have no idea they're being saved.
 
 **Portfolio vs cash are two different pools with two different physics.** This is the central
 economic idea and most of the code enforces it.
@@ -159,12 +181,12 @@ expenses() = rent(1200)   + (owned.car ?  150 : 0) + (owned.apt ? 600 : 0)
 ```
 
 Every purchase either changes one of these two lines or changes the office screen — nothing is
-cosmetic. `payday()` (552) applies `cash += income() - expenses()`, ticks `appLeft` (and flips
+cosmetic. `payday()` (`ledger.js:2`) applies `cash += income() - expenses()`, ticks `appLeft` (and flips
 `appLive` when it hits 0), and then does the punishing bit: **if `cash` goes negative, the gap is
 liquidated from `port` and reported as `forced`.** Lifestyle overruns are paid for out of compounding
 capital, visibly.
 
-**Trading math** lives entirely in `commit()` (517):
+**Trading math** lives entirely in `commit()` (`market.js:49`):
 
 ```js
 size  = port * CONV[conv].pct        // .10 / .25 / .45
@@ -192,7 +214,7 @@ is called after every mutation.
 
 ## 6. The scenario bank
 
-`S` (196–216) is 20 flat objects, one per sector, and it's the game's content payload.
+`S` (`data.js`) is 20 flat objects, one per sector, and it's the game's content payload.
 
 ```js
 {
@@ -236,14 +258,83 @@ metrics you'd otherwise never see.
 
 ---
 
-## 7. Control flow, end to end
+## 7. Persistence
+
+`persist.js` mirrors the game into `localStorage` under `alphalife.save.v1`. It is deliberately
+**parasitic**: it edits none of the game files and adds no state of its own to them. Instead it
+wraps two existing globals.
+
+```js
+const _hud=hud;       hud    = function(){ _hud.apply(null,arguments);    save(); };
+const _finish=finish; finish = function(){ _finish.apply(null,arguments); save(); };
+```
+
+This works because top-level `function` declarations in a classic script are writable properties of
+`globalThis`, and every call site resolves the name at call time. `hud()` is already the
+reconciliation point called after every state mutation (§5), so wrapping it captures the entire
+economy for free. `finish()` needs its own wrapper only because it sets `gameOver` without calling
+`hud()`.
+
+**Player position is polled, not wrapped.** `P` changes 60×/sec, so a `setInterval` writes at most
+every 800ms and only when the position actually moved, plus a `pagehide` / `visibilitychange` flush
+so the last few steps survive a tab close.
+
+**Saved:** `order`, `idx`, `port`, `cash`, `xp`, `streak`, `best`, `focus`, `owned`, `appLeft`,
+`appLive`, `sessionsLeft`, `month`, `monthPnl`, `peak`, `maxDD`, `conv`, `gameOver`, `quad`, and
+`P.{x,y,dir,driving}` — about 440 bytes of JSON.
+
+**Not saved, on purpose:** `pick`/`reason`/`locked` (reset by `roomOffice()` on entry, so persisting
+them is meaningless); `salary`/`rent` (declared `let` but never reassigned — saving them would pin a
+future balance change to old saves); `P.vx`/`P.vy` (declared, never written).
+
+**Three restore paths**, in `persist.js`'s tail:
+
+| Saved condition | On load |
+|---|---|
+| `gameOver` | re-render the end screen and show the overlay |
+| `inRoom === 'payday'` | re-render the payday screen |
+| anything else | resume outdoors at the saved `P` |
+
+The payday case is a **correctness requirement, not a nicety**. `payday()` charges the month's bills
+and ticks `appLeft` *before* rendering, but `month++` and the `sessionsLeft` reset happen later in the
+OK handler. Resuming outdoors from inside that gap would let the player sleep again and pay the same
+month twice. It's the only room worth restoring — every other one is freely re-enterable, and the
+office mid-reveal loses only its explanation text, never a committed trade.
+
+The game-over case matters for a subtler reason: `step()` early-returns on `gameOver`, so without
+re-rendering the end screen the player would resume staring at a frozen city with no overlay and no
+way forward.
+
+**Invalidation.** A save is rejected — and the game starts fresh — if the version key doesn't match,
+the JSON is malformed, or `order.length !== S.length`. That last check means editing the scenario
+bank can't resume a player into out-of-range deck indices. Every storage access is wrapped in
+`try/catch`, so if `localStorage` is unavailable the game runs exactly as it did before, with saving
+silently disabled.
+
+`newGame()` clears the key and reloads. It's reachable from `#newBtn` in the HUD (behind a
+`confirm()`) and from the end screen's **Play again** button — which *had* to change from
+`location.reload()`, because with saves in place a plain reload just restores `gameOver` and
+re-renders the same ending.
+
+---
+
+## 8. Control flow, end to end
 
 ```
-boot ──▶ step() ──rAF──┐
-          │            │
-          │  E / tap   │
-          ▼            │
-        enter(b) ──▶ inRoom set, loop idles
+boot ──▶ shuffle deck, hud(), step() ──rAF───────────┐
+   │                                                 │
+   ▼                                                 │
+persist ─ no save ──▶ write the first save           │
+   │                                                 │
+   └ save ──▶ applySave() ──┬─ gameOver ──▶ finish() screen
+                            ├─ 'payday'  ──▶ renderPayday()
+                            └─ else      ──▶ resume outdoors
+                                   │                 │
+        then wrap hud() / finish() ─┘                 │
+                                                     │
+          │  E / tap                                 │
+          ▼                                          │
+        enter(b) ──▶ inRoom set, loop idles ◀────────┘
           │
    ┌──────┼───────────────┬──────────────┐
    ▼      ▼               ▼              ▼
@@ -259,21 +350,31 @@ boot ──▶ step() ──rAF──┐
  leave() ──▶ inRoom=null, loop resumes  payday()  (no exit)
                                           │
                                   month<4 ├──▶ month++, P reset to spawn, resume
-                                  month=4 └──▶ finish()  (gameOver, reload to replay)
+                                  month=4 └──▶ finish()  (gameOver → Play again)
+
+every path above that reaches hud() or finish() writes a save;
+position autosaves separately on an 800ms poll
 ```
 
 ---
 
-## 8. Known quirks worth knowing before refactoring
+## 9. Known quirks worth knowing before refactoring
 
-- **Order of operations in `commit()`:** focus decays using the *pre-increment* `idx` (line 526),
-  then `idx++` at 546. Changing that order silently shifts which sessions the apartment protects.
+- **Order of operations in `commit()`:** focus decays using the *pre-increment* `idx` (`market.js:58`),
+  then `idx++` at `market.js:78`. Changing that order silently shifts which sessions the apartment
+  protects.
 - **The `Next` button's branch is a no-op:** `if(sessionsLeft>0&&idx<S.length) roomOffice(); else
-  roomOffice();` (547). `roomOffice()` self-guards on `sessionsLeft<=0`, so the behaviour is correct;
+  roomOffice();` (`market.js:79`). `roomOffice()` self-guards on `sessionsLeft<=0`, so the behaviour is correct;
   the condition is vestigial.
-- **`P.driving` is set on purchase, not restored on reload** — there's no persistence at all, which
-  is fine, but it means `owned.car` and `P.driving` are two representations of one fact.
+- **`owned.car` and `P.driving` are two representations of one fact.** Both are saved independently;
+  if they ever disagree, the car exists in the ledger but not on the road.
 - **Room renderers close over their own arguments to re-render themselves** (`roomShop(title,sub,ids)`
   calling itself). Any split must keep those arguments reachable.
+- **`conv` only reaches storage on the next `hud()`.** The position-size buttons don't call `hud()`,
+  so a size change is persisted at the next commit — which is the value that was actually used, so
+  the saved state is never wrong, just written late.
+- **Anything that mutates state without calling `hud()` will not autosave.** That's the one
+  invariant `persist.js` depends on. New code that changes the economy must either call `hud()` (as
+  every existing path does) or `save()` directly.
 - **Everything is a global.** `pick`, `reason`, `conv`, `locked` are office-scoped in meaning but
-  file-scoped in fact, and `roomOffice()` resets them on entry (477).
+  file-scoped in fact, and `roomOffice()` resets them on entry (`market.js:9`).
