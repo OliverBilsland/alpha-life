@@ -7,7 +7,7 @@
      tips      a named company gets a street read before you trade it
      access    reputation, contacts, and named relationships
      capital   money committed to the portfolio or the fund
-     time      trips, sessions, focus */
+     time      sessions and focus (never movement -- exploring is free) */
 
 /* ---------- tips: information you can actually act on ---------- */
 /* A tip attaches to a future scenario index and reveals which way the market
@@ -201,9 +201,10 @@ const ENCOUNTERS=[
     if(pending.length){const p=pending[0];met[p.id]=metWith(p.id)+1;
       return 'A step closer to '+p.n+'.';}
     rep+=2; return 'Two points of standing.';}},
- {id:'block', w:2, min:0, n:'The road is closed',
-  d:'Roadworks, and a diversion that eats the afternoon.',
-  fx:()=>{trips=Math.max(0,trips-1); return 'A trip gone.';}}
+ {id:'block', w:2, min:0, n:'Roadworks',
+  d:'A diversion, and a long way round in slow traffic.',
+  fx:()=>{if(carTier) carCond=Math.max(0,carCond-6);
+    return carTier?'A little more wear on the car. It cost you nothing else.':'Time, and nothing else.';}}
 ];
 function rollEncounter(){
   const pool=ENCOUNTERS.filter(e=>carTier>=e.min);

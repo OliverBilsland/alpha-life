@@ -8,7 +8,7 @@ const SAVE_KEY='alphalife.save.v1', SAVE_V=1;
 
 function snapshot(){
   return {v:SAVE_V,order,idx,port,cash,xp,streak,best,focus,
-    owned,appLeft,appLive,sessionsLeft,month,monthPnl,peak,maxDD,conv,gameOver,tutOn,genSeed,carTier,homeTier,careerStage,rep,contacts,trips,research,gymMonth,floorMonth,bankrupt,carCond,propIndex,propHist,reviewedAt,reviewedSound,met,rennUsed,tips,eventDone,hostedMonth,headlandMonth,taught,instr,extraChoice,debt,arc,aum,aumStart,aumPeak,retHist,fundClosed,
+    owned,appLeft,appLive,sessionsLeft,month,monthPnl,peak,maxDD,conv,gameOver,tutOn,genSeed,carTier,homeTier,careerStage,rep,contacts,research,gymMonth,floorMonth,bankrupt,carCond,propIndex,propHist,reviewedAt,reviewedSound,met,rennUsed,tips,eventDone,hostedMonth,headlandMonth,taught,instr,extraChoice,debt,arc,aum,aumStart,aumPeak,retHist,fundClosed,
     quad:{gpgo:quad.gpgo,gpbo:quad.gpbo,bpgo:quad.bpgo,bpbo:quad.bpbo},
     /* Only 'payday' is worth restoring: payday() charges the month's bills
        before rendering, but month++/sessionsLeft reset happen in the OK
@@ -46,7 +46,7 @@ function applySave(d){
   if(typeof d.genSeed==='number') genSeed=d.genSeed;
   carTier=d.carTier||0; homeTier=d.homeTier||0; careerStage=d.careerStage||0;
   rep=d.rep||0; contacts=d.contacts||0;
-  trips=d.trips!==undefined?d.trips:4; research=d.research||0;
+  research=d.research||0;
   /* pre-tier saves stored these as flags */
   if(d.owned&&d.owned.car&&!d.carTier) carTier=1;
   if(d.owned&&d.owned.apt&&!d.homeTier) homeTier=1;

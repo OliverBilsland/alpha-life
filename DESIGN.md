@@ -368,6 +368,20 @@ Three constraints keep it honest:
 - **The wall of text is available but never mandatory.** The glossary is one tap away and can be
   ignored entirely; the game teaches by putting the explanation exactly where the decision is.
 
+## Rule 16 — Exploring is free
+
+The city exists to be driven around. Charging for that — as an earlier "trips" budget did, taking one
+per building visit — meant the optimal play was to stop looking at the world, which is the exact
+opposite of what Rule 4 is trying to prove.
+
+So: **sessions are spent in one place only, committing a trade.** Walking, driving, opening any door,
+browsing any shop, reading the glossary and taking a street encounter all cost nothing. The scarce
+resources are focus, cash and sessions, and none of them is touched by movement.
+
+Cars keep their meaning without owning a scarce resource. They buy access (districts), speed (a
+4200px map), burden (running costs), and upkeep — a neglected car will not start, which slows you
+down but never *rations* you. Slower is a fair punishment; scarcer is a tax on curiosity.
+
 ## The through-line
 
 Money is the score everyone watches and the one the game refuses to grade you on. Information is what

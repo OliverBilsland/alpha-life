@@ -1,8 +1,5 @@
 /* ==================== ROOMS ==================== */
 function enter(b){
-  if(!canVisit(b.id)){
-    toast('No trips left this month. A better car buys more of them.');return;}
-  spendTrip(b.id);
   inRoom=b.id; $('ov').classList.add('on'); $('exitBtn').classList.add('on');
   $('prompt').classList.remove('on');
   if(b.id==='office') roomOffice();

@@ -347,13 +347,14 @@ is **physically unreachable**, not merely discouraged. `nearGate()` drives the p
 which car opens it.
 
 A car tier buys four separate things, which is why it is never a stat bump: district access, speed
-(1.9 → 8.2, on a map big enough that it matters), **trips** — a monthly errand budget that every
-non-office visit spends — and a running cost that scales from $150 to $3,200 a month.
+(1.9 → 8.2, on a map big enough that it matters), a running cost that scales from $150 to $3,200 a
+month, and upkeep — `carCond` decays with use, and a neglected car simply **will not start**, putting
+you back on foot at 1.9 until it is serviced.
 
-Trips are the mechanical answer to "what is reachable per session". `FREE_VISITS` exempts the office
-and home; everything else costs one, refilled at month rollover by `tripsPerMonth()`. So a better car
-literally buys more decisions per month, and the exotic's monthly burden is larger than the starting
-apartment's rent.
+**Moving around the city is free.** There is no trips budget, no per-visit cost, and no resource of
+any kind consumed by exploring: `canVisit()` is unconditional and sessions are decremented in exactly
+one place, `commit()`. An earlier design charged a monthly "trips" budget for entering any building,
+which taxed the one thing the city exists to encourage.
 
 ### 6g. Housing
 

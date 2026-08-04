@@ -97,7 +97,7 @@ function simulate(){
     const gate=nearGate();
     if(b){pr.classList.add('on');
       pr.innerHTML=`Enter ${b.n}<small>${promptFor(b)}</small>`;
-      $('actBtn').classList.toggle('live',canVisit(b.id));}
+      $('actBtn').classList.add('live');}
     else if(gate){pr.classList.add('on');
       pr.innerHTML=`${gate.n} is closed to you<small>Needs a ${carNeededFor(gate).n}</small>`;
       $('actBtn').classList.remove('live');}
