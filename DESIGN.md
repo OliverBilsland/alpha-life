@@ -426,6 +426,29 @@ pulls exactly enough for the goal and no more.
 None of this touches the scoring. Money still buys information, access and time; it never buys
 process, and the quadrant grid still sits under every trade saying so.
 
+## Rule 19 — Pay for the lesson, not for the answer
+
+The tutor is the only place the game pays you to learn, so it has to resist the obvious exploit:
+memorise an answer key, farm cash, learn nothing.
+
+Three things do that, and only one of them is a limit:
+
+- **The explanation is unconditional.** Right or wrong, you get the concept, why the answer is what
+  it is, and where it appears on a company card. A wrong answer earns 52% of a right one — enough
+  that being wrong is never punished, because the person who had to look it up learned more.
+- **Nothing is banked until the follow-up.** The fee is paid after the comprehension check, which
+  comes after the explanation. You cannot answer and skip.
+- **Repeats decay to nothing.** A third pass at the same question pays ×0.32, and the picker always
+  serves the least-seen question. An answer key buys you a worse hourly rate, not a better one.
+
+The ceiling exists too, but it is the least interesting defence. The important one is that the
+fastest way to earn here is genuinely to work through material you have not seen.
+
+And it stays outside the scoring. Teaching awards no process XP and moves no quadrant — because if
+studying could raise your process score, the score would stop measuring your decisions. What it does
+instead is honest: it records your sound rate the day you register, and shows you the difference
+later. If the teaching works, the number moves on its own.
+
 ## The through-line
 
 Money is the score everyone watches and the one the game refuses to grade you on. Information is what

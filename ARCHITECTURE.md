@@ -40,6 +40,7 @@ The scripts, **in load order** — the order is load-bearing, see below:
 | `js/rooms.js` | `enter()`/`leave()`, `roomShop`, `roomVenue`, `roomApt` |
 | `js/instruments.js` | `INSTRUMENTS` table, XP gating, `roomPrime()` desk |
 | `js/endless.js` | chapters, `difficultyFor()`, milestones, chapter allocations |
+| `js/tutor.js` | `QUESTIONS` bank, level bands, payout decay, `roomTutor()` |
 | `js/life.js` | `LIFE` upgrades, the goal tracker, `roomInvest()`, living costs, the cash-flow statement |
 | `js/glossary.js` | `TERMS`, `termChip()`, `openTerm()`, `teachOnce()`, `roomGlossary()` |
 | `js/generate.js` | `genScenario()`, `validate()`, sector/prose banks, `scenarioAt()` deck router |
@@ -684,6 +685,40 @@ parser did not enforce nesting, so every test passed against a visibly broken sc
 Fixed by making terms `<span role="button">` with `stopPropagation` so tapping one does not also
 select the company, and by adding `badNesting()` to the harness — it now walks every rendered sheet
 for interactive elements inside interactive elements.
+
+### 6r. The accounting tutor
+
+A second income earned by **learning** rather than trading, run from the City Institute. 19 questions
+across five bands — Foundations, Margins, The balance sheet, Cash, Valuation — starting at "what is
+revenue" and ending at "why is a cheap multiple sometimes a warning".
+
+Every question carries four fields, and the last two are the point:
+
+| Field | Purpose |
+|---|---|
+| `q` / `opts` / `a` | the question |
+| `why` | the concept in plain English, and why the answer is what it is |
+| `card` | **how it shows up on a company card** — every entry names the game surface |
+| `check` | a one-line comprehension follow-up, asked after the explanation |
+
+**The payout is built so an answer key is nearly worthless.** `TUTOR_BASE` is paid for working
+through the lesson regardless of whether the answer was right; `TUTOR_BONUS` is added for a correct
+first answer and `TUTOR_CHECK` for the follow-up. Nothing is banked until the check is answered — so
+the explanation cannot be skipped. On top of that:
+
+- `tutorDecay(id) = 1/(1 + seen*0.7)` — a third repeat pays ×0.32.
+- `tutorPick()` always draws from the least-seen questions, so the bank gets worked through.
+- `tutorCap()` is a monthly ceiling, `420 + level*220`.
+- Levelling needs `4 + level*2` correct, so mastery looks like repetition rather than a sprint.
+
+Measured against a player who knows every answer and grinds every month: **$860 in month one**, then
+about $1,150–1,350/month, taking 479 lessons over a year to earn $13,868. Against $1,012/month of
+early net income that is a real second income; against a portfolio manager's $16,694 it is marginal —
+which is the intended shape, since learning should pay most when you are poor.
+
+**It never touches process.** Teaching awards no XP and moves no quadrant, both asserted. The one
+feedback it gives is honest measurement: `tutorStartSound` records your sound rate when you register,
+and the screen shows the change since.
 
 **Metric gating** is what the shop items plug into, and it's all read at render time in `roomOffice`:
 

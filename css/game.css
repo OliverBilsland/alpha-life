@@ -451,3 +451,29 @@
   @media (prefers-reduced-motion:reduce){
     .ov.entering .sheet,.ov.entering::after{animation:none}
   }
+
+  /* ==================== THE TUTOR ==================== */
+  .tq{font-size:16px;line-height:1.6;color:var(--ink);margin:4px 0 14px}
+  .tq.small{font-size:14.5px;margin-bottom:10px}
+  .tqopts{display:grid;gap:8px}
+  .tqo{border:1px solid var(--rule);background:var(--card);border-radius:4px;padding:13px 15px;
+    text-align:left;font:inherit;font-size:14px;line-height:1.45;color:var(--ink);cursor:pointer;
+    transition:.14s}
+  .tqo:active{transform:scale(.99)}
+  @media (hover:hover){ .tqo:hover{border-color:var(--process);background:#fff} }
+
+  .verdict{border-radius:4px;overflow:hidden;margin-bottom:16px;animation:revealIn .26s both}
+  .verdict.ok{border:1px solid var(--gain)}
+  .verdict.no{border:1px solid var(--warn)}
+  .vhd{padding:8px 14px;font-family:var(--mono);font-size:9px;letter-spacing:.14em;
+    text-transform:uppercase;color:#fff}
+  .verdict.ok .vhd{background:linear-gradient(90deg,#0E9F6E,#0B7F58)}
+  .verdict.no .vhd{background:linear-gradient(90deg,#C77A0A,#A66208)}
+  .vb{padding:12px 14px;font-size:14px;line-height:1.55;background:var(--card)}
+  .vyou{color:var(--ink-3);font-size:13px}
+
+  .lesson{border:1px solid var(--process);background:#EEF0FF;border-radius:4px;
+    padding:2px 0 12px;margin-bottom:16px}
+  .lhd{padding:11px 14px 0;font-family:var(--mono);font-size:9px;letter-spacing:.13em;
+    text-transform:uppercase;color:var(--process)}
+  .lesson p{padding:5px 14px 0;font-size:13.5px;line-height:1.65;color:var(--ink)}

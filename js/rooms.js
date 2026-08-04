@@ -17,7 +17,7 @@ function enter(b){
   else if(b.id==='bar') roomVenue('THE LONG ROOM','Bar',80,2,'A quiet drink and an hour not thinking about the market. Cheap, partial.');
   else if(b.id==='club') roomClub();
   else if(b.id==='dealer') roomDealer();
-  else if(b.id==='school') roomShop('CITY INSTITUTE','Courses',['acct','term','credit','deriv','stats','negot']);
+  else if(b.id==='school') roomSchool();
   else if(b.id==='realtor') roomRealtor();
   else if(b.id==='tech') roomShop('BYTE WORKS','Dev studio',['app']);
   else if(b.id==='prime') roomPrime();
@@ -40,7 +40,19 @@ function leave(){
 }
 $('exitBtn').addEventListener('click',()=>{if(inRoom!=='payday')leave();});
 
-function roomShop(title,sub,ids){
+/* The Institute sells courses and also employs tutors. */
+function roomSchool(){
+  roomShop('CITY INSTITUTE','Courses &amp; tutoring',['acct','term','credit','deriv','stats','negot'],
+    `<button class="btn" id="goTutor">${tutorReg
+      ? 'Take a tutoring session \u00b7 level '+tutorLevel
+      : 'Register as an accounting tutor'}</button>
+     <p class="note">${tutorReg
+      ? money(tutorRoomLeft())+' of paid teaching left this month. Studying is free either way.'
+      : 'Paid work that teaches you the accounting the desk actually uses. Costs nothing to start.'}</p>`,
+    ()=>{ $('goTutor').addEventListener('click',roomTutor); });
+}
+
+function roomShop(title,sub,ids,extraHTML,bindExtra){
   $('sheet').innerHTML=`<div class="roomhd"><h2>${title}</h2><span class="sub">${sub} \u00b7 cash ${money(cash)}</span></div>
     <div class="items">${ids.map(k=>{const it=ITEMS[k];
       const own=owned[k]||(k==='app'&&(appLive||appLeft>0));
@@ -48,7 +60,9 @@ function roomShop(title,sub,ids){
       return `<button class="item ${own?'owned':''}" data-k="${k}" ${dis?'disabled':''}>
         <div class="nm"><span>${it.n}</span><span class="pr">${own?(k==='app'&&appLeft>0?'BUILDING':'OWNED'):money(it.cost)}</span></div>
         <div class="ef">${it.ef}</div></button>`}).join('')}</div>
-    <p class="note" style="margin-top:18px">${cash<Math.min(...ids.map(k=>ITEMS[k].cost))?'Not enough cash. The portfolio is where the money is \u2014 but selling it to buy things is how people stay poor while looking rich.':'Cash spent here leaves the portfolio permanently smaller than it would have been.'}</p>`;
+    <p class="note" style="margin-top:18px">${cash<Math.min(...ids.map(k=>ITEMS[k].cost))?'Not enough cash. The portfolio is where the money is \u2014 but selling it to buy things is how people stay poor while looking rich.':'Cash spent here leaves the portfolio permanently smaller than it would have been.'}</p>
+    ${extraHTML||''}`;
+  if(bindExtra) bindExtra();
   document.querySelectorAll('.item:not([disabled])').forEach(el=>el.addEventListener('click',()=>{
     const k=el.dataset.k,it=ITEMS[k];
     if(cash<it.cost)return; cash-=it.cost;
@@ -64,7 +78,7 @@ function roomShop(title,sub,ids){
     if(k==='deriv')toast('Option premiums now shown in cash.');
     if(k==='stats')toast('Your own base rates now show at the desk.');
     if(k==='negot')toast('Better terms, everywhere money changes hands.');
-    hud();roomShop(title,sub,ids);
+    hud();roomShop(title,sub,ids,extraHTML,bindExtra);
   }));
 }
 

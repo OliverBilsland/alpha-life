@@ -77,7 +77,7 @@ function renderPayday(inc,exp,forced){
     stepPropertyMarket();
     tips=tips.filter(t=>t.i>=idx);
     owned.rateread=false;
-    research=researchPerMonth();gymMonth=false;floorMonth=false;
+    research=researchPerMonth();gymMonth=false;floorMonth=false;tutorEarnedMonth=0;
     inRoom=null;$('ov').classList.remove('on');
     P.x=330;P.y=470;hud();toast('Month '+month+'. Five sessions.');
   });
