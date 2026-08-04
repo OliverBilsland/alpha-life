@@ -345,3 +345,42 @@
   .reqs{display:flex;flex-direction:column;gap:3px;margin-top:9px;font-family:var(--mono);
     font-size:10px;letter-spacing:.04em}
   .reqs .ok{color:var(--gain)} .reqs .no{color:var(--ink-3)}
+
+  /* ==================== GLOSSARY / TEACHING ==================== */
+  .term{background:none;border:none;padding:0;font:inherit;color:inherit;cursor:pointer;
+    border-bottom:1px dotted var(--process);text-align:left}
+  .term:active{color:var(--process)}
+  .m .lbl .term{color:var(--ink-3);border-bottom-color:var(--ink-3)}
+  .termpop{position:fixed;inset:0;z-index:78;display:flex;align-items:center;justify-content:center;
+    background:#0D0A16CC;padding:22px;opacity:0;visibility:hidden;pointer-events:none;
+    transition:opacity .16s ease,visibility 0s .16s}
+  .termpop.on{opacity:1;visibility:visible;pointer-events:auto;
+    transition:opacity .16s ease,visibility 0s}
+  .tp-card{background:var(--card);border:1px solid var(--ink);border-radius:5px;max-width:460px;
+    width:100%;box-shadow:0 20px 60px #000A;overflow:hidden;animation:revealIn .22s both}
+  .tp-hd{display:flex;justify-content:space-between;align-items:center;
+    background:linear-gradient(90deg,#3B4FD8,#5A47C7);color:var(--paper);padding:9px 14px;
+    font-family:var(--mono);font-size:9px;letter-spacing:.14em;text-transform:uppercase}
+  .tp-x{background:transparent;border:1px solid #FFFFFF55;color:var(--paper);font:inherit;
+    padding:4px 10px;cursor:pointer;border-radius:2px}
+  .tp-card h3{font-family:var(--cond);font-weight:700;font-size:21px;padding:15px 16px 0}
+  .tp-one{font-size:14.5px;line-height:1.6;color:var(--ink);padding:8px 16px 0}
+  .tp-why{font-size:13px;line-height:1.65;color:var(--ink-2);padding:10px 16px 4px}
+  .tp-card .btn{margin:12px 16px 16px;width:calc(100% - 32px)}
+
+  .teach{border:1px solid var(--process);background:#EEF0FF;border-radius:4px;overflow:hidden;
+    margin-bottom:18px}
+  .teachhd{background:linear-gradient(90deg,#3B4FD8,#5A47C7);color:var(--paper);padding:8px 14px;
+    font-family:var(--mono);font-size:9px;letter-spacing:.13em;text-transform:uppercase}
+  .teachrow{padding:13px 14px 0}
+  .teachrow h4{font-family:var(--cond);font-weight:700;font-size:16px}
+  .teachrow p{font-size:13.5px;line-height:1.6;color:var(--ink);margin-top:5px}
+  .teachrow .teachwhy{color:var(--ink-2);font-size:12.5px}
+  .teachfoot{padding:12px 14px 13px;font-family:var(--mono);font-size:9.5px;letter-spacing:.08em;
+    color:var(--process);text-transform:uppercase}
+
+  .glist{display:grid;gap:10px}
+  .gitem{border:1px solid var(--rule);background:var(--card);border-radius:4px;padding:13px 14px}
+  .gitem h4{font-family:var(--cond);font-weight:700;font-size:15.5px}
+  .gitem p{font-size:13px;line-height:1.6;color:var(--ink);margin-top:5px}
+  .gitem .gwhy{color:var(--ink-2);font-size:12.5px;margin-top:6px}

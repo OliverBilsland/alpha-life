@@ -25,6 +25,7 @@ function enter(b){
   else if(b.id==='floor') roomFloor();
   else if(b.id==='pbank') roomPbank();
   else if(b.id==='estates') roomRealtor();
+  bindTerms();   /* any term rendered in any room becomes tappable */
 }
 function leave(){
   inRoom=null;$('ov').classList.remove('on');$('exitBtn').classList.remove('on');

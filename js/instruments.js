@@ -175,6 +175,8 @@ function roomPrime(){
   $('sheet').innerHTML=`<div class="roomhd"><h2>PRIME BROKERAGE</h2>
       <span class="sub">Desk access · ${xp} process XP</span>
       <button class="refbtn" id="refBtn">How scoring works</button></div>
+    <p class="note">${['equity','bond','short','pairs','option'].map(k=>termChip(k)).join(' \u00b7 ')} —
+      tap any of these for a plain-English explanation.</p>
     <p class="note k">Desks are opened by process, not by money. Every sound call is 100 XP; nothing
       you can buy moves this number. That is deliberate — the only thing that should let you trade a
       more dangerous instrument is evidence you can read a business.</p>
@@ -194,5 +196,6 @@ function roomPrime(){
          :`<p class="note" style="margin-top:16px">Every desk is open to you.</p>`}
     <button class="btn ghost" id="pOut">Leave</button>`;
   $('refBtn').addEventListener('click',roomRef);
+  bindTerms();
   $('pOut').addEventListener('click',leave);
 }

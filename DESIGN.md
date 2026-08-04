@@ -348,6 +348,26 @@ The general rule: anything that converts into capital carries a month flag. Anyt
 into *information* — tips — is allowed to be repeatable, because it is deliberately loss-making and
 scores as unsound anyway. Information you can grind for. Money you cannot.
 
+## Rule 15 — Never use a word the player has not been given
+
+The game is trying to take someone with no finance background toward reading a business the way a
+professional does. That is impossible if it says "debt to EBITDA" and moves on.
+
+Every financial term is tappable where it appears, and every explanation answers two questions in
+that order: *what is this*, and *why does it change the decision in front of me*. The second is the
+one that matters — "operating margin is profit over revenue" teaches nothing; "it tells you whether
+the company controls its own pricing" is a thing you can act on.
+
+Three constraints keep it honest:
+
+- **No entry may lean on another undefined term.** A glossary that explains duration using "yield
+  curve" has explained nothing.
+- **Teach at the point of use.** A concept is introduced the first time it actually appears — bonds
+  explain duration when you first select bonds, not in a manual up front. Nobody reads the manual,
+  and if they did they would not remember it by the time it mattered.
+- **The wall of text is available but never mandatory.** The glossary is one tap away and can be
+  ignored entirely; the game teaches by putting the explanation exactly where the decision is.
+
 ## The through-line
 
 Money is the score everyone watches and the one the game refuses to grade you on. Information is what

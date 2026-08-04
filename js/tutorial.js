@@ -118,10 +118,16 @@ function refHTML(){
         The accounting course reveals cash conversion on every card; the terminal shows how the
         street is positioned. Nothing you can buy makes you more likely to be right.</p></div>
 
+    <div class="step"><div class="steplbl"><span>Every term, explained</span></div>
+      <p class="note">The glossary covers every financial term this game uses, in plain English,
+        with why each one changes a decision.</p></div>
+    <button class="btn" id="refGloss">Open the glossary</button>
     <button class="btn ghost" id="refBack">Back to the desk</button>`;
 }
 function roomRef(){
   $('sheet').innerHTML=refHTML();
   $('refBack').addEventListener('click',()=>{roomOffice();$('ov').scrollTop=0;});
+  $('refGloss').addEventListener('click',roomGlossary);
+  bindTerms();
   $('ov').scrollTop=0;
 }

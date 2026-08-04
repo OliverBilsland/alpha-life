@@ -39,6 +39,7 @@ The scripts, **in load order** — the order is load-bearing, see below:
 | `js/city.js` | `resize()`, `draw()`, `door()`, `nearBuilding()`, `blocked()`, keyboard + touch input, `step()`, `promptFor()` |
 | `js/rooms.js` | `enter()`/`leave()`, `roomShop`, `roomVenue`, `roomApt` |
 | `js/instruments.js` | `INSTRUMENTS` table, XP gating, `roomPrime()` desk |
+| `js/glossary.js` | `TERMS`, `termChip()`, `openTerm()`, `teachOnce()`, `roomGlossary()` |
 | `js/generate.js` | `genScenario()`, `validate()`, sector/prose banks, `scenarioAt()` deck router |
 | `js/market.js` | `roomOffice()`, `sync()`, `sigHTML()`, `commit()` — the actual game |
 | `js/tutorial.js` | `TUT` coach steps, `tutPanel()`/`tutAfter()`/`tutBind()`, `roomRef()` reference screen |
@@ -584,6 +585,29 @@ worth):
 Money stays meaningful at both ends: month one nets $1,652 against a $4,500 car and a $1,500 course,
 and a PM at full lifestyle nets $4,398 of a $31,000 salary once tax, the estate and the exotic are
 paid.
+
+### 6o. The teaching layer
+
+The game names a lot of finance. `glossary.js` makes every term of it explainable on demand, for
+someone who has never taken a finance class. 32 entries across four groups — Metric, Security,
+Scoring, Fund — and each one has exactly two fields: **what it is**, and **why it changes the
+decision in front of you**.
+
+Three surfaces, deliberately different:
+
+| Surface | When | What it does |
+|---|---|---|
+| `termChip(id,label)` | always | Renders an underlined, tappable term inline. `openTerm()` shows a popover over any screen |
+| `teachOnce(...ids)` | first appearance | A panel introducing a concept the moment it first matters, then never again. Marks `taught[id]`, which persists |
+| `roomGlossary()` | on demand | The browsable list, reachable from the desk header and the scoring reference |
+
+`bindTerms()` attaches the handlers and is called at the end of `enter()` — so a term rendered in
+*any* room is tappable — plus explicitly in `roomOffice()`, `commit()`, `roomRef()` and `roomPrime()`,
+which re-render in place.
+
+Two rules the entries hold to, both tested: **no entry explains a term using another undefined term**,
+and **"what it is" stays under 170 characters**. The teaching layer touches no game state beyond
+`taught`, so it cannot change a result.
 
 **Metric gating** is what the shop items plug into, and it's all read at render time in `roomOffice`:
 

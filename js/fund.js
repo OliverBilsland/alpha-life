@@ -71,11 +71,11 @@ function fundMonthEnd(){
 function fundLedgerHTML(){
   if(arc!==2) return '';
   const f=lastFund;
-  return `<div class="lr"><span>Management fee</span><span class="pos">+${money(Math.round(aum*mgmtRate()))}</span></div>
-    ${monthPnl>0?`<div class="lr"><span>Performance fee (${Math.round(PERF_FEE*100)}%)</span><span class="pos">+${money(Math.round(monthPnl*PERF_FEE))}</span></div>`:''}
+  return `<div class="lr"><span>${termChip('mgmtfee','Management fee')}</span><span class="pos">+${money(Math.round(aum*mgmtRate()))}</span></div>
+    ${monthPnl>0?`<div class="lr"><span>${termChip('perffee','Performance fee')} (${Math.round(PERF_FEE*100)}%)</span><span class="pos">+${money(Math.round(monthPnl*PERF_FEE))}</span></div>`:''}
     ${f?`<div class="lr"><span>Fund return this month</span><span class="${f.ret>=0?'pos':'neg'}">${f.ret>=0?'+':''}${(f.ret*100).toFixed(1)}%</span></div>
-    <div class="lr"><span>3-month volatility</span><span class="${f.vol>VOL_LIMIT?'neg':''}">${(f.vol*100).toFixed(1)}%</span></div>
-    <div class="lr"><span>Drawdown from peak</span><span class="${f.dd>DD_LIMIT?'neg':''}">${(f.dd*100).toFixed(1)}%</span></div>
+    <div class="lr"><span>${termChip('volatility','3-month volatility')}</span><span class="${f.vol>VOL_LIMIT?'neg':''}">${(f.vol*100).toFixed(1)}%</span></div>
+    <div class="lr"><span>${termChip('drawdown','Drawdown from peak')}</span><span class="${f.dd>DD_LIMIT?'neg':''}">${(f.dd*100).toFixed(1)}%</span></div>
     ${f.red?`<div class="lr"><span>Redemptions</span><span class="neg">−${money(f.before-f.after)}</span></div>`:''}
     ${f.sub?`<div class="lr"><span>New subscriptions</span><span class="pos">+${money(f.after-f.before)}</span></div>`:''}
     <div class="lr"><span>Assets under management</span><span>${money(aum)}</span></div>`:''}`;
@@ -103,8 +103,8 @@ function roomFundOffer(){
     <div class="ledger">
       <div class="lr"><span>Capital offered</span><span>${money(offeredCapital())}</span></div>
       <div class="lr"><span>Your standing</span><span>${repTier().n} · ${offerMultiplier().toFixed(2)}× base</span></div>
-      <div class="lr"><span>Management fee</span><span class="pos">${(mgmtRate()*100).toFixed(1)}% monthly on assets</span></div>
-      <div class="lr"><span>Performance fee</span><span class="pos">${Math.round(PERF_FEE*100)}% of a positive month</span></div>
+      <div class="lr"><span>${termChip('mgmtfee','Management fee')}</span><span class="pos">${(mgmtRate()*100).toFixed(1)}% monthly on assets</span></div>
+      <div class="lr"><span>${termChip('perffee','Performance fee')}</span><span class="pos">${Math.round(PERF_FEE*100)}% of a positive month</span></div>
       <div class="lr"><span>Term</span><span>Sixteen months</span></div>
       <div class="lr"><span>Fund closes below</span><span class="neg">${money(AUM_FLOOR)}</span></div>
     </div>
@@ -144,7 +144,7 @@ function fundFinish(){
       <span class="sub">${won?'Final':'Month '+month} · outside capital</span></div>
     <div class="ledger">
       <div class="lr"><span>Assets under management</span><span>${money(aum)}</span></div>
-      <div class="lr"><span>Peak-to-trough drawdown</span><span>${(maxDD*100).toFixed(1)}%</span></div>
+      <div class="lr"><span>${termChip('drawdown','Peak-to-trough drawdown')}</span><span>${(maxDD*100).toFixed(1)}%</span></div>
       <div class="lr"><span>Personal portfolio</span><span>${money(port)}</span></div>
       <div class="lr"><span>Cash</span><span>${money(cash)}</span></div>
       <div class="lr"><span>Sound decisions</span><span>${sound} of ${idx} (${pct}%)</span></div>

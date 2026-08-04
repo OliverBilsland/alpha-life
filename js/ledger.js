@@ -34,6 +34,8 @@ function renderPayday(inc,exp,forced){
       Expenses exceeded everything you could sell. The lifestyle was not the mistake on its own —
       it was the lifestyle plus the monthly commitments that arrive whether or not the market
       cooperated.</p>`:''}
+    ${arc===2?teachOnce('aum','mgmtfee')+teachOnce('perffee','redemption'):''}
+    ${teachOnce('drawdown')}
     ${reviewNoteHTML()}
     ${fundNoteHTML()}
     ${forced?`<p class="note" style="color:var(--warn)">Expenses exceeded cash. ${money(forced)} was liquidated from the portfolio to cover the gap \u2014 the most expensive way to fund a lifestyle.</p>`:''}
