@@ -218,6 +218,28 @@ The verdict screen still reports sound decisions and "right for wrong reasons" s
 and still refuses to grade the money. Survival and correctness are printed side by side and never
 summed.
 
+## Rule 8 — Instruments are different questions, not bigger numbers
+
+Five desks, and each one asks something the others cannot:
+
+- **Equity** — own the better business.
+- **Bonds** — lend to the better credit, *and* take a view on rates. Two decisions, so being right
+  about the company and wrong about duration still loses money. That is how bond desks actually lose.
+- **Short** — the loop inverted. `sound` requires naming the *worse* business, and the payoff is
+  deliberately asymmetric (−26% against +22%) because a squeeze does not care that you were right.
+- **Pairs** — long one leg, short the other. Immune to direction; paid only on whether you ranked
+  the pair correctly. The lowest-variance way to be exactly as right as you were.
+- **Options** — pay a premium either way. Capped loss, convex upside, and the bill arrives even when
+  the thesis was correct but early.
+
+**Access is bought with process XP and nothing else.** 100 XP per sound call, and money cannot move
+it — a test sets cash and portfolio to eight figures and confirms not one desk opens. This is Rule 1
+extended: if money could buy a more powerful instrument, money would be buying process, and the two
+scoreboards would have merged.
+
+The comparison loop stays underneath all five. Every instrument still asks which business is better
+and on which axis; what changes is what you do with the answer, and therefore how you can lose.
+
 ## The through-line
 
 Money is the score everyone watches and the one the game refuses to grade you on. Information is what

@@ -106,6 +106,13 @@ function refHTML(){
         redacted; below 1 debt goes too. The bar restores 2 for $80, the club restores all for $250,
         and the better apartment halves the rate of decay rather than raising the ceiling.</p></div>
 
+    <div class="step"><div class="steplbl"><span>Instruments</span></div>
+      <p class="note">Desks open on <strong>process XP</strong> — 100 per sound call — and nothing
+        else. Money cannot buy one. Each asks the same question and does something different with
+        the answer:</p>
+      <div class="reftab">${INSTRUMENTS.map(i=>`<div><b>${i.n}</b><span>${i.teach}</span>
+        <em>${i.xp?i.xp+' XP':'open'}</em></div>`).join('')}</div></div>
+
     <div class="step"><div class="steplbl"><span>What money can and cannot buy</span></div>
       <p class="note">Purchases buy <em>information</em> and <em>time</em>, never accuracy.
         The accounting course reveals cash conversion on every card; the terminal shows how the

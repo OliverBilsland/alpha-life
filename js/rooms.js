@@ -13,6 +13,7 @@ function enter(b){
   else if(b.id==='school') roomShop('CITY INSTITUTE','Courses',['acct','term']);
   else if(b.id==='realtor') roomRealtor();
   else if(b.id==='tech') roomShop('BYTE WORKS','Dev studio',['app']);
+  else if(b.id==='prime') roomPrime();
 }
 function leave(){
   inRoom=null;$('ov').classList.remove('on');$('exitBtn').classList.remove('on');

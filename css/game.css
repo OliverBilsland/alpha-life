@@ -325,3 +325,15 @@
   .rsrch{background:var(--card);border:1px solid var(--process);color:var(--process);
     font-family:var(--mono);font-size:10px;letter-spacing:.06em;padding:5px 9px;cursor:pointer;
     margin:4px 3px 0 0;display:inline-block}
+
+  /* instruments */
+  .grid5{display:grid;grid-template-columns:repeat(5,1fr);gap:6px}
+  .rz.inst[aria-pressed="true"]{border-color:var(--ink);box-shadow:0 0 0 1px var(--ink);background:#fff}
+  .instnote{font-size:12px;line-height:1.55;color:var(--ink-2);margin-top:10px;
+    border-left:2px solid var(--process);padding-left:11px}
+  .instask{font-family:var(--mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;
+    color:var(--ink-2);margin-bottom:9px}
+  .settle{color:var(--ink)!important;border-left:2px solid var(--process);padding-left:11px}
+  .settle b{font-family:var(--cond);text-transform:uppercase;letter-spacing:.05em;
+    color:var(--process);margin-right:6px}
+  @media (max-width:660px){ .grid5{grid-template-columns:repeat(3,1fr)} }

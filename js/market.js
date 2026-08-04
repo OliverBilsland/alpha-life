@@ -9,7 +9,11 @@ function roomOffice(){
     $('out').addEventListener('click',leave);return;
   }
   pick=null;reason=null;locked=false;
+  if(!instrumentUnlocked(instrumentById(instr))) instr='equity';
+  const INST=instrumentById(instr);
+  if(INST.extra&&!INST.extra.opts.some(o=>o.id===extraChoice)) extraChoice=INST.extra.opts[1].id;
   const s=scenarioAt(idx);
+  s.rate=rateMoveFor(idx);
   const red = (focus<3 ? (focus<1?['m','l']:['m']) : []).filter(k=>!revealed.includes(k));
   const row=(l,v,c)=>`<div class="m ${c||''}"><span class="lbl">${l}</span><span class="val">${v}</span></div>`;
   $('sheet').innerHTML=`<div class="roomhd"><h2>ARDENT CAPITAL</h2>
@@ -17,6 +21,9 @@ function roomOffice(){
       <button class="refbtn" id="refBtn">How scoring works</button></div>
     ${tutPanel()}
     ${red.length?`<p class="note" style="color:var(--warn)">Focus ${focus}. You are reading these cards tired — ${red.length} metric${red.length>1?'s are':' is'} unreadable.${canResearch()?` Your home office can recover ${research===1?'one':research}: ${red.map(k=>`<button class="rsrch" data-m="${k}">Research ${k==='m'?'operating margin':'debt / EBITDA'}</button>`).join(' ')}`:''}</p>`:''}
+    <p class="instask">${INST.id==='short'?'Pick the business you would <strong>not</strong> own — you are selling it.'
+      :INST.id==='pairs'?'Pick the business you <strong>own</strong>. The other leg is sold short automatically.'
+      :'Pick the better business.'}</p>
     <div class="cards">${['a','b'].map(k=>{const c=s[k];return `
       <button class="co" data-k="${k}" aria-pressed="false">
         <div class="tick">${c.t}</div><div class="desc">${c.d}</div>
@@ -27,7 +34,17 @@ function roomOffice(){
         ${owned.acct?row('Cash conversion',c.f+'%','extra'):row('Cash conversion','locked','locked')}
       </button>`}).join('')}</div>
     ${owned.term?`<div class="street"><b>Terminal \u00b7 street positioning</b>${s.street}</div>`:''}
-    <div class="step"><div class="steplbl"><span>What drives your call?</span></div>
+    <div class="step"><div class="steplbl"><span>Instrument</span>
+        <em>${unlockedInstruments().length} of ${INSTRUMENTS.length} desks open · ${xp} XP</em></div>
+      <div class="grid5">${INSTRUMENTS.map(i=>{const open=instrumentUnlocked(i);
+        return `<button class="rz inst" data-i="${i.id}" ${open?'':'disabled'}
+          aria-pressed="${i.id===instr}"><b>${i.n}</b><small>${open?i.sub:i.xp+' XP'}</small></button>`;
+      }).join('')}</div>
+      <p class="instnote">${INST.teach}</p></div>
+    ${INST.extra?`<div class="step"><div class="steplbl"><span>${INST.extra.label}</span><em>${INST.extra.hint}</em></div>
+      <div class="grid3">${INST.extra.opts.map(o=>`<button class="rz xo" data-x="${o.id}"
+        aria-pressed="${o.id===extraChoice}"><b>${o.n}</b><small>${o.s}</small></button>`).join('')}</div></div>`:''}
+    <div class="step"><div class="steplbl"><span>${INST.id==='short'?'Which do you sell?':INST.id==='pairs'?'Which leg do you own?':'What drives your call?'}</span></div>
       <div class="grid4">${REASONS.map(r=>`<button class="rz" data-r="${r.id}" aria-pressed="false"><b>${r.name}</b><small>${r.hint}</small></button>`).join('')}</div></div>
     <div class="step"><div class="steplbl"><span>Position size</span><em>${arc===2?'Fund '+money(aum):'Portfolio '+money(port)}</em></div>
       <div class="grid3">${CONV.map(c=>`<button class="rz cv" data-c="${c.id}" aria-pressed="${c.id===conv}"><b>${c.n}</b><small>${money(sizeBase()*c.pct)} at risk</small></button>`).join('')}</div></div>
@@ -39,6 +56,11 @@ function roomOffice(){
     reason=el.dataset.r;document.querySelectorAll('.rz[data-r]').forEach(x=>x.setAttribute('aria-pressed',String(x.dataset.r===reason)));sync();}));
   document.querySelectorAll('.cv').forEach(el=>el.addEventListener('click',()=>{if(locked)return;
     conv=el.dataset.c;document.querySelectorAll('.cv').forEach(x=>x.setAttribute('aria-pressed',String(x.dataset.c===conv)));}));
+  document.querySelectorAll('.inst:not([disabled])').forEach(el=>el.addEventListener('click',()=>{
+    if(locked)return; instr=el.dataset.i; roomOffice();}));
+  document.querySelectorAll('.xo').forEach(el=>el.addEventListener('click',()=>{if(locked)return;
+    extraChoice=el.dataset.x;
+    document.querySelectorAll('.xo').forEach(x=>x.setAttribute('aria-pressed',String(x.dataset.x===extraChoice)));}));
   $('go').addEventListener('click',commit);
   $('refBtn').addEventListener('click',roomRef);
   document.querySelectorAll('.rsrch').forEach(el=>el.addEventListener('click',()=>{
@@ -59,9 +81,14 @@ function sigHTML(){
 function commit(){
   if(locked||!pick||!reason)return;locked=true;
   const s=scenarioAt(idx);
-  const sound=pick===s.better&&reason===s.driver, won=pick===s.market;
+  s.rate=rateMoveFor(idx);
+  const INST=instrumentById(instr);
+  const choice={pick,reason,dur:extraChoice,strike:extraChoice};
+  const sound=INST.sound(s,choice);
+  const res=INST.settle(s,choice);
+  const won=res.won;
   const size=sizeBase()*CONV.find(c=>c.id===conv).pct;
-  const delta=won?size*WIN_R:-size*LOSE_R;
+  const delta=size*res.mult;
   if(arc===2){
     /* the fund takes the position; the personal stake rides at the same return */
     const r=aum>0?delta/aum:0;
@@ -84,10 +111,11 @@ function commit(){
         <div class="d">${arc===2?'Fund '+money(aum):'Portfolio '+money(port)}</div></div>
       <div class="chip"><span class="k">Process</span>
         <span class="v" style="color:${sound?'var(--process)':'var(--ink-3)'}">${sound?'Sound':'Unsound'}</span>
-        <div class="d">${sound?'+100 XP':(pick===s.better?'Right name, wrong reason \u2014 you said '+rN+', it was '+dN:'Wrong name')}</div></div>
+        <div class="d">${sound?'+100 XP':(INST.id==='short'?(pick!==s.better?'Right name, wrong reason — you said '+rN+', it was '+dN:'You sold the better business'):(pick===s.better?'Right name, wrong reason — you said '+rN+', it was '+dN:'Wrong name'))}</div></div>
       <div class="chip"><span class="k">Streak</span><span class="v">${streak}</span>
         <div class="d">${sound?'Extended':'Reset'}</div></div></div>
     <div class="rvb"><h4>${s[s.market].t} outperformed \u00b7 the call was ${s[s.better].t} on ${dN.toLowerCase()}</h4>
+      <p class="settle"><b>${INST.n}</b> ${res.line}</p>
       <p>${s.why}</p>${s.twist?`<p class="twist">${s.twist}</p>`:''}</div>
     <div class="qn">${QN[q]}</div></div>
     ${tutAfter()}

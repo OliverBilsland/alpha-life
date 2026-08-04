@@ -34,6 +34,7 @@ The scripts, **in load order** — the order is load-bearing, see below:
 | `js/state.js` | tuning constants, all mutable globals, `$`/`money`/`shuffle`, `expenses()`/`income()`, `hud()`, `toast()` |
 | `js/city.js` | `resize()`, `draw()`, `door()`, `nearBuilding()`, `blocked()`, keyboard + touch input, `step()`, `promptFor()` |
 | `js/rooms.js` | `enter()`/`leave()`, `roomShop`, `roomVenue`, `roomApt` |
+| `js/instruments.js` | `INSTRUMENTS` table, XP gating, `roomPrime()` desk |
 | `js/generate.js` | `genScenario()`, `validate()`, sector/prose banks, `scenarioAt()` deck router |
 | `js/market.js` | `roomOffice()`, `sync()`, `sigHTML()`, `commit()` — the actual game |
 | `js/tutorial.js` | `TUT` coach steps, `tutPanel()`/`tutAfter()`/`tutBind()`, `roomRef()` reference screen |
@@ -349,6 +350,30 @@ $2,146/mo against $1,800 rent, and takes a $96,000 deposit out of the portfolio 
 compounded. What comes back is equity (`homeEquity()`, counted in `netWorth()`), the office, and
 eventually a room worth hosting in. An earlier pass had buying cheaper monthly *and* equity-positive,
 which made it a free upgrade rather than a choice.
+
+### 6h. Instruments
+
+`instruments.js` holds a table where each entry owns its own `sound(s, choice)` and
+`settle(s, choice)`. `market.js` stayed a renderer: it collects company, driver, size and an optional
+second choice, then delegates. Adding an instrument is one table entry, not a branch in `commit()`.
+
+| Instrument | XP | Second decision | Why it is a different question |
+|---|---|---|---|
+| Equity | 0 | — | Own the better business. The foundation |
+| Bonds | 300 | Duration | Credit call *and* a rate view; right credit + wrong duration still loses |
+| Short | 800 | — | Inverts the loop: `sound` requires picking the **worse** company |
+| Pairs | 1400 | — | Long and short together; paid on the spread, immune to direction |
+| Options | 2200 | Strike | Premium paid either way; capped loss, convex upside |
+
+**Gating is `xp`, never cash.** XP only accrues on sound calls, so skill is the only thing that opens
+a desk — verified by a test that sets cash and portfolio to 99,999,999 and confirms nothing unlocks.
+
+Bonds need a second axis that is stable across re-renders and reloads, so `rateMoveFor(i)` derives a
+deterministic −100bp..+100bp move from the scenario index via the same `mulberry32` the generator
+uses. Long duration multiplies it 2.2×, short duration 0.4×. That is what manufactures `gpbo` in the
+bond desk: the credit call can be right and the money still wrong.
+
+`roomPrime()` in The Heights explains every desk and how far the next one is.
 
 **Metric gating** is what the shop items plug into, and it's all read at render time in `roomOffice`:
 

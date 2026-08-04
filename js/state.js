@@ -6,6 +6,7 @@ let salary=2400,rent=1200,owned={},appLeft=0,appLive=false;
 /* progression tiers -- see cars.js / housing.js / careers.js */
 let carTier=0, homeTier=0, careerStage=0, rep=0, contacts=0;
 let trips=4, research=0;
+let instr='equity', extraChoice='med';   /* instruments.js */
 let sessionsLeft=ROUNDS_PER_MONTH, month=1, monthPnl=0, peak=10000, maxDD=0;
 let pick=null,reason=null,conv='std',locked=false,inRoom=null,gameOver=false;
 let genSeed=(Math.random()*2147483647)|0;
