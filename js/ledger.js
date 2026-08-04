@@ -4,17 +4,20 @@ function payday(){
   const inc=income(),exp=expenses();
   cash+=inc-exp;
   if(appLeft>0){appLeft--;if(appLeft===0)appLive=true;}
+  if(arc===2) fundMonthEnd();
   let forced=0;
   if(cash<0){forced=-cash;port-=forced;cash=0;}
   renderPayday(inc,exp,forced);
 }
 function renderPayday(inc,exp,forced){
-  const last = month>=MONTHS || idx>=S.length;
-  $('sheet').innerHTML=`<div class="roomhd"><h2>Month ${month} closed</h2><span class="sub">${last?'Final settlement':'Bills, then back out'}</span></div>
+  const last = arc===2 ? (month>=ARC2_END_MONTH||fundClosed) : month>=MONTHS;
+  const offer = arc===1 && last && fundEligible();
+  $('sheet').innerHTML=`<div class="roomhd"><h2>Month ${month} closed</h2><span class="sub">${offer?'Bills, then an approach':last?'Final settlement':'Bills, then back out'}</span></div>
+    ${fundNoteHTML()}
     ${forced?`<p class="note" style="color:var(--warn)">Expenses exceeded cash. ${money(forced)} was liquidated from the portfolio to cover the gap \u2014 the most expensive way to fund a lifestyle.</p>`:''}
     <div class="ledger">
       <div class="lr"><span>Trading P&amp;L</span><span class="${monthPnl>=0?'pos':'neg'}">${monthPnl>=0?'+':''}${money(monthPnl)}</span></div>
-      <div class="lr"><span>Salary${owned.car?' (analyst role)':''}</span><span class="pos">+${money(salary+(owned.car?1800:0))}</span></div>
+      ${arc===2?fundLedgerHTML():`<div class="lr"><span>Salary${owned.car?' (analyst role)':''}</span><span class="pos">+${money(salary+(owned.car?1800:0))}</span></div>`}
       ${appLive?`<div class="lr"><span>App revenue</span><span class="pos">+${money(700)}</span></div>`:''}
       ${appLeft>0?`<div class="lr"><span>App in build</span><span>${appLeft} mo left</span></div>`:''}
       <div class="lr"><span>Rent${owned.apt?' (upgraded)':''}</span><span class="neg">\u2212${money(rent+(owned.apt?600:0))}</span></div>
@@ -27,12 +30,13 @@ function renderPayday(inc,exp,forced){
       <button class="rbtn" data-r="all" ${cash<100?'disabled':''}>Invest all cash</button>
       <button class="rbtn" data-w="2000" ${port<2000?'disabled':''}>Withdraw $2,000</button>
     </div>
-    <button class="btn" id="ok">${last?'See where you ended up':'Start month '+(month+1)}</button>`;
+    <button class="btn" id="ok">${offer?'See who has been reading your work':last?'See where you ended up':'Start month '+(month+1)}</button>`;
   document.querySelectorAll('.rbtn[data-r]').forEach(el=>el.addEventListener('click',()=>{
     const v=el.dataset.r==='all'?cash:+el.dataset.r;if(cash<v)return;cash-=v;port+=v;hud();renderPayday(inc,exp,0);}));
   document.querySelectorAll('.rbtn[data-w]').forEach(el=>el.addEventListener('click',()=>{
     const v=+el.dataset.w;if(port<v)return;port-=v;cash+=v;hud();renderPayday(inc,exp,0);}));
   $('ok').addEventListener('click',()=>{
+    if(offer){roomFundOffer();return;}
     if(last){finish();return;}
     month++;sessionsLeft=ROUNDS_PER_MONTH;monthPnl=0;
     inRoom=null;$('ov').classList.remove('on');
@@ -42,6 +46,7 @@ function renderPayday(inc,exp,forced){
 }
 
 function finish(){
+  if(arc===2){fundFinish();return;}
   gameOver=true;
   const sound=quad.gpgo+quad.gpbo,lucky=quad.bpgo,net=port+cash;
   const bought=Object.keys(owned).map(k=>ITEMS[k]?ITEMS[k].n:k);

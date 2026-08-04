@@ -13,7 +13,9 @@ const $=i=>document.getElementById(i);
 const money=n=>(n<0?'\u2212$':'$')+Math.abs(Math.round(n)).toLocaleString();
 const shuffle=a=>{for(let i=a.length-1;i>0;i--){const j=Math.random()*(i+1)|0;[a[i],a[j]]=[a[j],a[i]];}return a;};
 const expenses=()=>rent+(owned.car?150:0)+(owned.apt?600:0);
-const income=()=>salary+(owned.car?1800:0)+(appLive?700:0);
+/* arc 2 replaces the salary with fee income — see fund.js */
+const income=()=>arc===2 ? fundFee()+(appLive?700:0)
+                         : salary+(owned.car?1800:0)+(appLive?700:0);
 
 function hud(){
   $('hPort').textContent=money(port);
@@ -22,7 +24,10 @@ function hud(){
   $('hCash').className=cash<expenses()?'warn':'';
   $('hFocus').textContent=focus; $('hFocus').className=focus<3?'warn':'';
   $('hSess').textContent=sessionsLeft;
-  $('hMonth').textContent=month+' / '+MONTHS;
+  $('hMonth').textContent=arc===2?month+' / '+ARC2_END_MONTH:month+' / '+MONTHS;
+  $('podAum').style.display=arc===2?'':'none';
+  if(arc===2){$('hAum').textContent=money(aum);
+    $('hAum').className=aum<AUM_FLOOR*1.2?'warn':aum>AUM0?'up':'';}
 }
 let toastT;
 function toast(m){const t=$('toast');t.textContent=m;t.classList.add('on');

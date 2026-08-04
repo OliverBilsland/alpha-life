@@ -29,8 +29,8 @@ function roomOffice(){
     ${owned.term?`<div class="street"><b>Terminal \u00b7 street positioning</b>${s.street}</div>`:''}
     <div class="step"><div class="steplbl"><span>What drives your call?</span></div>
       <div class="grid4">${REASONS.map(r=>`<button class="rz" data-r="${r.id}" aria-pressed="false"><b>${r.name}</b><small>${r.hint}</small></button>`).join('')}</div></div>
-    <div class="step"><div class="steplbl"><span>Position size</span><em>Portfolio ${money(port)}</em></div>
-      <div class="grid3">${CONV.map(c=>`<button class="rz cv" data-c="${c.id}" aria-pressed="${c.id===conv}"><b>${c.n}</b><small>${money(port*c.pct)} at risk</small></button>`).join('')}</div></div>
+    <div class="step"><div class="steplbl"><span>Position size</span><em>${arc===2?'Fund '+money(aum):'Portfolio '+money(port)}</em></div>
+      <div class="grid3">${CONV.map(c=>`<button class="rz cv" data-c="${c.id}" aria-pressed="${c.id===conv}"><b>${c.n}</b><small>${money(sizeBase()*c.pct)} at risk</small></button>`).join('')}</div></div>
     <button class="btn" id="go" disabled>Commit position</button>
     <div id="rev"></div>${sigHTML()}`;
   document.querySelectorAll('.co').forEach(el=>el.addEventListener('click',()=>{if(locked)return;
@@ -43,6 +43,7 @@ function roomOffice(){
   $('refBtn').addEventListener('click',roomRef);
   tutBind();
 }
+function sizeBase(){return arc===2?aum:port;}
 function sync(){$('go').disabled=!(pick&&reason);}
 function sigHTML(){
   const c=(q,t)=>`<div class="gq" data-q="${q}"><span class="n">${quad[q]}</span><div class="t">${t}</div></div>`;
@@ -56,9 +57,15 @@ function commit(){
   if(locked||!pick||!reason)return;locked=true;
   const s=scenarioAt(idx);
   const sound=pick===s.better&&reason===s.driver, won=pick===s.market;
-  const size=port*CONV.find(c=>c.id===conv).pct;
+  const size=sizeBase()*CONV.find(c=>c.id===conv).pct;
   const delta=won?size*WIN_R:-size*LOSE_R;
-  port+=delta;monthPnl+=delta;
+  if(arc===2){
+    /* the fund takes the position; the personal stake rides at the same return */
+    const r=aum>0?delta/aum:0;
+    aum+=delta; monthPnl+=delta; port+=port*r;
+  }else{
+    port+=delta; monthPnl+=delta;
+  }
   peak=Math.max(peak,port);maxDD=Math.max(maxDD,(peak-port)/peak);
   if(sound){xp+=100;streak++;best=Math.max(best,streak);}else streak=0;
   focus=Math.max(0,focus-(owned.apt?(idx%2?1:0):1));
@@ -71,7 +78,7 @@ function commit(){
   $('rev').innerHTML=`<div class="reveal"><div class="rvtop">
       <div class="chip"><span class="k">Position result</span>
         <span class="v" style="color:${won?'var(--gain)':'var(--loss)'}">${won?'+':''}${money(delta)}</span>
-        <div class="d">Portfolio ${money(port)}</div></div>
+        <div class="d">${arc===2?'Fund '+money(aum):'Portfolio '+money(port)}</div></div>
       <div class="chip"><span class="k">Process</span>
         <span class="v" style="color:${sound?'var(--process)':'var(--ink-3)'}">${sound?'Sound':'Unsound'}</span>
         <div class="d">${sound?'+100 XP':(pick===s.better?'Right name, wrong reason \u2014 you said '+rN+', it was '+dN:'Wrong name')}</div></div>

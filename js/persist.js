@@ -8,7 +8,7 @@ const SAVE_KEY='alphalife.save.v1', SAVE_V=1;
 
 function snapshot(){
   return {v:SAVE_V,order,idx,port,cash,xp,streak,best,focus,
-    owned,appLeft,appLive,sessionsLeft,month,monthPnl,peak,maxDD,conv,gameOver,tutOn,genSeed,
+    owned,appLeft,appLive,sessionsLeft,month,monthPnl,peak,maxDD,conv,gameOver,tutOn,genSeed,arc,aum,aumStart,aumPeak,retHist,fundClosed,
     quad:{gpgo:quad.gpgo,gpbo:quad.gpbo,bpgo:quad.bpgo,bpbo:quad.bpbo},
     /* Only 'payday' is worth restoring: payday() charges the month's bills
        before rendering, but month++/sessionsLeft reset happen in the OK
@@ -44,6 +44,8 @@ function applySave(d){
   /* fields added after a save may be absent — default rather than reject */
   tutOn=d.tutOn!==undefined?d.tutOn:true;
   if(typeof d.genSeed==='number') genSeed=d.genSeed;
+  arc=d.arc||1; aum=d.aum||0; aumStart=d.aumStart||0; aumPeak=d.aumPeak||d.aum||0;
+  retHist=Array.isArray(d.retHist)?d.retHist:[]; fundClosed=!!d.fundClosed;
   Object.assign(quad,d.quad);
   P.x=d.P.x; P.y=d.P.y; P.dir=d.P.dir; P.driving=d.P.driving;
 }

@@ -198,6 +198,26 @@ The corollaries matter as much:
 What the generator must never do is make a case *easier* to guess than an authored one. Variety is
 the goal; a lower difficulty floor is not.
 
+## Rule 7 — The second arc is unlocked by process and lost to volatility
+
+Managing outside capital is gated on **12 sound calls of 20** — a process bar. The balance at the end
+of month four is irrelevant to whether the offer arrives. A player who got rich by guessing does not
+get the mandate; a player who was right and unlucky does.
+
+Once inside, the failure mode is deliberately not "you were wrong". Investors redeem on a bad month,
+on three-month volatility, on a drawdown from the peak, on two consecutive down months. **You can be
+closed while your process score is excellent**, and the ending says so in as many words. That is the
+`gpbo` box scaled up to a career: correct, and terminated anyway.
+
+This is also what makes position size a decision rather than a dial to max out. Measured: for a
+competent player, high conviction buys no extra chance of a strong win over standard sizing but
+quadruples the risk of losing the fund. The lesson is the one the intro arc cannot teach, because in
+the intro arc nobody can take your money away.
+
+The verdict screen still reports sound decisions and "right for wrong reasons" separately from AUM,
+and still refuses to grade the money. Survival and correctness are printed side by side and never
+summed.
+
 ## The through-line
 
 Money is the score everyone watches and the one the game refuses to grade you on. Information is what

@@ -34,6 +34,7 @@ The scripts, **in load order** — the order is load-bearing, see below:
 | `js/generate.js` | `genScenario()`, `validate()`, sector/prose banks, `scenarioAt()` deck router |
 | `js/market.js` | `roomOffice()`, `sync()`, `sigHTML()`, `commit()` — the actual game |
 | `js/tutorial.js` | `TUT` coach steps, `tutPanel()`/`tutAfter()`/`tutBind()`, `roomRef()` reference screen |
+| `js/fund.js` | arc-2 constants, `startFund()`, `fundMonthEnd()`, `roomFundOffer()`, `fundFinish()` |
 | `js/ledger.js` | `payday()`, `renderPayday()`, `finish()` |
 | `js/boot.js` | shuffle the deck, paint HUD, start the loop, tutorial toast |
 | `js/persist.js` | localStorage save/load, autosave wrappers, `newGame()` |
@@ -277,6 +278,28 @@ over 20,000 cases: zero ambiguous, zero untrapped, weakest driver lead 1.20 scal
 `market` disagrees with `better` 25% of the time and a `twist` is attached exactly when it does.
 Cash conversion deliberately **flatters the loser** on growth and value calls — the mature-but-melting
 pattern the authored Caldwell and Alden cases use — and supports the winner on profit and balance calls.
+
+### 6c. Arc 2 — outside capital
+
+`fund.js` adds a second arc gated on a **process** bar: `soundCount() >= 12` of 20. Money is never
+the gate, which is the whole point. Below the bar the game ends exactly as it did before.
+
+`arc` is the switch. In arc 2, `sizeBase()` returns `aum` instead of `port`, so a position is ~25×
+an intro trade; the personal portfolio rides at the same *return* (`port += port * delta/aum`) rather
+than the same amount, so the player keeps skin in the game without double-counting. `income()` drops
+the salary and pays `fundFee()` — 0.3%/month of AUM plus 20% of a positive month, never clawed back.
+A flat month does not cover rent, by design.
+
+`fundMonthEnd()` runs once per payday and is where investors react. **Redemptions are triggered by
+volatility, not by being wrong** — a −10% month, 3-month return stdev over 9%, a peak-to-trough
+drawdown over 18%, or two consecutive down months, capped at 30% combined. A quiet strong month
+(≥8%, low vol, near the peak) brings 8% of new subscriptions in. Below `AUM_FLOOR` the fund closes
+and the run ends.
+
+The drawdown trigger exists specifically so position size is a real decision. Measured over 60 runs
+per cell, high conviction for a competent player carries **15% closure risk for the same 68%
+strong-win rate** as standard sizing — strictly worse. For a coin-flip player it is 68% closure.
+Without that trigger, size had no downside at any skill level.
 
 **Metric gating** is what the shop items plug into, and it's all read at render time in `roomOffice`:
 
