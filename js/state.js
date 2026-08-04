@@ -21,6 +21,8 @@ let hostedMonth=0, headlandMonth=0;      /* once-a-month capital raises */
 let taught={};                           /* glossary.js -- concepts already introduced */
 let chapterSeen=0, offerMade=false;      /* endless.js */
 let recent=[];                           /* rolling soundness, last 20 calls */
+let goal=null, justBought=null, boughtAt=0, moveAmt=1000;   /* life.js */
+let hangover=false, nightOutMonth=0;
 let encounterCooldown=600, pendingEncounter=null;
 let sessionsLeft=ROUNDS_PER_MONTH, month=1, monthPnl=0, peak=10000, maxDD=0;
 let pick=null,reason=null,conv='std',locked=false,inRoom=null,gameOver=false;
@@ -34,7 +36,7 @@ const P={x:330,y:470,vx:0,vy:0,dir:0,driving:false,moving:false,vt:0};
 const $=i=>document.getElementById(i);
 const money=n=>(n<0?'\u2212$':'$')+Math.abs(Math.round(n)).toLocaleString();
 const shuffle=a=>{for(let i=a.length-1;i>0;i--){const j=Math.random()*(i+1)|0;[a[i],a[j]]=[a[j],a[i]];}return a;};
-const expenses=()=>housingMonthly()+carMonthly()+debtService()+incomeTax();
+const expenses=()=>housingMonthly()+livingCosts()+carMonthly()+debtService()+incomeTax();
 /* arc 2 replaces the salary with fee income — see fund.js */
 const income=()=>arc===2 ? fundFee()+jobPay()+(appLive?700:0)
                          : jobPay()+(appLive?700:0);
@@ -47,7 +49,7 @@ function hud(){
   $('hFocus').textContent=focus; $('hFocus').className=focus<3?'warn':'';
   $('hSess').textContent=sessionsLeft;
   $('hMonth').textContent=month+' \u00b7 ch '+chapterOf(month);
-  $('podAum').style.display=arc===2?'':'none';
+  $('podAum').style.display=(careerStage>=3||arc===2)?'':'none';
   if(arc===2){$('hAum').textContent=money(aum);
     $('hAum').className=aum<AUM_FLOOR*1.2?'warn':aum>AUM0?'up':'';}
 }

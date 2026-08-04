@@ -12,7 +12,7 @@ function showSplash(){
      would always look like a resume. `saved` is its own load result. */
   const resumed=!!saved;
   const btn=$('splashBtn'), foot=$('splashFoot');
-  btn.textContent=resumed?'Continue':'Begin';
+  btn.textContent=resumed?'Continue':'Start New Life';
   if(resumed){
     foot.textContent=arc===2
       ? `Fund open · month ${month} of ${ARC2_END_MONTH} · ${money(aum)} under management`
@@ -31,7 +31,10 @@ function dismissSplash(){
 
 /* ---------- pause ---------- */
 function pauseGame(){
+  /* Paused may only appear after a real pause: never before the player has
+     started, never over the title screen, never on a finished run. */
   if(paused||!splashDone||gameOver) return;
+  if($('splash')&&$('splash').classList.contains('on')) return;
   paused=true; save();
   $('pauseSub').textContent=inRoom?'Progress saved':'Progress saved · the city is where you left it';
   $('pause').classList.add('on');
@@ -51,4 +54,5 @@ addEventListener('blur',()=>{try{save();}catch(e){}});
 addEventListener('pagehide',pauseGame);
 
 $('pauseBtn').addEventListener('click',resumeGame);
+bindHudTerms();
 showSplash();

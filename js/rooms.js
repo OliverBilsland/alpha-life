@@ -87,9 +87,12 @@ function roomApt(){
       ${researchPerMonth()?`<div class="lr"><span>Research actions left</span><span>${research} of ${researchPerMonth()}</span></div>`:''}
     </div>
     ${hostPower()?`<button class="btn ghost" id="host">Host a dinner · ${money(hostCost())}</button>`:''}
+    ${goalHTML()}
+    <button class="btn" id="life">Life &amp; upgrades</button>
     <button class="btn" id="sleep">${sessionsLeft>0?'Sleep anyway \u2014 end month '+month:'End month '+month}</button>
     <button class="btn ghost" id="stay">Back out</button>`;
   $('sleep').addEventListener('click',payday);
   $('stay').addEventListener('click',leave);
   if(hostPower()) $('host').addEventListener('click',roomHost);
+  $('life').addEventListener('click',roomLife);
 }

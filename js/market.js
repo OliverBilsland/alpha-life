@@ -19,6 +19,8 @@ function roomOffice(){
   s.rate=rateMoveFor(idx); s.deflt=bondDefaultFor(idx);
   s.sector_move=sectorMoveFor(idx); s.crowded=crowdedFor(idx);
   s.dealroll=dealRollFor(idx);
+  /* a night out is paid for the following morning */
+  if(hangover){focus=Math.max(0,focus-1);hangover=false;}
   const red = (focus<3 ? (focus<1?['m','l']:['m']) : []).filter(k=>!revealed.includes(k));
   const row=(l,v,c)=>`<div class="m ${c||''}"><span class="lbl">${l}</span><span class="val">${v}</span></div>`;
   $('sheet').innerHTML=`<div class="roomhd"><h2>ARDENT CAPITAL</h2>
@@ -26,6 +28,7 @@ function roomOffice(){
       <button class="refbtn" id="refBtn">How scoring works</button><button class="refbtn" id="glossBtn">Glossary</button></div>
     ${tutPanel()}
     ${chapterHTML()}
+    ${goalHTML()}
     ${teachOnce('growth','margin')}${teachOnce('leverage','pe')}
     ${INST.id==='bond'?teachOnce('bond','duration')+teachOnce('credit'):''}
     ${INST.id==='short'?teachOnce('short','borrow')+teachOnce('squeeze'):''}
@@ -45,7 +48,8 @@ function roomOffice(){
         ${row(termChip('margin','Operating margin'),red.includes('m')?'\u2014':c.m+'%',red.includes('m')?'redact':'')}
         ${row(termChip('leverage','Debt / EBITDA'),red.includes('l')?'\u2014':c.l.toFixed(1)+'\u00d7',red.includes('l')?'redact':'')}
         ${row(termChip('pe','P / E'),c.p+'\u00d7')}
-        ${owned.acct?row(termChip('conversion','Cash conversion'),c.f+'%','extra'):row(termChip('conversion','Cash conversion'),'locked','locked')}
+        ${owned.laptop?row(termChip('conversion','Cash conversion'),c.f+'%','extra'):row(termChip('conversion','Cash conversion'),'needs a laptop','locked')}
+        ${owned.acct?row(termChip('fcf','Free cash flow'),fcfOf(c)+'%','extra'):row(termChip('fcf','Free cash flow'),'needs the course','locked')}
       </button>`}).join('')}</div>
     ${owned.term||knows('moss')?`<div class="street"><b>${owned.term?'Terminal':'Daniel Moss'} \u00b7 street positioning</b>${s.street}</div>`:''}
     ${arc===2&&capacityFactor()<0.95?`<p class="instnote"><strong>Capacity drag ${Math.round((1-capacityFactor())*100)}%.</strong>

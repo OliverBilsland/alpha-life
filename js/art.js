@@ -339,3 +339,64 @@ function drawLife(cx,cam,VW,VH){
     cx.fillStyle='#EFC08E'; cx.beginPath(); cx.arc(p.x,p.y-8.5-bob,2.4,0,7); cx.fill();
   }
 }
+
+/* ==================== WHAT YOU BOUGHT, VISIBLE IN THE CITY ====================
+   Every life upgrade leaves a mark on the world. This is the point of the goal
+   loop: you should be able to look at your own building and see what the last
+   ten market sessions actually bought. */
+function propsFor(id){
+  const b=B.find(x=>x.id===id); if(!b) return;
+  const d=door(b);
+
+  if(id==='apt'){
+    /* the laptop: a blue desk-light in your window */
+    if(owned.laptop){
+      cx.fillStyle='rgba(110,190,255,0.16)'; cx.fillRect(b.x+18,b.y+42,48,36);
+      cx.fillStyle='#6FD6F2'; cx.fillRect(b.x+30,b.y+54,22,15);
+      cx.fillStyle='#BFEEFF'; cx.fillRect(b.x+30,b.y+54,22,3);
+    }
+    /* the upgrade: a lit extra floor and a balcony */
+    if(homeTier>=1){
+      cx.fillStyle='#5A4E42'; cx.fillRect(b.x-4,b.y-30,b.w+8,26);
+      cx.fillStyle='#6E6053'; cx.fillRect(b.x-4,b.y-30,b.w+8,4);
+      for(let wx=b.x+14;wx<b.x+b.w-24;wx+=30){
+        cx.fillStyle=PAL.winOn; cx.fillRect(wx,b.y-24,16,13);
+        cx.fillStyle='rgba(255,214,138,0.16)'; cx.fillRect(wx-4,b.y-27,24,19);
+      }
+      cx.fillStyle='#3A3247'; cx.fillRect(b.x+b.w-74,b.y+b.h-64,58,5);
+      for(let i=0;i<5;i++) cx.fillRect(b.x+b.w-72+i*13,b.y+b.h-64,3,15);
+    }
+    /* the car, parked outside whenever you are not in it */
+    if(carTier>0&&!P.driving){
+      const px=d.x+74, py=d.y+20;
+      cx.save(); cx.translate(px,py);
+      cx.fillStyle=PAL.shadow; cx.fillRect(-15,-6,32,16);
+      cx.fillStyle=['#E8574B','#E8574B','#3E7BD6','#D9A227','#C9354F'][carTier]||'#E8574B';
+      cx.fillRect(-16,-8,32,16);
+      cx.fillStyle='#151024'; cx.fillRect(-6,-6,12,12);
+      cx.fillStyle='#6FD6F2'; cx.fillRect(-5,-5,10,10);
+      cx.restore();
+    }
+  }
+
+  /* the finance course: your name on the board outside the Institute */
+  if(id==='school'&&owned.acct){
+    cx.fillStyle='#F2E2B8'; cx.fillRect(d.x-46,d.y+16,92,20);
+    cx.fillStyle='#2B2119'; cx.fillRect(d.x-44,d.y+18,88,16);
+    cx.fillStyle='#FFD98A'; cx.font=FONT_MONO; cx.textAlign='center';
+    cx.fillText('ENROLLED',d.x,d.y+30);
+  }
+
+  /* a night out: the bar front stays lit for the rest of the month */
+  if(id==='bar'&&nightOutMonth===month){
+    cx.fillStyle='rgba(255,110,180,0.20)';
+    cx.beginPath();
+    if(cx.ellipse) cx.ellipse(d.x,d.y+10,88,40,0,0,7); else cx.arc(d.x,d.y+10,70,0,7);
+    cx.fill();
+    for(let i=0;i<7;i++){
+      cx.fillStyle=i%2?'#FF6EB4':'#6FD6F2';
+      cx.fillRect(b.x+16+i*28,b.y+b.h-40,18,4);
+    }
+  }
+}
+function drawProps(){ ['apt','school','bar'].forEach(propsFor); }

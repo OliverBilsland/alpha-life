@@ -18,5 +18,5 @@ function incomeTax(){
   }
   return Math.round(tax);
 }
-const fixedCosts=()=>housingMonthly()+carMonthly()+debtService()+incomeTax();
+const fixedCosts=()=>housingMonthly()+livingCosts()+carMonthly()+debtService()+incomeTax();
 const netWorth=()=>port+cash+homeEquity()-debt;

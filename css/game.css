@@ -347,10 +347,11 @@
   .reqs .ok{color:var(--gain)} .reqs .no{color:var(--ink-3)}
 
   /* ==================== GLOSSARY / TEACHING ==================== */
-  .term{background:none;border:none;padding:0;font:inherit;color:inherit;cursor:pointer;
-    border-bottom:1px dotted var(--process);text-align:left}
-  .term:active{color:var(--process)}
-  .m .lbl .term{color:var(--ink-3);border-bottom-color:var(--ink-3)}
+  .term{display:inline;background:none;border:none;padding:0;margin:0;font:inherit;
+    color:inherit;cursor:pointer;text-align:inherit;letter-spacing:inherit;
+    text-transform:inherit;border-bottom:1px dotted currentColor;opacity:.95}
+  .term:active{color:var(--process);opacity:1}
+  .m .lbl .term{border-bottom-style:dotted;border-bottom-color:var(--rule)}
   .termpop{position:fixed;inset:0;z-index:78;display:flex;align-items:center;justify-content:center;
     background:#0D0A16CC;padding:22px;opacity:0;visibility:hidden;pointer-events:none;
     transition:opacity .16s ease,visibility 0s .16s}
@@ -391,3 +392,42 @@
     background:linear-gradient(90deg,#241D42,#3B2E5E);color:var(--hud-ink);
     font-family:var(--mono);font-size:9px;letter-spacing:.13em;text-transform:uppercase}
   .chapterb{padding:10px 13px;font-size:12.5px;line-height:1.55;color:var(--ink-2)}
+
+  /* ==================== GOALS, PURCHASES, STATEMENT ==================== */
+  .goal{border:1px solid var(--rule);background:var(--card);border-radius:4px;
+    overflow:hidden;margin-bottom:16px}
+  .goalhd{display:flex;justify-content:space-between;gap:10px;padding:8px 13px;
+    background:linear-gradient(90deg,#0E9F6E,#0B7F58);color:#fff;
+    font-family:var(--mono);font-size:9px;letter-spacing:.13em;text-transform:uppercase}
+  .goalhd span:last-child{font-family:var(--cond);font-size:12px;letter-spacing:.04em}
+  .goalbar{height:9px;background:var(--rule-2);position:relative;overflow:hidden}
+  .goalbar i{display:block;height:100%;background:linear-gradient(90deg,#0E9F6E,#4FD6A0);
+    transition:width .7s cubic-bezier(.2,.8,.3,1)}
+  .goalfoot{padding:9px 13px;font-size:12.5px;color:var(--ink-2)}
+
+  .statement{border:1px solid var(--ink);background:var(--card);border-radius:4px;
+    overflow:hidden;margin-bottom:18px;animation:revealIn .3s both}
+  .cfhd{background:linear-gradient(90deg,#241D42,#3B2E5E);color:var(--hud-ink);padding:9px 14px;
+    font-family:var(--mono);font-size:9px;letter-spacing:.14em;text-transform:uppercase}
+  .cfsec{padding:10px 14px 3px;font-family:var(--mono);font-size:8.5px;letter-spacing:.13em;
+    text-transform:uppercase;color:var(--ink-3)}
+  .cf{display:flex;justify-content:space-between;padding:5px 14px;font-family:var(--mono);
+    font-size:12.5px;border-bottom:1px solid var(--rule-2)}
+  .cf span:first-child{font-family:var(--sans);color:var(--ink-2)}
+  .cf .pos{color:var(--gain)} .cf .neg{color:var(--loss)}
+  .cf .tot{font-weight:600}
+  .cf:last-child{border-bottom:none;border-top:1px solid var(--ink);font-weight:600}
+
+  .amt{font-family:var(--mono);font-size:15px;font-weight:600;padding:8px 14px;
+    border:1px solid var(--rule);border-radius:3px;background:var(--card);min-width:96px;
+    text-align:center;display:inline-block}
+  .rbtn.on{border-color:var(--gain);color:var(--gain);background:#EAF7F1}
+  .st.tap{cursor:pointer;pointer-events:auto}
+  .st.tap:active b{color:var(--amber)}
+  .item.fresh{animation:freshIn .8s both}
+  @keyframes freshIn{
+    0%{box-shadow:0 0 0 0 #0E9F6E00} 30%{box-shadow:0 0 0 3px #0E9F6E66}
+    100%{box-shadow:0 0 0 0 #0E9F6E00}}
+  .unlockflash{animation:unlockPulse 1.1s both}
+  @keyframes unlockPulse{
+    0%{filter:brightness(1)} 35%{filter:brightness(1.5)} 100%{filter:brightness(1)}}

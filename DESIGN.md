@@ -406,6 +406,26 @@ again after failing is the truest thing an endless version of this game can say.
 One structural correction came out of it: a cumulative bar becomes meaningless when there is no time
 limit, since anyone clears it by waiting. The fund gate is now **12 sound of your last 20**, forever.
 
+## Rule 18 — A session should be worth doing for a reason you can see
+
+The test this build is aimed at: *does the player want one more market session because they are
+visibly working toward something?*
+
+So every purchase carries three things and the screen shows all three — what it costs (with a bar
+that moves after every trade), what it changes about play, and what changes **in the city**. The last
+one matters most. A number going up in a menu is an abstraction; a car parked outside your building,
+a light in your window, your name on the Institute board — those are the last ten sessions made
+visible.
+
+The goal is never empty. If the player has not chosen one, the game aims at the cheapest lasting
+upgrade, so there is always a bar filling. And the purchases are bought with **cash**, not the
+portfolio, which keeps every one of them a genuine decision: this month's visible progress against
+next year's compounding. `roomInvest()` exists to make that trade explicit — including a button that
+pulls exactly enough for the goal and no more.
+
+None of this touches the scoring. Money still buys information, access and time; it never buys
+process, and the quadrant grid still sits under every trade saying so.
+
 ## The through-line
 
 Money is the score everyone watches and the one the game refuses to grade you on. Information is what

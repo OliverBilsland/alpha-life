@@ -40,6 +40,7 @@ The scripts, **in load order** — the order is load-bearing, see below:
 | `js/rooms.js` | `enter()`/`leave()`, `roomShop`, `roomVenue`, `roomApt` |
 | `js/instruments.js` | `INSTRUMENTS` table, XP gating, `roomPrime()` desk |
 | `js/endless.js` | chapters, `difficultyFor()`, milestones, chapter allocations |
+| `js/life.js` | `LIFE` upgrades, the goal tracker, `roomInvest()`, living costs, the cash-flow statement |
 | `js/glossary.js` | `TERMS`, `termChip()`, `openTerm()`, `teachOnce()`, `roomGlossary()` |
 | `js/generate.js` | `genScenario()`, `validate()`, sector/prose banks, `scenarioAt()` deck router |
 | `js/market.js` | `roomOffice()`, `sync()`, `sigHTML()`, `commit()` — the actual game |
@@ -639,6 +640,44 @@ game means everyone qualifies by playing long enough — a patience gate, not a 
 54% of the time; a 65%-sound player, always.
 
 The intro arc is untouched: twenty authored cases, four months, difficulty zero throughout.
+
+### 6q. The goal loop
+
+`life.js` exists to answer one question: does a player want another market session because they can
+*see* what it is buying? Five upgrades, each carrying three things the screen always shows — the
+**cost** (with a progress bar that moves after every trade), the **effect** on play, and the
+**visible change in the city**.
+
+| Upgrade | Effect | Visible in the city |
+|---|---|---|
+| A night out | +4 reputation, and the next session starts a point of focus down | The bar front lights up for the month |
+| A decent laptop | Unlocks cash conversion on every card | A blue desk-light in your window |
+| Finance course | Unlocks **free cash flow** (`fcfOf` = margin × conversion) | Your name on the Institute board |
+| Used car | Opens Midtown, qualifies you for the analyst seat, $210/mo | Parked outside whenever you are not in it |
+| Apartment upgrade | Maximum focus 6, decay halved | A lit extra floor and a balcony |
+
+`currentGoal()` always returns something — the cheapest *lasting* upgrade if the player has not
+chosen — so the bar is never empty. Repeatables are excluded, or a night out would sit at the top
+forever and never be a goal.
+
+`drawProps()` in `art.js` renders the world changes. That is the loop closing: look at your own
+building and see what the last ten sessions bought.
+
+**Money movement** is free-form: `roomInvest()` moves any amount either way, including "enough for
+the goal". **Living costs** (`livingCosts()`, scaling with home, car and club) join rent in
+`expenses()`, and `cashflowHTML()` replaces the old ledger with a real statement — opening cash,
+money in, money out itemised, net, closing cash.
+
+### A bug worth recording
+
+The teaching layer originally rendered `termChip()` as a `<button>`, and those were placed inside the
+company cards — which are themselves `<button class="co">`. **Nested buttons are invalid HTML**: the
+real parser closes the outer button and the card falls apart. The headless harness's regex node
+parser did not enforce nesting, so every test passed against a visibly broken screen.
+
+Fixed by making terms `<span role="button">` with `stopPropagation` so tapping one does not also
+select the company, and by adding `badNesting()` to the harness — it now walks every rendered sheet
+for interactive elements inside interactive elements.
 
 **Metric gating** is what the shop items plug into, and it's all read at render time in `roomOffice`:
 

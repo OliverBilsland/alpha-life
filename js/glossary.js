@@ -120,15 +120,33 @@ const TERMS={
  chapter:{g:'Scoring', n:'Chapters',
   one:'Every six months the game moves up a chapter and the companies get harder to tell apart.',
   why:'The deciding number stays decisive — it never becomes a guess — but the distractions get stronger, so the reading has to get better.'},
+ fcf:{g:'Metric', n:'Free cash flow',
+  one:'The share of sales that survives as cash the company can actually spend, after keeping itself running.',
+  why:'Profit can be reinvested away to nothing. Free cash flow is what is left to pay down debt, buy back shares or survive a bad year — it decides whether a business has options.'},
+ focusStat:{g:'Playing', n:'Focus',
+  one:'How clearly you are reading. It starts at 5 and falls by one every trading session.',
+  why:'Below 3 the operating margin stops being readable, and below 1 the debt does too. You will still be asked to commit, on a card missing the numbers that would have changed your mind.'},
+ sessionsStat:{g:'Playing', n:'Sessions',
+  one:'How many trades you have left this month. Five, unless you buy a sixth.',
+  why:'It is the only thing a trade costs. Walking round the city, opening any door and browsing anything are all free — sessions are spent at the desk and nowhere else.'},
+ cash:{g:'Playing', n:'Cash',
+  one:'Money you can spend today, on rent, upgrades and nights out.',
+  why:'It does not grow. Anything sitting in cash is money not compounding, which is why the game keeps asking whether this month\u2019s purchase is worth more than next year\u2019s growth.'},
+ portfolio:{g:'Playing', n:'Portfolio',
+  one:'Money invested in the market. It grows and shrinks with your calls, and it sets your position sizes.',
+  why:'Position size is a share of it, so a bigger portfolio means every decision carries more. It compounds — which is exactly what you give up when you take money out to buy something.'},
  xp:{g:'Scoring', n:'Process XP',
   one:'Points earned only for sound calls — never for making money.',
   why:'It is what unlocks new instruments here. Skill buys access; money cannot, because if money could buy a more powerful tool then money would be buying skill.'}
 };
 
-/* an inline, tappable term */
+/* An inline, tappable term. This must be a SPAN, not a button: terms appear
+   inside the company cards, which are themselves <button> elements, and nested
+   buttons are invalid HTML -- the parser closes the outer one and the card
+   shatters. A span with a role is valid anywhere. */
 function termChip(id,label){
   const t=TERMS[id]; if(!t) return label||id;
-  return `<button class="term" data-t="${id}">${label||t.n}</button>`;
+  return `<span class="term" role="button" tabindex="0" data-t="${id}">${label||t.n}</span>`;
 }
 
 /* ---------- the popover ---------- */
@@ -149,8 +167,20 @@ function openTerm(id){
 }
 function closeTerm(){const p=$('termpop'); if(p) p.classList.remove('on');}
 function bindTerms(){
-  document.querySelectorAll('.term').forEach(el=>
-    el.addEventListener('click',()=>openTerm(el.dataset.t)));
+  document.querySelectorAll('.term').forEach(el=>{
+    el.addEventListener('click',e=>{
+      /* a term inside a company card must not also select that company */
+      if(e&&e.stopPropagation) e.stopPropagation();
+      openTerm(el.dataset.t);
+    });
+    el.addEventListener('keydown',e=>{
+      if(e&&(e.key==='Enter'||e.key===' ')){
+        if(e.preventDefault) e.preventDefault();
+        if(e.stopPropagation) e.stopPropagation();
+        openTerm(el.dataset.t);
+      }
+    });
+  });
 }
 
 /* ---------- first-time teaching ---------- */

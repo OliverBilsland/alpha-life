@@ -14,6 +14,11 @@
    Scenarios are a pure function of (genSeed, index): nothing is stored, and the
    same seed replays the same run forever. */
 
+/* Free cash flow margin: the share of revenue that survives as spendable cash.
+   Operating margin multiplied by how much of it converts. Derived, so it works
+   on the authored cases and the generated ones alike. */
+const fcfOf=c=>Math.round(c.m*c.f/100);
+
 function mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;
   let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;
   return((t^t>>>14)>>>0)/4294967296;};}

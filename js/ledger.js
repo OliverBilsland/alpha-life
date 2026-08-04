@@ -43,6 +43,7 @@ function renderPayday(inc,exp,forced){
     ${reviewNoteHTML()}
     ${fundNoteHTML()}
     ${forced?`<p class="note" style="color:var(--warn)">Expenses exceeded cash. ${money(forced)} was liquidated from the portfolio to cover the gap \u2014 the most expensive way to fund a lifestyle.</p>`:''}
+    ${cashflowHTML(inc,exp,forced)}
     <div class="ledger">
       <div class="lr"><span>Trading P&amp;L</span><span class="${monthPnl>=0?'pos':'neg'}">${monthPnl>=0?'+':''}${money(monthPnl)}</span></div>
       ${arc===2?fundLedgerHTML():`<div class="lr"><span>Salary · ${job().n}</span><span class="pos">+${money(jobPay())}</span></div>`}

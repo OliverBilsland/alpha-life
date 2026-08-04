@@ -20,6 +20,7 @@ function draw(){
   const near=nearBuilding();
   /* painter's order: further-up buildings first so extrusions overlap correctly */
   B.slice().sort((a,b)=>a.y-b.y).forEach(b=>drawBuilding(cx,b,near&&near.id===b.id));
+  drawProps();
 
   drawPlayer(cx,walkPhase);
   cx.restore();
