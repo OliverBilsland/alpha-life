@@ -99,7 +99,7 @@ function fundNoteHTML(){
 /* ---------- the offer, shown once, at the end of month four ---------- */
 function roomFundOffer(){
   inRoom='payday'; $('exitBtn').classList.remove('on');
-  $('ov').classList.add('on');
+  $('ov').classList.add('on'); enterRoom();
   $('sheet').innerHTML=`<div class="roomhd"><h2>An approach</h2>
       <span class="sub">After month four</span></div>
     <p class="note k">${recentSoundCount()} of your last ${recent.length} calls were sound. That is
@@ -175,7 +175,7 @@ function closeFund(){
   careerStage=Math.max(1,Math.min(careerStage,2));
   rep=Math.max(0,rep-25);
   sessionsLeft=ROUNDS_PER_MONTH; monthPnl=0;
-  inRoom='payday'; $('exitBtn').classList.remove('on'); $('ov').classList.add('on');
+  inRoom='payday'; $('exitBtn').classList.remove('on'); $('ov').classList.add('on'); enterRoom();
   $('sheet').innerHTML=`<div class="roomhd"><h2>The mandate is gone</h2>
       <span class="sub">Month ${month} · back to a desk</span></div>
     <p class="note">Assets fell through ${money(AUM_FLOOR)} and the investors took what was left of

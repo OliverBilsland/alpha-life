@@ -223,6 +223,7 @@ function maybeEncounter(){
   const e=rollEncounter();
   pendingEncounter=e;
   inRoom='encounter'; $('ov').classList.add('on'); $('exitBtn').classList.remove('on');
+  enterRoom();
   $('sheet').innerHTML=`<div class="roomhd"><h2>${e.n}</h2>
       <span class="sub">On the road · ${districtAt(P.x).n}</span></div>
     <p class="note">${e.d}</p>

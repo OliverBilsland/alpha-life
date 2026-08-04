@@ -1,7 +1,17 @@
 /* ==================== ROOMS ==================== */
+/* Walking in should feel like walking in. `enterRoom` restarts a short
+   door-and-lift animation on the overlay -- ~220ms, so it reads as movement
+   without ever standing between the player and the content. */
+function enterRoom(){
+  const ov=$('ov');
+  ov.classList.remove('entering');
+  void ov.offsetWidth;            /* restart the animation even on a re-entry */
+  ov.classList.add('entering');
+}
 function enter(b){
   inRoom=b.id; $('ov').classList.add('on'); $('exitBtn').classList.add('on');
   $('prompt').classList.remove('on');
+  enterRoom();
   if(b.id==='office') roomOffice();
   else if(b.id==='apt') roomApt();
   else if(b.id==='bar') roomVenue('THE LONG ROOM','Bar',80,2,'A quiet drink and an hour not thinking about the market. Cheap, partial.');

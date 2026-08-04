@@ -728,7 +728,14 @@ now calls `leave()` and drops the player straight onto the street, because the p
 is the drive, not a receipt.
 
 Transitions moved the overlay from `display:none` to `visibility`+`opacity` so it can animate;
-`pointer-events` is toggled with it so a hidden overlay can never swallow a click. The canvas gained
+`pointer-events` is toggled with it so a hidden overlay can never swallow a click.
+
+**Walking in.** `enterRoom()` in `rooms.js` restarts an `.entering` class on `#ov` — removing it,
+forcing a reflow, then re-adding, so a re-entry replays rather than sitting inert. The sheet lifts
+and settles (`roomIn`, 220ms) while a warm sweep passes across it (`roomSweep`, 240ms, and
+`pointer-events:none` so it can never eat a tap). Content is fully opaque 60% of the way through, so
+the animation is never between the player and the heading. Every location uses it, and so do the
+month-end screen, the fund offer, the closure screen and street encounters. The canvas gained
 a headlight cone while driving and a highlight on the door you're in range of — both pure `draw()`
 additions with no state.
 

@@ -1,6 +1,6 @@
 /* ---------- payday ---------- */
 function payday(){
-  inRoom='payday';$('exitBtn').classList.remove('on');
+  inRoom='payday';$('exitBtn').classList.remove('on');enterRoom();
   const inc=income(),exp=expenses();
   cash+=inc-exp;
   if(appLeft>0){appLeft--;if(appLeft===0)appLive=true;}
