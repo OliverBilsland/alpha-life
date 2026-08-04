@@ -36,6 +36,7 @@ The scripts, **in load order** — the order is load-bearing, see below:
 | `js/tutorial.js` | `TUT` coach steps, `tutPanel()`/`tutAfter()`/`tutBind()`, `roomRef()` reference screen |
 | `js/fund.js` | arc-2 constants, `startFund()`, `fundMonthEnd()`, `roomFundOffer()`, `fundFinish()` |
 | `js/ledger.js` | `payday()`, `renderPayday()`, `finish()` |
+| `js/feel.js` | `moment()` beat layer, HUD pulse wrapper — presentation only |
 | `js/boot.js` | shuffle the deck, paint HUD, start the loop, tutorial toast |
 | `js/persist.js` | localStorage save/load, autosave wrappers, `newGame()` |
 
@@ -330,6 +331,28 @@ header (including when the desk is closed). It reads `CONV`, `WIN_R` and `LOSE_R
 restating them, so it cannot drift from the balance. It's hidden during a reveal — `commit()` sets
 `#refBtn` to `display:none` alongside `#go` — so navigating away can't discard an explanation the
 player is mid-way through reading.
+
+---
+
+## 6d. Feel
+
+`feel.js` is presentation only and reads game state solely to notice a displayed number changed. It
+wraps `hud()` a second time (persist.js wraps it again later, which composes fine) and pulses any HUD
+figure whose value moved, marking falls with a separate keyframe.
+
+`moment(big, small)` is a full-screen beat, deliberately rationed. Only the car uses it: buying it
+now calls `leave()` and drops the player straight onto the street, because the point of the purchase
+is the drive, not a receipt.
+
+Transitions moved the overlay from `display:none` to `visibility`+`opacity` so it can animate;
+`pointer-events` is toggled with it so a hidden overlay can never swallow a click. The canvas gained
+a headlight cone while driving and a highlight on the door you're in range of — both pure `draw()`
+additions with no state.
+
+**Hover rules are gated behind `@media (hover:hover)`.** Ungated `:hover` sticks after a tap on
+touch devices, so every hover rule was moved and `:active` press states added in their place. Touch
+targets grow under `@media (pointer:coarse)` and the controls respect `env(safe-area-inset-*)`.
+`prefers-reduced-motion` collapses every animation added here.
 
 ---
 

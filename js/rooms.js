@@ -30,7 +30,9 @@ function roomShop(title,sub,ids){
     const k=el.dataset.k,it=ITEMS[k];
     if(cash<it.cost)return; cash-=it.cost;
     if(k==='app'){appLeft=3;} else {owned[k]=true;}
-    if(k==='car'){P.driving=true;toast('You bought the car. Everything just got closer.');}
+    /* the car walks you back out to the street — the point is the drive */
+    if(k==='car'){P.driving=true;leave();
+      moment('THE KEYS','Everything just got closer.');return;}
     if(k==='acct')toast('Cash conversion now shows on every card.');
     if(k==='term')toast('Terminal installed. You can see the crowd now.');
     if(k==='apt')toast('You moved. Focus will hold longer.');

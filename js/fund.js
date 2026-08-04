@@ -98,8 +98,9 @@ function roomFundOffer(){
       <div class="lr"><span>Term</span><span>Eight months</span></div>
       <div class="lr"><span>Fund closes below</span><span class="neg">${money(AUM_FLOOR)}</span></div>
     </div>
-    <p class="note">Position sizes are a share of the fund, so every call is roughly twenty-five
-      times the size you have been trading. Your own portfolio rides alongside at the same return.</p>
+    <p class="note">Position sizes are a share of the fund, so every call is about
+      <strong>${Math.max(2,Math.round(AUM0/Math.max(port,1)))}×</strong> the size you have been
+      trading. Your own portfolio rides alongside at the same return.</p>
     <p class="note">The salary stops. You live on fees, and fees in a flat month do not cover rent.</p>
     <p class="note k">Investors redeem on <strong>volatility</strong>, not on being wrong. A run of
       sound calls that happens to be violent will lose you the mandate faster than a quiet run of
