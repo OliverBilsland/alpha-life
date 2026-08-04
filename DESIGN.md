@@ -278,6 +278,20 @@ compounding into absurdity; measured without it, the fund reached $8.7m and $198
 also true, and it is the last lesson the game has to teach: the edge that made you does not survive
 being scaled, and the number that grows is not the number that matters.
 
+## Rule 11 — The world has to be worth looking at
+
+The original palette was cold slate on grey-green: legible, and joyless. The rule the visual pass
+holds to is that **mood is a mechanic** — a player who does not want to look at the city will not
+drive across it, and Rule 4 depends on them wanting to.
+
+So: warm dusk, saturated buildings, amber windows, lamp pools, per-district hue. Contrast is not
+sacrificed for atmosphere — paper is `#F6F1E5` against `#191410` ink, and the redaction and quadrant
+colours stayed semantically identical, just vivid instead of muddy.
+
+The character earns its place the same way. A dot cannot face anywhere, cannot walk, and cannot get
+into a car. A figure with legs that swing only while you are actually moving tells you the game is
+reading your input — the smallest possible piece of feedback, delivered continuously.
+
 ## The through-line
 
 Money is the score everyone watches and the one the game refuses to grade you on. Information is what

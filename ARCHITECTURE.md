@@ -28,6 +28,7 @@ The scripts, **in load order** — the order is load-bearing, see below:
 |---|---|
 | `js/data.js` | `REASONS` (4 thesis drivers), `S` (20 scenarios), `ITEMS` (5 purchasables) |
 | `js/world.js` | `W`/`H` (4200x2400), `DISTRICTS`, `B` buildings, `ROADS` |
+| `js/art.js` | the entire canvas layer: palette, ground, roads, lamps, buildings, character, car |
 | `js/cars.js` | `CARS` tiers, trips budget, district gating, `roomDealer()` |
 | `js/social.js` | `rep`/`contacts`, gym, club, galas, Headland, exchange floor, base-rate display |
 | `js/careers.js` | `JOBS` ladder, `promote()`, credit line, `roomBank()`, `roomRecruit()` |
@@ -92,7 +93,7 @@ Per frame, in order:
    already own the car. The mobile `#actBtn` gets `.live` off the same test.
 4. **`draw()`.**
 
-`draw()` (`city.js:8`) is immediate-mode, painted fresh every frame, in strict painter's order:
+`draw()` (`city.js`) is immediate-mode, painted fresh every frame, in strict painter's order:
 
 - clamp a camera to `P` and the world bounds, `translate(-cam.x,-cam.y)`;
 - ground: a 200px grid of inset 192px blocks, giving the gutters that read as sidewalks;
@@ -107,6 +108,30 @@ Per frame, in order:
 There is no sprite sheet, no image asset, no z-sorting, and no dirty-rect logic — the whole city is
 cheap enough to repaint every frame. `resize()` handles DPR (capped at 2) by scaling the backing
 store and calling `setTransform` once.
+
+### 2a. The art layer
+
+Everything drawn on canvas lives in `art.js`; `city.js`'s `draw()` is now a six-line composition
+call. Still code-drawn — no image assets.
+
+The look is a **warm dusk city**. `PAL` holds the canvas palette; `DTINT` gives each district its own
+hue so regions read at a glance. Depth comes from four things: an extruded roof slab offset up-left
+of each facade, a left-to-right gradient on the facade, warm lamp pools on the pavement, and a
+radial vignette over the whole frame.
+
+Per-building detail (rooftop clutter, which windows are lit, aerials) comes from `rngFor(b.id)` — a
+FNV hash seeding mulberry32 — so it is **stable frame to frame**, asserted by comparing two
+consecutive frames' op signatures. Buildings are depth-sorted by `y` before drawing so extrusions
+overlap correctly.
+
+**The character** is assembled from ~14 parts: shadow ellipse, two swinging legs, shoes, coat,
+placket, scarf, arms, head, hair and eyes. `facingOf(dir)` resolves to `up`/`down`/`left`/`right`,
+and the walk cycle is driven by **distance travelled** (`walkPhase` in `city.js`), so it stops dead
+when the player does rather than marching on the spot.
+
+Getting into the car is a transition, not a swap: `P.vt` eases 0→1, the car fades in while the
+character shrinks and fades out, and the person deliberately counter-rotates so they never spin with
+the vehicle's heading.
 
 ---
 

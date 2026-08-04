@@ -1,9 +1,5 @@
 /* ==================== RENDER ==================== */
-/* No webfonts are loaded (the game must run with no network), so canvas text
-   uses the same system stacks the CSS falls back to. */
-const CANVAS_COND='700 13px "IBM Plex Sans Condensed","Avenir Next Condensed","Arial Narrow",-apple-system,sans-serif';
-const CANVAS_DIST='700 26px "IBM Plex Sans Condensed","Avenir Next Condensed","Arial Narrow",-apple-system,sans-serif';
-const CANVAS_MONO='400 10px "IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace';
+/* Canvas fonts and every drawing routine live in art.js. */
 const cv=$('cv'),cx=cv.getContext('2d');
 let VW=0,VH=0,DPR=1;
 function resize(){DPR=Math.min(devicePixelRatio||1,2);VW=innerWidth;VH=innerHeight;
@@ -12,70 +8,21 @@ addEventListener('resize',resize);resize();
 
 function draw(){
   const cam={x:Math.max(0,Math.min(W-VW,P.x-VW/2)),y:Math.max(0,Math.min(H-VH,P.y-VH/2))};
-  cx.fillStyle='#171A1E';cx.fillRect(0,0,VW,VH);
-  cx.save();cx.translate(-cam.x,-cam.y);
+  cx.fillStyle=PAL.void; cx.fillRect(0,0,VW,VH);
+  cx.save(); cx.translate(-cam.x,-cam.y);
 
-  // district bands
-  DISTRICTS.forEach(d=>{
-    const open=districtOpen(d);
-    cx.fillStyle=d.c;
-    for(let x=d.x0;x<d.x1;x+=200)for(let y=0;y<H;y+=200)
-      cx.fillRect(x+4,y+4,Math.min(192,d.x1-x-8),192);
-    if(!open){cx.fillStyle='#0A0C0E9E';cx.fillRect(d.x0,0,d.x1-d.x0,H);}
-    // checkpoint stripe on the boundary
-    if(d.x0>0){
-      cx.fillStyle=open?'#3A4048':'#6E4A2E';
-      for(let y=0;y<H;y+=48) cx.fillRect(d.x0-5,y,10,26);
-    }
-    cx.fillStyle=open?'#EDEFEA20':'#EDEFEA38';
-    cx.font=CANVAS_DIST; cx.textAlign='center';
-    cx.fillText(open?d.n:d.n+'  ·  '+carNeededFor(d).n.toUpperCase()+' REQUIRED',
-      (d.x0+d.x1)/2, 62);
-  });
-  // roads
-  cx.fillStyle='#25292F';ROADS.forEach(r=>cx.fillRect(r.x,r.y,r.w,r.h));
-  cx.strokeStyle='#3A4048';cx.lineWidth=2;cx.setLineDash([22,20]);
-  ROADS.forEach(r=>{cx.beginPath();
-    if(r.w>r.h){cx.moveTo(r.x,r.y+r.h/2);cx.lineTo(r.x+r.w,r.y+r.h/2);}
-    else{cx.moveTo(r.x+r.w/2,r.y);cx.lineTo(r.x+r.w/2,r.y+r.h);}cx.stroke();});
-  cx.setLineDash([]);
+  drawGround(cx,cam,VW,VH);
+  drawRoads(cx);
+  drawLamps(cx,cam,VW);
+  drawDistrictLabels(cx,cam,VW);
 
-  // buildings
   const near=nearBuilding();
-  B.forEach(b=>{
-    cx.fillStyle='#0C0E11';cx.fillRect(b.x+7,b.y+9,b.w,b.h);
-    cx.fillStyle=b.c;cx.fillRect(b.x,b.y,b.w,b.h);
-    cx.fillStyle='#00000033';cx.fillRect(b.x,b.y,b.w,26);
-    // windows
-    cx.fillStyle='#EDEFEA18';
-    for(let wx=b.x+18;wx<b.x+b.w-24;wx+=34)for(let wy=b.y+40;wy<b.y+b.h-40;wy+=32)cx.fillRect(wx,wy,18,16);
-    // door
-    const d=door(b);
-    const lit=near&&near.id===b.id;
-    if(lit){cx.fillStyle='#EDEFEA22';cx.fillRect(d.x-34,d.y-16,68,30);}
-    cx.fillStyle=lit?'#FFFFFF':'#EDEFEA';cx.fillRect(d.x-20,d.y-6,40,10);
-    cx.fillStyle='#EDEFEA';cx.font=CANVAS_COND;
-    cx.textAlign='center';cx.fillText(b.n,b.x+b.w/2,b.y+18);
-    cx.fillStyle='#EDEFEA88';cx.font=CANVAS_MONO;
-    cx.fillText(b.s.toUpperCase(),b.x+b.w/2,b.y+b.h+18);
-  });
+  /* painter's order: further-up buildings first so extrusions overlap correctly */
+  B.slice().sort((a,b)=>a.y-b.y).forEach(b=>drawBuilding(cx,b,near&&near.id===b.id));
 
-  // player
-  cx.save();cx.translate(P.x,P.y);cx.rotate(P.dir);
-  if(P.driving){
-    cx.fillStyle='#F3E6A012';cx.beginPath();cx.moveTo(18,-9);cx.lineTo(150,-52);
-    cx.lineTo(150,52);cx.lineTo(18,9);cx.closePath();cx.fill();
-    cx.fillStyle='#00000055';cx.fillRect(-16,-9,34,20);
-    cx.fillStyle='#C8452F';cx.fillRect(-18,-11,36,22);
-    cx.fillStyle='#1A1D22';cx.fillRect(-6,-9,12,18);
-    cx.fillStyle='#F3E6A0';cx.fillRect(16,-9,4,6);cx.fillRect(16,3,4,6);
-  }else{
-    cx.fillStyle='#00000055';cx.beginPath();cx.arc(2,2,10,0,7);cx.fill();
-    cx.fillStyle='#EDEFEA';cx.beginPath();cx.arc(0,0,10,0,7);cx.fill();
-    cx.fillStyle='#2B4C7E';cx.fillRect(4,-4,7,8);
-  }
+  drawPlayer(cx,walkPhase);
   cx.restore();
-  cx.restore();
+  drawVignette(cx,VW,VH);
 }
 
 function door(b){return {x:b.x+b.w/2, y:b.y+b.h+4};}
@@ -124,6 +71,7 @@ function step(){
   }
   requestAnimationFrame(step);
 }
+let walkPhase=0;
 function simulate(){
   {
     const sp=carSpeed();
@@ -133,8 +81,16 @@ function simulate(){
     if(m>1){dx/=m;dy/=m;}
     if(m>.08){P.dir=Math.atan2(dy,dx);}
     const nx=P.x+dx*sp, ny=P.y+dy*sp;
+    const ox=P.x, oy=P.y;
     if(!blocked(nx,P.y))P.x=nx;
     if(!blocked(P.x,ny))P.y=ny;
+    const moved=Math.hypot(P.x-ox,P.y-oy);
+    P.moving=moved>0.05;
+    walkPhase=(walkPhase+moved/(P.driving?26:14))%1;
+    /* getting in and out of the car is a transition, not a swap */
+    const target=P.driving?1:0;
+    if(P.vt===undefined) P.vt=target;
+    P.vt+=Math.max(-0.09,Math.min(0.09,target-P.vt));
 
     const b=nearBuilding(),pr=$('prompt');
     const gate=nearGate();

@@ -18,7 +18,7 @@ let genSeed=(Math.random()*2147483647)|0;
    starts before shell.js loads -- can read them without a temporal-dead-zone throw */
 let paused=false, splashDone=false;
 const quad={gpgo:0,gpbo:0,bpgo:0,bpbo:0};
-const P={x:330,y:470,vx:0,vy:0,dir:0,driving:false};
+const P={x:330,y:470,vx:0,vy:0,dir:0,driving:false,moving:false,vt:0};
 
 const $=i=>document.getElementById(i);
 const money=n=>(n<0?'\u2212$':'$')+Math.abs(Math.round(n)).toLocaleString();
