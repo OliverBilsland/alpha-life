@@ -8,7 +8,7 @@ const SAVE_KEY='alphalife.save.v1', SAVE_V=1;
 
 function snapshot(){
   return {v:SAVE_V,order,idx,port,cash,xp,streak,best,focus,
-    owned,appLeft,appLive,sessionsLeft,month,monthPnl,peak,maxDD,conv,gameOver,tutOn,genSeed,carTier,homeTier,careerStage,rep,contacts,research,gymMonth,floorMonth,bankrupt,carCond,propIndex,propHist,reviewedAt,reviewedSound,met,rennUsed,tips,eventDone,hostedMonth,headlandMonth,taught,instr,extraChoice,debt,arc,aum,aumStart,aumPeak,retHist,fundClosed,
+    owned,appLeft,appLive,sessionsLeft,month,monthPnl,peak,maxDD,conv,gameOver,tutOn,genSeed,carTier,homeTier,careerStage,rep,contacts,research,gymMonth,floorMonth,bankrupt,carCond,propIndex,propHist,reviewedAt,reviewedSound,met,rennUsed,tips,eventDone,hostedMonth,headlandMonth,taught,chapterSeen,offerMade,recent,instr,extraChoice,debt,arc,aum,aumStart,aumPeak,retHist,fundClosed,
     quad:{gpgo:quad.gpgo,gpbo:quad.gpbo,bpgo:quad.bpgo,bpbo:quad.bpbo},
     /* Only 'payday' is worth restoring: payday() charges the month's bills
        before rendering, but month++/sessionsLeft reset happen in the OK
@@ -57,7 +57,8 @@ function applySave(d){
   met=d.met||{}; rennUsed=!!d.rennUsed;
   tips=Array.isArray(d.tips)?d.tips:[]; eventDone=d.eventDone||0;
   hostedMonth=d.hostedMonth||0; headlandMonth=d.headlandMonth||0;
-  taught=d.taught||{};
+  taught=d.taught||{}; chapterSeen=d.chapterSeen||0; offerMade=!!d.offerMade;
+  recent=Array.isArray(d.recent)?d.recent:[];
   instr=d.instr||'equity'; extraChoice=d.extraChoice||'med';
   arc=d.arc||1; aum=d.aum||0; aumStart=d.aumStart||0; aumPeak=d.aumPeak||d.aum||0;
   retHist=Array.isArray(d.retHist)?d.retHist:[]; fundClosed=!!d.fundClosed;

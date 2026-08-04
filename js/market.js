@@ -18,17 +18,21 @@ function roomOffice(){
   const s=scenarioAt(idx);
   s.rate=rateMoveFor(idx); s.deflt=bondDefaultFor(idx);
   s.sector_move=sectorMoveFor(idx); s.crowded=crowdedFor(idx);
+  s.dealroll=dealRollFor(idx);
   const red = (focus<3 ? (focus<1?['m','l']:['m']) : []).filter(k=>!revealed.includes(k));
   const row=(l,v,c)=>`<div class="m ${c||''}"><span class="lbl">${l}</span><span class="val">${v}</span></div>`;
   $('sheet').innerHTML=`<div class="roomhd"><h2>ARDENT CAPITAL</h2>
       <span class="sub">Month ${month} \u00b7 session ${ROUNDS_PER_MONTH-sessionsLeft+1} of ${ROUNDS_PER_MONTH} \u00b7 ${s.sector}</span>
       <button class="refbtn" id="refBtn">How scoring works</button><button class="refbtn" id="glossBtn">Glossary</button></div>
     ${tutPanel()}
+    ${chapterHTML()}
     ${teachOnce('growth','margin')}${teachOnce('leverage','pe')}
     ${INST.id==='bond'?teachOnce('bond','duration')+teachOnce('credit'):''}
     ${INST.id==='short'?teachOnce('short','borrow')+teachOnce('squeeze'):''}
     ${INST.id==='pairs'?teachOnce('pairs','hedge'):''}
     ${INST.id==='option'?teachOnce('option','premium')+teachOnce('strike'):''}
+    ${INST.id==='convert'?teachOnce('convert'):''}
+    ${INST.id==='merger'?teachOnce('merger'):''}
     ${tipHTML(s,idx)}
     ${red.length?`<p class="note" style="color:var(--warn)">Focus ${focus}. You are reading these cards tired — ${red.length} metric${red.length>1?'s are':' is'} unreadable.${canResearch()?` Your home office can recover ${research===1?'one':research}: ${red.map(k=>`<button class="rsrch" data-m="${k}">Research ${k==='m'?'operating margin':'debt / EBITDA'}</button>`).join(' ')}`:''}</p>`:''}
     <p class="instask">${INST.id==='short'?'Pick the business you would <strong>not</strong> own — you are selling it.'
@@ -110,6 +114,7 @@ function commit(){
   const s=scenarioAt(idx);
   s.rate=rateMoveFor(idx); s.deflt=bondDefaultFor(idx);
   s.sector_move=sectorMoveFor(idx); s.crowded=crowdedFor(idx);
+  s.dealroll=dealRollFor(idx);
   const INST=instrumentById(instr);
   const choice={pick,reason,dur:extraChoice,strike:extraChoice,
     borrow:extraChoice,hedge:extraChoice};
@@ -128,6 +133,7 @@ function commit(){
   peak=Math.max(peak,port);maxDD=Math.max(maxDD,(peak-port)/peak);
   if(sound){xp+=100;streak++;best=Math.max(best,streak);}else streak=0;
   repFromCall(sound);
+  recent.push(sound?1:0); if(recent.length>ARC2_WINDOW) recent.shift();
   focus=Math.max(0,focus-focusDecay());
   const q=sound?(won?'gpgo':'gpbo'):(won?'bpgo':'bpbo');quad[q]++;
   const QN={gpgo:'Sound process, good outcome',gpbo:'Sound process, bad outcome',

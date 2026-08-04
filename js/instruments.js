@@ -139,6 +139,51 @@ const INSTRUMENTS=[
               '. Being early is indistinguishable from being wrong once the contract dies.'
              :'It expired worthless. You paid '+Math.round(o.prem*100)+'% of the stake to be wrong.'};
   }
+},
+{
+  id:'convert', n:'Convertibles', sub:'A bond that can become equity',
+  xp:3200, win:0.19, lose:0.13,
+  blurb:'Lend to a company, with the right to swap the loan for shares if it does well.',
+  teach:'It pays like a bond when you are wrong and like equity when you are right — which is why you never get it as cheaply as either.',
+  extra:{key:'convmode', label:'How you hold it', hint:'Where on the bond-to-equity line you sit',
+    opts:[{id:'safe',n:'Hold to maturity',s:'Take the coupon, ignore the upside',e:0.25},
+          {id:'bal', n:'Balanced',        s:'Some of both',                     e:0.60},
+          {id:'eq',  n:'Convert early',   s:'Effectively owning the shares',    e:1.00}]},
+  sound:(s,c)=>c.pick===s.better&&c.reason===s.driver,
+  settle(s,c){
+    const o=this.extra.opts.find(x=>x.id===c.convmode)||this.extra.opts[1];
+    const won=c.pick===s.market;
+    /* the floor is the bond; the upside is scaled by how much equity you took */
+    const floor=won?0.06:-0.05;
+    const kicker=(won?0.28:-0.24)*o.e;
+    const mult=floor+kicker;
+    return {won:mult>=0, mult,
+      line:(won?s[c.pick].t+' worked, ':'')+
+        (o.e>0.8?'You had converted, so you took the full move — and gave up the protection that made this a bond.'
+        :o.e<0.4?'You held it as debt. The coupon protected you and capped you at the same time.'
+        :'Balanced: some of the fall cushioned, some of the rise captured.')};
+  }
+},
+{
+  id:'merger', n:'Merger arb', sub:'Betting a deal closes',
+  xp:4500, win:0.11, lose:0.42,
+  blurb:'A company is being bought. Buy it below the offer price and collect the gap when the deal completes.',
+  teach:'Small, frequent gains and rare catastrophic losses. The question is never "is this a good business" but "will this deal actually close".',
+  extra:{key:'convmode', label:'Deal risk', hint:'What could stop it',
+    opts:[{id:'safe',n:'Agreed, funded',   s:'Thin spread, very likely to close',p:0.90,g:0.06},
+          {id:'bal', n:'Regulatory review',s:'Wider spread, a real hurdle',      p:0.74,g:0.16},
+          {id:'eq',  n:'Hostile',          s:'Wide spread, may collapse',        p:0.55,g:0.34}]},
+  sound:(s,c)=>c.pick===s.better&&c.reason===s.driver,
+  settle(s,c){
+    const o=this.extra.opts.find(x=>x.id===c.convmode)||this.extra.opts[0];
+    /* the deal closing is deterministic per scenario, and independent of which
+       business is better -- which is exactly the point of the instrument */
+    const closes=(s.dealroll===undefined?0.5:s.dealroll)<o.p;
+    const mult=closes?o.g:-(0.20+o.g*2.1);
+    return {won:closes, mult,
+      line:closes?'The deal closed and you collected the '+Math.round(o.g*100)+'% spread. Nothing about the business mattered.'
+        :'The deal broke. The share fell back to where it traded before the offer, and the spread you were collecting became the hole you are in.'};
+  }
 }];
 
 const instrumentById=id=>INSTRUMENTS.find(i=>i.id===id)||INSTRUMENTS[0];
@@ -162,6 +207,10 @@ function crowdedFor(i){
   const r=mulberry32((Math.imul(i+41,1597334677)^0x27D4EB2F)>>>0);
   const hit=r()<0.35;
   return hit?(r()<0.5?'a':'b'):null;
+}
+function dealRollFor(i){
+  const r=mulberry32((Math.imul(i+53,2891336453)^0x165667B1)>>>0);
+  return r();
 }
 function rateMoveFor(i){
   const r=mulberry32((Math.imul(i+7,2246822519)^0x9E3779B9)>>>0);

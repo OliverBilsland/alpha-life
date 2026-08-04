@@ -382,6 +382,30 @@ Cars keep their meaning without owning a scarce resource. They buy access (distr
 4200px map), burden (running costs), and upkeep — a neglected car will not start, which slows you
 down but never *rations* you. Slower is a fair punishment; scarcer is a tax on curiosity.
 
+## Rule 17 — Endless has to deepen, or it is a treadmill
+
+Removing the four-month wall is easy. Making the two-hundredth case matter as much as the twentieth
+is the actual problem, and repetition is what kills a procedural game.
+
+Four things escalate, and they are deliberately different kinds of escalation:
+
+- **Difficulty** — the deciding number stays decisive, but the distractors close in on it. Dominance
+  over the strongest wrong signal falls from 2.81× to 1.99×, and nearly all three other axes end up
+  pointing at the wrong company. What never changes is fairness: **zero ambiguous cases at any
+  difficulty**, because the answer must always be defensible.
+- **Scale** — a chapter allocation arrives every six months, sized by your sound rate and paid only
+  above 45%. Money follows the record, which is Rule 1 expressed as growth.
+- **Access** — two more desks, still on process XP alone.
+- **Standing** — the career ladder keeps running, and a lost fund is a setback rather than an ending.
+
+That last one matters most. **A fund closing returns you to a desk with your record intact.** The
+money is gone, the reputation is dented, but the twenty-seven sound calls are still twenty-seven
+sound calls — because the record is the only thing that was ever really yours. Being able to raise
+again after failing is the truest thing an endless version of this game can say.
+
+One structural correction came out of it: a cumulative bar becomes meaningless when there is no time
+limit, since anyone clears it by waiting. The fund gate is now **12 sound of your last 20**, forever.
+
 ## The through-line
 
 Money is the score everyone watches and the one the game refuses to grade you on. Information is what

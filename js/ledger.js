@@ -27,8 +27,11 @@ function payday(){
   renderPayday(inc,exp,forced);
 }
 function renderPayday(inc,exp,forced){
-  const last = bankrupt || (arc===2 ? (month>=ARC2_END_MONTH||fundClosed) : month>=MONTHS);
-  const offer = arc===1 && last && fundEligible();
+  /* ENDLESS: the only ending is bankruptcy. Month four hands you the outside-
+     capital offer if you have earned it, and a fund closing puts you back on the
+     desk rather than ending the run. */
+  const last = bankrupt;
+  const offer = arc===1 && month>=MONTHS && !offerMade && fundEligible();
   $('sheet').innerHTML=`<div class="roomhd"><h2>Month ${month} closed</h2><span class="sub">${offer?'Bills, then an approach':last?'Final settlement':'Bills, then back out'}</span></div>
     ${bankrupt?`<p class="note" style="color:var(--loss)"><strong>You ran out of money.</strong>
       Expenses exceeded everything you could sell. The lifestyle was not the mistake on its own —
@@ -36,6 +39,7 @@ function renderPayday(inc,exp,forced){
       cooperated.</p>`:''}
     ${arc===2?teachOnce('aum','mgmtfee')+teachOnce('perffee','redemption'):''}
     ${teachOnce('drawdown')}
+    ${chapterTurnHTML()}
     ${reviewNoteHTML()}
     ${fundNoteHTML()}
     ${forced?`<p class="note" style="color:var(--warn)">Expenses exceeded cash. ${money(forced)} was liquidated from the portfolio to cover the gap \u2014 the most expensive way to fund a lifestyle.</p>`:''}
@@ -56,14 +60,18 @@ function renderPayday(inc,exp,forced){
       <button class="rbtn" data-r="all" ${cash<100?'disabled':''}>Invest all cash</button>
       <button class="rbtn" data-w="2000" ${port<2000?'disabled':''}>Withdraw $2,000</button>
     </div>
-    <button class="btn" id="ok">${offer?'See who has been reading your work':last?'See where you ended up':'Start month '+(month+1)}</button>`;
+    <button class="btn" id="ok">${offer?'See who has been reading your work'
+      :last?'See where you ended up'
+      :(arc===2&&fundClosed)?'Face the investors'
+      :'Start month '+(month+1)}</button>`;
   document.querySelectorAll('.rbtn[data-r]').forEach(el=>el.addEventListener('click',()=>{
     const v=el.dataset.r==='all'?cash:+el.dataset.r;if(cash<v)return;cash-=v;port+=v;hud();renderPayday(inc,exp,0);}));
   document.querySelectorAll('.rbtn[data-w]').forEach(el=>el.addEventListener('click',()=>{
     const v=+el.dataset.w;if(port<v)return;port-=v;cash+=v;hud();renderPayday(inc,exp,0);}));
   $('ok').addEventListener('click',()=>{
-    if(offer){roomFundOffer();return;}
+    if(offer){offerMade=true;roomFundOffer();return;}
     if(last){finish();return;}
+    if(arc===2&&fundClosed){closeFund();return;}
     month++;sessionsLeft=ROUNDS_PER_MONTH;monthPnl=0;
     stepPropertyMarket();
     tips=tips.filter(t=>t.i>=idx);

@@ -27,7 +27,12 @@ const capacityFactor=()=>arc!==2?1:1/(1+Math.max(0,aum/AUM0-1)*0.45);
 let arc=1, aum=0, aumStart=0, aumPeak=0, retHist=[], fundClosed=false, lastFund=null;
 
 const soundCount=()=>quad.gpgo+quad.gpbo;
-const fundEligible=()=>soundCount()>=ARC2_BAR;
+/* ENDLESS: the bar has to be a RATE, not a running total. A cumulative count
+   means anyone qualifies by simply playing long enough, which turns a skill gate
+   into a patience gate. Twelve sound out of your LAST twenty, forever. */
+const ARC2_WINDOW=20;
+const recentSoundCount=()=>recent.reduce((a,b)=>a+b,0);
+const fundEligible=()=>recent.length>=ARC2_WINDOW&&recentSoundCount()>=ARC2_BAR;
 const mgmtRate=()=>MGMT_FEE+(owned.negot?0.001:0);
 const fundFee=()=>arc===2?Math.round(aum*mgmtRate()+Math.max(0,monthPnl)*PERF_FEE):0;
 function stdev(a){if(a.length<2)return 0;
@@ -97,8 +102,8 @@ function roomFundOffer(){
   $('ov').classList.add('on');
   $('sheet').innerHTML=`<div class="roomhd"><h2>An approach</h2>
       <span class="sub">After month four</span></div>
-    <p class="note k">${soundCount()} of ${idx} calls were sound. That is the number that got
-      noticed — not the balance. Somebody has been reading your work and would like to allocate
+    <p class="note k">${recentSoundCount()} of your last ${recent.length} calls were sound. That is
+      the number that got noticed — not the balance. Somebody has been reading your work and would like to allocate
       to it.</p>
     <div class="ledger">
       <div class="lr"><span>Capital offered</span><span>${money(offeredCapital())}</span></div>
@@ -158,4 +163,36 @@ function fundFinish(){
     <button class="btn" onclick="newGame()">Play again</button>`;
   $('exitBtn').classList.remove('on');
   $('ov').classList.add('on');
+}
+
+/* A fund closing is a setback, not an ending: the mandate goes, the desk does
+   not. You keep your record, your reputation takes the hit, and you can raise
+   again once the process record justifies it. */
+function closeFund(){
+  const lost=aum;
+  arc=1; aum=0; aumStart=0; aumPeak=0; retHist=[]; fundClosed=false;
+  offerMade=false;
+  careerStage=Math.max(1,Math.min(careerStage,2));
+  rep=Math.max(0,rep-25);
+  sessionsLeft=ROUNDS_PER_MONTH; monthPnl=0;
+  inRoom='payday'; $('exitBtn').classList.remove('on'); $('ov').classList.add('on');
+  $('sheet').innerHTML=`<div class="roomhd"><h2>The mandate is gone</h2>
+      <span class="sub">Month ${month} · back to a desk</span></div>
+    <p class="note">Assets fell through ${money(AUM_FLOOR)} and the investors took what was left of
+      ${money(lost)}. That is the end of the fund, not the end of you.</p>
+    <div class="ledger">
+      <div class="lr"><span>Seat</span><span>${job().n}</span></div>
+      <div class="lr"><span>Reputation</span><span class="neg">−25 · now ${rep}</span></div>
+      <div class="lr"><span>Your own money</span><span>${money(port)}</span></div>
+      <div class="lr"><span>Sound decisions</span><span>${quad.gpgo+quad.gpbo} of ${idx}</span></div>
+    </div>
+    <p class="note k">Your record survives intact, because it is the only thing that was ever really
+      yours. Clear the bar again and somebody will back you again — that is how this actually works.</p>
+    <button class="btn" id="fcOn">Back to the desk</button>`;
+  $('fcOn').addEventListener('click',()=>{
+    inRoom=null; $('ov').classList.remove('on');
+    P.x=330; P.y=470; hud(); save();
+    toast('Month '+month+'. Five sessions.');
+  });
+  hud(); save();
 }

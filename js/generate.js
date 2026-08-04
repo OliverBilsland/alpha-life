@@ -174,8 +174,14 @@ function validate(B,O,driver){
       && others.filter(v=>v<-0.05).length>=2;
 }
 
-function genScenario(seed,i){
+function genScenario(seed,i,diff){
   const rng=mulberry32((Math.imul(seed|0,2654435761)^Math.imul(i+1,40503))>>>0);
+  /* difficulty narrows the deciding gap toward the fairness floor and makes the
+     distractors stronger. It never makes the driver ambiguous -- validate()
+     still has to pass, so a harder case is harder to READ, never unfair. */
+  const D=Math.max(0,Math.min(0.92,diff||0));
+  const gapLo=1.32-0.16*D, gapHi=2.2-0.86*D;
+  const trapLo=0.30+0.30*D, trapHi=0.80+0.52*D;
   const rf=(lo,hi)=>lo+rng()*(hi-lo);
   const ri=(lo,hi)=>Math.round(rf(lo,hi));
   const pick=a=>a[Math.floor(rng()*a.length)%a.length];
@@ -193,9 +199,9 @@ function genScenario(seed,i){
     for(const ax of AXES){
       const a=AX[ax];
       let gap;
-      if(ax===driver)      gap= a.dir*a.scale*rf(1.35,2.2)*widen;
-      else if(ax===neutral)gap= a.dir*a.scale*rf(-0.12,0.12);
-      else                 gap=-a.dir*a.scale*rf(0.30,0.80);
+      if(ax===driver)      gap= a.dir*a.scale*rf(gapLo,gapHi)*widen;
+      else if(ax===neutral)gap= a.dir*a.scale*rf(-0.12-0.5*D,0.12);
+      else                 gap=-a.dir*a.scale*rf(trapLo,trapHi);
       B[a.k]=a.round(Math.min(a.hi,Math.max(a.lo,O[a.k]+gap)));
     }
     /* clamping can eat the driver gap at a band edge — push the loser away instead */
@@ -203,7 +209,7 @@ function genScenario(seed,i){
     if(advantage(B,O,driver)<1.2){
       O[a.k]=a.round(Math.min(a.hi,Math.max(a.lo,B[a.k]-a.dir*a.scale*1.6)));
     }
-    tries++; widen*=1.12;
+    tries++; widen*=(1+0.12*(1-D));
   }while(!validate(B,O,driver)&&tries<24);
 
   /* cash conversion: supports quality for profit/balance calls, and deliberately
@@ -244,7 +250,7 @@ function genScenario(seed,i){
 
   const out={sector:sec.n,
     a:betterIsA?B:O, b:betterIsA?O:B,
-    better,driver,market,street,why,generated:true};
+    better,driver,market,street,why,generated:true,diff:D};
   if(!marketAgrees) out.twist=pick(TWISTS)(winner,better===market?O:B);
   return out;
 }
@@ -255,6 +261,6 @@ function genScenario(seed,i){
 const genCache=new Map();
 function scenarioAt(i){
   if(i<S.length) return S[order[i]];
-  if(!genCache.has(i)) genCache.set(i,genScenario(genSeed,i));
+  if(!genCache.has(i)) genCache.set(i,genScenario(genSeed,i,difficultyFor(i)));
   return genCache.get(i);
 }

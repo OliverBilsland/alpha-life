@@ -384,3 +384,10 @@
   .gitem h4{font-family:var(--cond);font-weight:700;font-size:15.5px}
   .gitem p{font-size:13px;line-height:1.6;color:var(--ink);margin-top:5px}
   .gitem .gwhy{color:var(--ink-2);font-size:12.5px;margin-top:6px}
+
+  .chapter{border:1px solid var(--rule);background:var(--card);border-radius:4px;
+    overflow:hidden;margin-bottom:16px}
+  .chapterhd{display:flex;justify-content:space-between;gap:10px;padding:7px 13px;
+    background:linear-gradient(90deg,#241D42,#3B2E5E);color:var(--hud-ink);
+    font-family:var(--mono);font-size:9px;letter-spacing:.13em;text-transform:uppercase}
+  .chapterb{padding:10px 13px;font-size:12.5px;line-height:1.55;color:var(--ink-2)}

@@ -39,6 +39,7 @@ The scripts, **in load order** — the order is load-bearing, see below:
 | `js/city.js` | `resize()`, `draw()`, `door()`, `nearBuilding()`, `blocked()`, keyboard + touch input, `step()`, `promptFor()` |
 | `js/rooms.js` | `enter()`/`leave()`, `roomShop`, `roomVenue`, `roomApt` |
 | `js/instruments.js` | `INSTRUMENTS` table, XP gating, `roomPrime()` desk |
+| `js/endless.js` | chapters, `difficultyFor()`, milestones, chapter allocations |
 | `js/glossary.js` | `TERMS`, `termChip()`, `openTerm()`, `teachOnce()`, `roomGlossary()` |
 | `js/generate.js` | `genScenario()`, `validate()`, sector/prose banks, `scenarioAt()` deck router |
 | `js/market.js` | `roomOffice()`, `sync()`, `sigHTML()`, `commit()` — the actual game |
@@ -609,6 +610,35 @@ which re-render in place.
 Two rules the entries hold to, both tested: **no entry explains a term using another undefined term**,
 and **"what it is" stays under 170 characters**. The teaching layer touches no game state beyond
 `taught`, so it cannot change a result.
+
+### 6p. Endless
+
+There is no hard stop. `last` in `renderPayday()` is now `bankrupt` and nothing else — month four
+hands you the outside-capital offer if you have earned it, and a fund closing calls `closeFund()`,
+which returns you to a desk rather than ending the run.
+
+Four things escalate so that endless means deepening:
+
+| Axis | Mechanism |
+|---|---|
+| **Difficulty** | `difficultyFor(i)` ramps 0 → 0.92 over ~260 generated cases and feeds `genScenario(seed, i, diff)` |
+| **Scale** | `chapterBonus()` allocates 4–9% of the book each chapter, but only for a sound rate above 45% |
+| **Access** | Two further desks — Convertibles (3,200 XP) and Merger arb (4,500 XP) |
+| **Standing** | The career ladder and the fund arc both continue; a lost fund can be raised again |
+
+Difficulty narrows the deciding gap *and* strengthens the distractors, but `validate()` is unchanged,
+so a harder case is harder to **read**, never unfair. Measured across 800 cases per level: dominance
+over the strongest distractor falls **2.81× → 1.99×**, axes favouring the wrong company rise
+**2.34 → 2.77 of 3**, and ambiguous cases stay at **zero at every difficulty**.
+
+Chapters are six months each, named, and shown on the desk with the next milestone.
+
+**The fund bar had to change shape.** `fundEligible()` was a cumulative count, which in an endless
+game means everyone qualifies by playing long enough — a patience gate, not a skill gate. It is now
+**12 sound out of your last 20**, tracked in `recent`. Measured: a 50%-sound player reaches the fund
+54% of the time; a 65%-sound player, always.
+
+The intro arc is untouched: twenty authored cases, four months, difficulty zero throughout.
 
 **Metric gating** is what the shop items plug into, and it's all read at render time in `roomOffice`:
 
