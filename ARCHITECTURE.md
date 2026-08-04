@@ -29,6 +29,7 @@ The scripts, **in load order** — the order is load-bearing, see below:
 | `js/data.js` | `REASONS` (4 thesis drivers), `S` (20 scenarios), `ITEMS` (5 purchasables) |
 | `js/world.js` | `W`/`H` (4200x2400), `DISTRICTS`, `B` buildings, `ROADS` |
 | `js/cars.js` | `CARS` tiers, trips budget, district gating, `roomDealer()` |
+| `js/careers.js` | `JOBS` ladder, `promote()`, credit line, `roomBank()`, `roomRecruit()` |
 | `js/housing.js` | `HOMES` tiers, focus slope/ceiling, research actions, hosting, `roomRealtor()` |
 | `js/econ.js` | cross-cutting money maths: `housingMonthly()`, `jobPay()`, `fixedCosts()` |
 | `js/state.js` | tuning constants, all mutable globals, `$`/`money`/`shuffle`, `expenses()`/`income()`, `hud()`, `toast()` |
@@ -374,6 +375,32 @@ uses. Long duration multiplies it 2.2×, short duration 0.4×. That is what manu
 bond desk: the credit call can be right and the money still wrong.
 
 `roomPrime()` in The Heights explains every desk and how far the next one is.
+
+### 6i. Careers
+
+Five rungs, and each changes **three** things — pay, capital access, and permissions at the desk:
+
+| Stage | Requirement | Pay | Credit | Sizes |
+|---|---|---|---|---|
+| Junior analyst | — | $2,400 | — | small, standard |
+| Analyst | any car | $4,800 | — | + high conviction |
+| Senior analyst | 600 XP + accounting | $9,500 | 1× salary | |
+| Portfolio manager | 1,500 XP + terminal + saloon + 20 rep | $19,000 | 3× salary | + **concentrated** (65%) |
+| Fund founder | the arc-2 offer | fees only | AUM | |
+
+**Every requirement is process or equipment, never cash** — asserted by a test that walks
+`JOBS[].req` and rejects any key outside `car / xp / item / rep / arc`. Another sets cash and
+portfolio to eight figures and confirms nothing qualifies. Buying a promotion would make money buy
+process, which Rule 1 forbids.
+
+`allowedSizes()` is enforced in `roomOffice()`: illegal sizes render disabled with the reason, and
+`conv` is repaired to `'std'` on entry and on promotion, so a demotion can never strand the player on
+a size they may not use.
+
+The **credit line** is capital access rather than income. `drawCredit()` moves money into `port` and
+records `debt`; `debtService()` charges ~10.7%/yr monthly through `expenses()`, and `netWorth()`
+subtracts the balance. It is deliberately punitive: borrowed money compounds at your returns and
+costs at the bank's, which makes good process rich and bad process bankrupt faster.
 
 **Metric gating** is what the shop items plug into, and it's all read at render time in `roomOffice`:
 

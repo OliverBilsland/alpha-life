@@ -14,6 +14,8 @@ function enter(b){
   else if(b.id==='realtor') roomRealtor();
   else if(b.id==='tech') roomShop('BYTE WORKS','Dev studio',['app']);
   else if(b.id==='prime') roomPrime();
+  else if(b.id==='bank') roomBank();
+  else if(b.id==='recruit') roomRecruit();
 }
 function leave(){
   inRoom=null;$('ov').classList.remove('on');$('exitBtn').classList.remove('on');

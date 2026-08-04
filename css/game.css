@@ -337,3 +337,7 @@
   .settle b{font-family:var(--cond);text-transform:uppercase;letter-spacing:.05em;
     color:var(--process);margin-right:6px}
   @media (max-width:660px){ .grid5{grid-template-columns:repeat(3,1fr)} }
+
+  .reqs{display:flex;flex-direction:column;gap:3px;margin-top:9px;font-family:var(--mono);
+    font-size:10px;letter-spacing:.04em}
+  .reqs .ok{color:var(--gain)} .reqs .no{color:var(--ink-3)}

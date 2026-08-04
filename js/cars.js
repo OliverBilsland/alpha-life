@@ -76,7 +76,6 @@ function roomDealer(){
     const due=Math.max(0,c.cost-Math.round(car().cost*0.55));
     if(cash<due) return;
     cash-=due; carTier=t; P.driving=t>0;
-    if(careerStage<1) careerStage=1;   /* the analyst desk needs a car */
     hud(); leave();
     moment(c.n.toUpperCase(), t>=3?'The city just got small.':'Everything just got closer.');
   }));

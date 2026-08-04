@@ -10,6 +10,7 @@ function roomOffice(){
   }
   pick=null;reason=null;locked=false;
   if(!instrumentUnlocked(instrumentById(instr))) instr='equity';
+  if(!allowedSizes().includes(conv)) conv='std';
   const INST=instrumentById(instr);
   if(INST.extra&&!INST.extra.opts.some(o=>o.id===extraChoice)) extraChoice=INST.extra.opts[1].id;
   const s=scenarioAt(idx);
@@ -47,14 +48,15 @@ function roomOffice(){
     <div class="step"><div class="steplbl"><span>${INST.id==='short'?'Which do you sell?':INST.id==='pairs'?'Which leg do you own?':'What drives your call?'}</span></div>
       <div class="grid4">${REASONS.map(r=>`<button class="rz" data-r="${r.id}" aria-pressed="false"><b>${r.name}</b><small>${r.hint}</small></button>`).join('')}</div></div>
     <div class="step"><div class="steplbl"><span>Position size</span><em>${arc===2?'Fund '+money(aum):'Portfolio '+money(port)}</em></div>
-      <div class="grid3">${CONV.map(c=>`<button class="rz cv" data-c="${c.id}" aria-pressed="${c.id===conv}"><b>${c.n}</b><small>${money(sizeBase()*c.pct)} at risk</small></button>`).join('')}</div></div>
+      <div class="grid4">${CONV.map(c=>{const ok=allowedSizes().includes(c.id);
+        return `<button class="rz cv" data-c="${c.id}" ${ok?'':'disabled'} aria-pressed="${c.id===conv}"><b>${c.n}</b><small>${ok?money(sizeBase()*c.pct)+' at risk':job().n==='Fund founder'?'':'needs PM'}</small></button>`;}).join('')}</div></div>
     <button class="btn" id="go" disabled>Commit position</button>
     <div id="rev"></div>${sigHTML()}`;
   document.querySelectorAll('.co').forEach(el=>el.addEventListener('click',()=>{if(locked)return;
     pick=el.dataset.k;document.querySelectorAll('.co').forEach(x=>x.setAttribute('aria-pressed',String(x.dataset.k===pick)));sync();}));
   document.querySelectorAll('.rz[data-r]').forEach(el=>el.addEventListener('click',()=>{if(locked)return;
     reason=el.dataset.r;document.querySelectorAll('.rz[data-r]').forEach(x=>x.setAttribute('aria-pressed',String(x.dataset.r===reason)));sync();}));
-  document.querySelectorAll('.cv').forEach(el=>el.addEventListener('click',()=>{if(locked)return;
+  document.querySelectorAll('.cv:not([disabled])').forEach(el=>el.addEventListener('click',()=>{if(locked)return;
     conv=el.dataset.c;document.querySelectorAll('.cv').forEach(x=>x.setAttribute('aria-pressed',String(x.dataset.c===conv)));}));
   document.querySelectorAll('.inst:not([disabled])').forEach(el=>el.addEventListener('click',()=>{
     if(locked)return; instr=el.dataset.i; roomOffice();}));

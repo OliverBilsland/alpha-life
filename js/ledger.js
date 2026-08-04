@@ -17,11 +17,12 @@ function renderPayday(inc,exp,forced){
     ${forced?`<p class="note" style="color:var(--warn)">Expenses exceeded cash. ${money(forced)} was liquidated from the portfolio to cover the gap \u2014 the most expensive way to fund a lifestyle.</p>`:''}
     <div class="ledger">
       <div class="lr"><span>Trading P&amp;L</span><span class="${monthPnl>=0?'pos':'neg'}">${monthPnl>=0?'+':''}${money(monthPnl)}</span></div>
-      ${arc===2?fundLedgerHTML():`<div class="lr"><span>Salary${owned.car?' (analyst role)':''}</span><span class="pos">+${money(salary+(owned.car?1800:0))}</span></div>`}
+      ${arc===2?fundLedgerHTML():`<div class="lr"><span>Salary · ${job().n}</span><span class="pos">+${money(jobPay())}</span></div>`}
       ${appLive?`<div class="lr"><span>App revenue</span><span class="pos">+${money(700)}</span></div>`:''}
       ${appLeft>0?`<div class="lr"><span>App in build</span><span>${appLeft} mo left</span></div>`:''}
       <div class="lr"><span>Rent${owned.apt?' (upgraded)':''}</span><span class="neg">\u2212${money(rent+(owned.apt?600:0))}</span></div>
       ${owned.car?`<div class="lr"><span>Car running costs</span><span class="neg">\u2212${money(150)}</span></div>`:''}
+      ${debt?`<div class="lr"><span>Interest on ${money(debt)} drawn</span><span class="neg">−${money(debtService())}</span></div>`:''}
       <div class="lr"><span>Cash</span><span>${money(cash)}</span></div>
     </div>
     <div class="steplbl"><span>Move money</span><em>Position size scales with portfolio</em></div>
