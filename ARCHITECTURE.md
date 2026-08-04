@@ -433,6 +433,40 @@ the bond rate move before you choose duration, **derivatives** prices option pre
 borrowing terms. `roomPbank()` lends against the balance sheet rather than the title, at a better
 rate than the salary line.
 
+### 6k. The economy
+
+Retuned once every system existed, because the probe showed most of the content was unreachable: at
+$1,200/month net the loft was **80 months away** and the estate **487**, inside a 12-month game.
+
+Four levers fixed it:
+
+1. **The fund arc runs months 5–20** (16 months, ~80 generated scenarios) instead of 8. The ladder
+   needs time to be climbed.
+2. **Salaries retuned** to 3,200 / 6,800 / 15,500 / 31,000, and **AUM0 raised to $1.2m** so fee income
+   is a real living.
+3. **Progressive income tax** (`incomeTax()`, 10/24/35/42% bands) on salary and fees. The portfolio is
+   untaxed while it compounds, which deliberately makes trading matter more the richer you get and
+   stops a large salary flattening the ladder.
+4. **Capacity decay** — `capacityFactor()`. A $10k portfolio and a $10m fund do not get the same edge
+   from the same idea. Without it the fund compounded exponentially: measured at **$8.7m AUM and
+   $198k/month** before it was added. It is also the truest thing arc 2 can teach, so the office
+   shows the drag explicitly rather than applying it silently.
+
+Measured over 24 runs per skill level:
+
+| Pick accuracy | Reaches arc 2 | Fund closed | Survives to month 20 | Median net worth |
+|---|---|---|---|---|
+| Coin-flip | 38% | 25% | 13% | $14,394 |
+| Learning | 88% | 21% | 67% | $188,237 |
+| Good | 100% | 4% | 96% | $319,008 |
+| Expert | 100% | 4% | 96% | $371,779 |
+
+**Bankruptcy** exists as a floor, not a designed lose condition: forced liquidation drains the
+portfolio, then sells property down to a rental, and only declares bankruptcy if that is still not
+enough. A reckless bot over 20 runs never triggered it, so it is honestly a guard — but it is a
+tested one, and it closes a real hole where `port` could go negative and produce negative position
+sizes. Fixing it also caught a bug where selling a $585,000 estate released none of its equity.
+
 **Metric gating** is what the shop items plug into, and it's all read at render time in `roomOffice`:
 
 - `f` (cash conversion) renders as `locked` italic text unless `owned.acct`;

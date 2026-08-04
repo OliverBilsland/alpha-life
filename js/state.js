@@ -10,6 +10,7 @@ let trips=4, research=0;
 let instr='equity', extraChoice='med';   /* instruments.js */
 let debt=0;                              /* drawn against the credit line */
 let gymMonth=false, floorMonth=false;    /* once-a-month purchases */
+let bankrupt=false;
 let sessionsLeft=ROUNDS_PER_MONTH, month=1, monthPnl=0, peak=10000, maxDD=0;
 let pick=null,reason=null,conv='std',locked=false,inRoom=null,gameOver=false;
 let genSeed=(Math.random()*2147483647)|0;
@@ -22,7 +23,7 @@ const P={x:330,y:470,vx:0,vy:0,dir:0,driving:false};
 const $=i=>document.getElementById(i);
 const money=n=>(n<0?'\u2212$':'$')+Math.abs(Math.round(n)).toLocaleString();
 const shuffle=a=>{for(let i=a.length-1;i>0;i--){const j=Math.random()*(i+1)|0;[a[i],a[j]]=[a[j],a[i]];}return a;};
-const expenses=()=>housingMonthly()+carMonthly()+debtService();
+const expenses=()=>housingMonthly()+carMonthly()+debtService()+incomeTax();
 /* arc 2 replaces the salary with fee income — see fund.js */
 const income=()=>arc===2 ? fundFee()+jobPay()+(appLive?700:0)
                          : jobPay()+(appLive?700:0);

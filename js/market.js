@@ -35,6 +35,9 @@ function roomOffice(){
         ${owned.acct?row('Cash conversion',c.f+'%','extra'):row('Cash conversion','locked','locked')}
       </button>`}).join('')}</div>
     ${owned.term?`<div class="street"><b>Terminal \u00b7 street positioning</b>${s.street}</div>`:''}
+    ${arc===2&&capacityFactor()<0.95?`<p class="instnote"><strong>Capacity drag ${Math.round((1-capacityFactor())*100)}%.</strong>
+      At ${money(aum)} the same idea returns less than it would at ${money(AUM0)} — size moves the
+      price against you and the best ideas stop being big enough to matter.</p>`:''}
     <div class="step"><div class="steplbl"><span>Instrument</span>
         <em>${unlockedInstruments().length} of ${INSTRUMENTS.length} desks open · ${xp} XP</em></div>
       <div class="grid5">${INSTRUMENTS.map(i=>{const open=instrumentUnlocked(i);
@@ -75,7 +78,7 @@ function roomOffice(){
   }));
   tutBind();
 }
-function sizeBase(){return arc===2?aum:port;}
+function sizeBase(){return Math.max(0,arc===2?aum:port);}
 function sync(){$('go').disabled=!(pick&&reason);}
 function sigHTML(){
   const c=(q,t)=>`<div class="gq" data-q="${q}"><span class="n">${quad[q]}</span><div class="t">${t}</div></div>`;
@@ -95,7 +98,7 @@ function commit(){
   const res=INST.settle(s,choice);
   const won=res.won;
   const size=sizeBase()*CONV.find(c=>c.id===conv).pct;
-  const delta=size*res.mult;
+  const delta=size*res.mult*capacityFactor();
   if(arc===2){
     /* the fund takes the position; the personal stake rides at the same return */
     const r=aum>0?delta/aum:0;

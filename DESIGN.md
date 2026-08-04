@@ -260,6 +260,24 @@ The focus economy now has three owners and no overlap: housing sets the slope, v
 the gym sets the ceiling. When three systems touch one resource, each must touch a different part of
 it, or two of them are the same upgrade wearing different names.
 
+## Rule 10 — Money must be meaningful at both ends of the game
+
+Two failure modes, and the economy is tuned against both.
+
+**Early**, money is meaningful because there is not enough of it. The opening month nets about
+$1,650 against a $4,500 car and a $1,500 course, so month one is a genuine choice between mobility
+and information.
+
+**Late**, money stops being meaningful the moment income outgrows every price. Three things prevent
+that: a progressive tax that takes 42% at the top, monthly commitments that scale faster than
+salaries (the estate costs $13,082/month against a $31,000 salary), and **capacity decay** — the
+larger the fund, the less the same idea returns.
+
+Capacity decay earns its place twice. Mechanically it is the only thing that stops the second arc
+compounding into absurdity; measured without it, the fund reached $8.7m and $198k/month. But it is
+also true, and it is the last lesson the game has to teach: the edge that made you does not survive
+being scaled, and the number that grows is not the number that matters.
+
 ## The through-line
 
 Money is the score everyone watches and the one the game refuses to grade you on. Information is what

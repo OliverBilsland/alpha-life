@@ -116,7 +116,7 @@ function roomRostrum(){
 
 /* ---------- the headland: contacts become committed capital ---------- */
 const HEADLAND_REP=50;
-function contactValue(){return arc===2?Math.round(aum*0.05):14000;}
+function contactValue(){return arc===2?Math.round(aum*0.05):Math.max(14000,Math.round(port*0.06));}
 function roomHeadland(){
   const allowed=rep>=HEADLAND_REP;
   const n=Math.min(contacts,6);

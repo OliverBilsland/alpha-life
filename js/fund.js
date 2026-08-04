@@ -9,12 +9,20 @@
    than being wrong, because that is what actually ends funds. */
 
 const ARC2_BAR=12;             /* sound decisions of 20 needed to raise capital */
-const ARC2_END_MONTH=12;       /* months 5..12 inclusive = 8 months */
-const AUM0=250000, AUM_FLOOR=150000, AUM_TARGET=450000;
+const ARC2_START_MONTH=5;
+const ARC2_END_MONTH=20;       /* months 5..20 inclusive = 16 months */
+const AUM0=1200000, AUM_FLOOR=700000, AUM_TARGET=2600000;
 const MGMT_FEE=0.003;          /* per month on AUM, ~3.6%/yr */
 const PERF_FEE=0.20;           /* on a positive month only, never clawed back */
 const VOL_LIMIT=0.09;          /* 3-month stdev of monthly returns */
 const DD_LIMIT=0.18;           /* peak-to-trough on AUM: what investors actually feel */
+
+/* CAPACITY. A $10k portfolio and a $10m fund do not get the same edge from the
+   same idea: size moves the price against you, and the best ideas stop being
+   large enough to matter. Without this the fund compounds exponentially and the
+   whole economy breaks -- measured at $8.7m AUM and $198k/month before it was
+   added. It is also the truest thing the second arc can teach. */
+const capacityFactor=()=>arc!==2?1:1/(1+Math.max(0,aum/AUM0-1)*0.45);
 
 let arc=1, aum=0, aumStart=0, aumPeak=0, retHist=[], fundClosed=false, lastFund=null;
 
@@ -28,7 +36,7 @@ function stdev(a){if(a.length<2)return 0;
 
 function startFund(){
   arc=2; aum=offeredCapital(); aumStart=aum; aumPeak=aum; retHist=[]; fundClosed=false; lastFund=null;
-  month=ARC2_END_MONTH-7; sessionsLeft=ROUNDS_PER_MONTH; monthPnl=0; focus=5;
+  month=ARC2_START_MONTH; sessionsLeft=ROUNDS_PER_MONTH; monthPnl=0; focus=5;
   inRoom=null; $('ov').classList.remove('on'); $('exitBtn').classList.remove('on');
   P.x=330; P.y=470; hud();
   toast('Capital committed. '+money(aum)+' under management.');
@@ -97,7 +105,7 @@ function roomFundOffer(){
       <div class="lr"><span>Your standing</span><span>${repTier().n} · ${offerMultiplier().toFixed(2)}× base</span></div>
       <div class="lr"><span>Management fee</span><span class="pos">${(mgmtRate()*100).toFixed(1)}% monthly on assets</span></div>
       <div class="lr"><span>Performance fee</span><span class="pos">${Math.round(PERF_FEE*100)}% of a positive month</span></div>
-      <div class="lr"><span>Term</span><span>Eight months</span></div>
+      <div class="lr"><span>Term</span><span>Sixteen months</span></div>
       <div class="lr"><span>Fund closes below</span><span class="neg">${money(AUM_FLOOR)}</span></div>
     </div>
     <p class="note">Position sizes are a share of the fund, so every call is about
@@ -126,8 +134,8 @@ function fundFinish(){
       a month violent enough to send anyone to the exit. That is the whole job: be right often enough,
       and be boring enough about it that you are still here to compound.`;}
   else if(won){head='The fund survived';
-    verdict=`${money(aum)} still under management after eight months. Not spectacular, and spectacular
-      was never the assignment — the assignment was to still be trading in month twelve.`;}
+    verdict=`${money(aum)} still under management after sixteen months. Not spectacular, and spectacular
+      was never the assignment — the assignment was to still be trading in month twenty.`;}
   else{head='The fund was closed';
     verdict=`Assets fell through ${money(AUM_FLOOR)} and the mandate was pulled in month ${month}.
       Worth separating the two questions: whether the calls were defensible, and whether the ride was

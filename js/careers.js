@@ -6,16 +6,16 @@
    cannot buy a promotion; you can only fail to qualify for one. */
 
 const JOBS=[
- {t:0,n:'Junior analyst', firm:'Ardent Capital', pay:2400,  credit:0,
+ {t:0,n:'Junior analyst', firm:'Ardent Capital', pay:3200,  credit:0,
   req:{}, sizes:['small','std'],
   d:'You are given two names and asked which is better. Nobody reads the answer yet.'},
- {t:1,n:'Analyst',        firm:'Ardent Capital', pay:4800,  credit:0,
+ {t:1,n:'Analyst',        firm:'Ardent Capital', pay:6800,  credit:0,
   req:{car:1}, sizes:['small','std','high'],
   d:'The desk across town. It needs someone who can get there, which means a car.'},
- {t:2,n:'Senior analyst', firm:'Ardent Capital', pay:9500,  credit:1,
+ {t:2,n:'Senior analyst', firm:'Ardent Capital', pay:15500,  credit:1,
   req:{xp:600, item:'acct'}, sizes:['small','std','high'],
   d:'You sign the notes now. A credit line against your salary comes with the title.'},
- {t:3,n:'Portfolio manager',firm:'Ardent Capital',pay:19000, credit:3,
+ {t:3,n:'Portfolio manager',firm:'Ardent Capital',pay:31000, credit:3,
   req:{xp:1500, item:'term', car:2, rep:20}, sizes:['small','std','high','conc'],
   d:'Your own book. Position sizes come off the book, not your savings, and concentration is allowed.'},
  {t:4,n:'Fund founder',   firm:'Your own name', pay:0,      credit:0,

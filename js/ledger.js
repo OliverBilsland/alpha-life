@@ -6,13 +6,32 @@ function payday(){
   if(appLeft>0){appLeft--;if(appLeft===0)appLive=true;}
   if(arc===2) fundMonthEnd();
   let forced=0;
-  if(cash<0){forced=-cash;port-=forced;cash=0;}
+  if(cash<0){
+    forced=-cash;
+    /* liquidate the portfolio, then property, then admit it */
+    const fromPort=Math.min(forced,Math.max(0,port));
+    port-=fromPort; cash=0;
+    const short=forced-fromPort;
+    if(short>0){
+      if(homeTier>0&&home().own){
+        /* the equity must be released BEFORE the tier drops, or it evaporates */
+        const released=homeEquity();
+        homeTier=1;
+        cash=Math.max(0,released-short);
+        if(released<short) bankrupt=true;
+      } else bankrupt=true;
+    }
+  }
   renderPayday(inc,exp,forced);
 }
 function renderPayday(inc,exp,forced){
-  const last = arc===2 ? (month>=ARC2_END_MONTH||fundClosed) : month>=MONTHS;
+  const last = bankrupt || (arc===2 ? (month>=ARC2_END_MONTH||fundClosed) : month>=MONTHS);
   const offer = arc===1 && last && fundEligible();
   $('sheet').innerHTML=`<div class="roomhd"><h2>Month ${month} closed</h2><span class="sub">${offer?'Bills, then an approach':last?'Final settlement':'Bills, then back out'}</span></div>
+    ${bankrupt?`<p class="note" style="color:var(--loss)"><strong>You ran out of money.</strong>
+      Expenses exceeded everything you could sell. The lifestyle was not the mistake on its own —
+      it was the lifestyle plus the monthly commitments that arrive whether or not the market
+      cooperated.</p>`:''}
     ${fundNoteHTML()}
     ${forced?`<p class="note" style="color:var(--warn)">Expenses exceeded cash. ${money(forced)} was liquidated from the portfolio to cover the gap \u2014 the most expensive way to fund a lifestyle.</p>`:''}
     <div class="ledger">
@@ -23,6 +42,7 @@ function renderPayday(inc,exp,forced){
       <div class="lr"><span>Rent${owned.apt?' (upgraded)':''}</span><span class="neg">\u2212${money(rent+(owned.apt?600:0))}</span></div>
       ${owned.car?`<div class="lr"><span>Car running costs</span><span class="neg">\u2212${money(150)}</span></div>`:''}
       ${debt?`<div class="lr"><span>Interest on ${money(debt)} drawn</span><span class="neg">−${money(debtService())}</span></div>`:''}
+      <div class="lr"><span>Income tax</span><span class="neg">−${money(incomeTax())}</span></div>
       <div class="lr"><span>Cash</span><span>${money(cash)}</span></div>
     </div>
     <div class="steplbl"><span>Move money</span><em>Position size scales with portfolio</em></div>
@@ -48,6 +68,7 @@ function renderPayday(inc,exp,forced){
 }
 
 function finish(){
+  if(bankrupt){bankruptFinish();return;}
   if(arc===2){fundFinish();return;}
   gameOver=true;
   const sound=quad.gpgo+quad.gpbo,lucky=quad.bpgo,net=netWorth();
@@ -73,4 +94,26 @@ function finish(){
     <p class="note k">The question this build exists to answer: did driving to the club feel like part of the game, or like a menu with a map on top? If the world is doing work, you should remember the drive after you bought the car.</p>
     <button class="btn" onclick="newGame()">Play again</button>`;
   $('exitBtn').classList.remove('on');
+}
+
+function bankruptFinish(){
+  gameOver=true;
+  const sound=quad.gpgo+quad.gpbo;
+  $('sheet').innerHTML=`<div class="roomhd"><h2>Out of money</h2>
+      <span class="sub">Month ${month} · ${job().n}</span></div>
+    <div class="ledger">
+      <div class="lr"><span>Portfolio</span><span>${money(Math.max(0,port))}</span></div>
+      <div class="lr"><span>Cash</span><span>${money(Math.max(0,cash))}</span></div>
+      <div class="lr"><span>Owed</span><span class="neg">${money(debt)}</span></div>
+      <div class="lr"><span>Monthly commitments</span><span class="neg">−${money(expenses())}</span></div>
+      <div class="lr"><span>Sound decisions</span><span>${sound} of ${idx}</span></div>
+    </div>
+    <p class="note">The bills arrived and there was nothing left to sell. Cars, property and credit
+      all bill monthly; only the portfolio compounds, and it is the first thing sold to cover them.</p>
+    <p class="note k">${sound>=idx*0.5
+      ? 'Worth being clear about what failed. The calls were mostly defensible — the balance sheet was not. Those are different mistakes and only one of them is about reading businesses.'
+      : 'Both halves went wrong: the reading and the arithmetic. The reading is the one the game can teach.'}</p>
+    <button class="btn" onclick="newGame()">Play again</button>`;
+  $('exitBtn').classList.remove('on');
+  $('ov').classList.add('on');
 }
