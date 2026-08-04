@@ -40,7 +40,7 @@ function renderPayday(inc,exp,forced){
     if(offer){roomFundOffer();return;}
     if(last){finish();return;}
     month++;sessionsLeft=ROUNDS_PER_MONTH;monthPnl=0;
-    trips=tripsPerMonth();research=researchPerMonth();
+    trips=tripsPerMonth();research=researchPerMonth();gymMonth=false;floorMonth=false;
     inRoom=null;$('ov').classList.remove('on');
     P.x=330;P.y=470;hud();toast('Month '+month+'. Five sessions.');
   });

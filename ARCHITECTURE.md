@@ -29,6 +29,7 @@ The scripts, **in load order** — the order is load-bearing, see below:
 | `js/data.js` | `REASONS` (4 thesis drivers), `S` (20 scenarios), `ITEMS` (5 purchasables) |
 | `js/world.js` | `W`/`H` (4200x2400), `DISTRICTS`, `B` buildings, `ROADS` |
 | `js/cars.js` | `CARS` tiers, trips budget, district gating, `roomDealer()` |
+| `js/social.js` | `rep`/`contacts`, gym, club, galas, Headland, exchange floor, base-rate display |
 | `js/careers.js` | `JOBS` ladder, `promote()`, credit line, `roomBank()`, `roomRecruit()` |
 | `js/housing.js` | `HOMES` tiers, focus slope/ceiling, research actions, hosting, `roomRealtor()` |
 | `js/econ.js` | cross-cutting money maths: `housingMonthly()`, `jobPay()`, `fixedCosts()` |
@@ -401,6 +402,36 @@ The **credit line** is capital access rather than income. `drawCredit()` moves m
 records `debt`; `debtService()` charges ~10.7%/yr monthly through `expenses()`, and `netWorth()`
 subtracts the balance. It is deliberately punitive: borrowed money compounds at your returns and
 costs at the bank's, which makes good process rich and bad process bankrupt faster.
+
+### 6j. Lifestyle and status
+
+Two currencies that are not money. **Reputation** decides which rooms will have you and how much
+capital you are offered; **contacts** are people who will write a cheque, and are spent by converting
+them.
+
+| Venue | Converts | Gated on |
+|---|---|---|
+| The Yard (gym) | cash → **focus ceiling** +1 for the month | — |
+| Meridian Club | membership → 2 contacts per evening | 25 rep |
+| The Rostrum | cash → reputation, at a falling price per point | — |
+| The Headland | contacts → committed capital, the best rate in the game | 50 rep |
+| The Floor | cash → **a sixth trading session** | Harbour (car tier 3) |
+
+Focus is now owned by exactly three systems with no overlap: housing sets the **slope**
+(`focusDecay()`), venues set the **level**, and the gym sets the **ceiling** (`focusCap()`).
+
+Reputation's biggest payoff is `offerMultiplier()` — outside capital is offered at 1.0× to 2.0× base
+depending on standing, so `startFund()` seeds `aum` from `offeredCapital()` rather than a constant.
+Rep also gates the PM seat and the Headland.
+
+Gala pricing must have **falling cost per point** (500 → 409 → 368) or the larger gifts are dominated
+and no one would ever buy them. That is asserted by a test, not eyeballed.
+
+Four new courses keep to Rule 5 — information and terms, never accuracy: **credit analysis** reveals
+the bond rate move before you choose duration, **derivatives** prices option premiums in cash,
+**statistics** shows your own base rates via `statsHTML()`, and **negotiation** improves fee and
+borrowing terms. `roomPbank()` lends against the balance sheet rather than the title, at a better
+rate than the salary line.
 
 **Metric gating** is what the shop items plug into, and it's all read at render time in `roomOffice`:
 

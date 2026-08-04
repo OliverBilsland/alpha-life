@@ -27,7 +27,7 @@ const HOMES=[
 ];
 
 const home=()=>HOMES[homeTier];
-const focusCap=()=>home().cap;
+const focusCap=()=>home().cap+(gymMonth?1:0);
 const researchPerMonth=()=>home().office;
 const hostPower=()=>home().host;
 

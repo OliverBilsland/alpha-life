@@ -8,7 +8,7 @@ const SAVE_KEY='alphalife.save.v1', SAVE_V=1;
 
 function snapshot(){
   return {v:SAVE_V,order,idx,port,cash,xp,streak,best,focus,
-    owned,appLeft,appLive,sessionsLeft,month,monthPnl,peak,maxDD,conv,gameOver,tutOn,genSeed,carTier,homeTier,careerStage,rep,contacts,trips,research,instr,extraChoice,debt,arc,aum,aumStart,aumPeak,retHist,fundClosed,
+    owned,appLeft,appLive,sessionsLeft,month,monthPnl,peak,maxDD,conv,gameOver,tutOn,genSeed,carTier,homeTier,careerStage,rep,contacts,trips,research,gymMonth,floorMonth,instr,extraChoice,debt,arc,aum,aumStart,aumPeak,retHist,fundClosed,
     quad:{gpgo:quad.gpgo,gpbo:quad.gpbo,bpgo:quad.bpgo,bpbo:quad.bpbo},
     /* Only 'payday' is worth restoring: payday() charges the month's bills
        before rendering, but month++/sessionsLeft reset happen in the OK
@@ -50,7 +50,7 @@ function applySave(d){
   /* pre-tier saves stored these as flags */
   if(d.owned&&d.owned.car&&!d.carTier) carTier=1;
   if(d.owned&&d.owned.apt&&!d.homeTier) homeTier=1;
-  debt=d.debt||0;
+  debt=d.debt||0; gymMonth=!!d.gymMonth; floorMonth=!!d.floorMonth;
   instr=d.instr||'equity'; extraChoice=d.extraChoice||'med';
   arc=d.arc||1; aum=d.aum||0; aumStart=d.aumStart||0; aumPeak=d.aumPeak||d.aum||0;
   retHist=Array.isArray(d.retHist)?d.retHist:[]; fundClosed=!!d.fundClosed;

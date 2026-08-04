@@ -20,17 +20,18 @@ let arc=1, aum=0, aumStart=0, aumPeak=0, retHist=[], fundClosed=false, lastFund=
 
 const soundCount=()=>quad.gpgo+quad.gpbo;
 const fundEligible=()=>soundCount()>=ARC2_BAR;
-const fundFee=()=>arc===2?Math.round(aum*MGMT_FEE+Math.max(0,monthPnl)*PERF_FEE):0;
+const mgmtRate=()=>MGMT_FEE+(owned.negot?0.001:0);
+const fundFee=()=>arc===2?Math.round(aum*mgmtRate()+Math.max(0,monthPnl)*PERF_FEE):0;
 function stdev(a){if(a.length<2)return 0;
   const m=a.reduce((x,y)=>x+y,0)/a.length;
   return Math.sqrt(a.reduce((s,v)=>s+(v-m)*(v-m),0)/a.length);}
 
 function startFund(){
-  arc=2; aum=AUM0; aumStart=AUM0; aumPeak=AUM0; retHist=[]; fundClosed=false; lastFund=null;
+  arc=2; aum=offeredCapital(); aumStart=aum; aumPeak=aum; retHist=[]; fundClosed=false; lastFund=null;
   month=ARC2_END_MONTH-7; sessionsLeft=ROUNDS_PER_MONTH; monthPnl=0; focus=5;
   inRoom=null; $('ov').classList.remove('on'); $('exitBtn').classList.remove('on');
   P.x=330; P.y=470; hud();
-  toast('Capital committed. '+money(AUM0)+' under management.');
+  toast('Capital committed. '+money(aum)+' under management.');
 }
 
 /* Runs once per month-end, after fees are paid out of the month's P&L. */
@@ -62,7 +63,7 @@ function fundMonthEnd(){
 function fundLedgerHTML(){
   if(arc!==2) return '';
   const f=lastFund;
-  return `<div class="lr"><span>Management fee</span><span class="pos">+${money(Math.round(aum*MGMT_FEE))}</span></div>
+  return `<div class="lr"><span>Management fee</span><span class="pos">+${money(Math.round(aum*mgmtRate()))}</span></div>
     ${monthPnl>0?`<div class="lr"><span>Performance fee (${Math.round(PERF_FEE*100)}%)</span><span class="pos">+${money(Math.round(monthPnl*PERF_FEE))}</span></div>`:''}
     ${f?`<div class="lr"><span>Fund return this month</span><span class="${f.ret>=0?'pos':'neg'}">${f.ret>=0?'+':''}${(f.ret*100).toFixed(1)}%</span></div>
     <div class="lr"><span>3-month volatility</span><span class="${f.vol>VOL_LIMIT?'neg':''}">${(f.vol*100).toFixed(1)}%</span></div>
@@ -92,8 +93,9 @@ function roomFundOffer(){
       noticed — not the balance. Somebody has been reading your work and would like to allocate
       to it.</p>
     <div class="ledger">
-      <div class="lr"><span>Capital offered</span><span>${money(AUM0)}</span></div>
-      <div class="lr"><span>Management fee</span><span class="pos">${(MGMT_FEE*100).toFixed(1)}% monthly on assets</span></div>
+      <div class="lr"><span>Capital offered</span><span>${money(offeredCapital())}</span></div>
+      <div class="lr"><span>Your standing</span><span>${repTier().n} · ${offerMultiplier().toFixed(2)}× base</span></div>
+      <div class="lr"><span>Management fee</span><span class="pos">${(mgmtRate()*100).toFixed(1)}% monthly on assets</span></div>
       <div class="lr"><span>Performance fee</span><span class="pos">${Math.round(PERF_FEE*100)}% of a positive month</span></div>
       <div class="lr"><span>Term</span><span>Eight months</span></div>
       <div class="lr"><span>Fund closes below</span><span class="neg">${money(AUM_FLOOR)}</span></div>

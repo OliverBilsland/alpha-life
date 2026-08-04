@@ -27,5 +27,9 @@ const S=[
 const ITEMS={
  acct:{n:'Accounting course',cost:1500,ef:'Adds cash conversion to every company card. Several names are unreadable without it.'},
  term:{n:'Market terminal',cost:6000,ef:'Shows how the street is positioned before you commit. Crowding is where the surprises come from.'},
- app:{n:'Fund a side app',cost:7500,ef:'Three months to build, then $700/mo. Income that does not depend on your calls.'}
+ app:{n:'Fund a side app',cost:7500,ef:'Three months to build, then $700/mo. Income that does not depend on your calls.'},
+ credit:{n:'Credit analysis',cost:9000,ef:'Shows the rate move on every bond card before you choose duration. Without it you are guessing at half the trade.'},
+ deriv:{n:'Derivatives',cost:16000,ef:'Shows the premium and payoff of each strike as cash, not percentages. Options are unreadable without it.'},
+ stats:{n:'Statistics',cost:12000,ef:'Shows your own base rates on the office screen — how often you are sound, and how often that paid.'},
+ negot:{n:'Negotiation',cost:22000,ef:'Better terms on everything: +0.1% management fee, and outside capital is offered at a further 15%.'}
 };

@@ -43,15 +43,20 @@ function roomOffice(){
       }).join('')}</div>
       <p class="instnote">${INST.teach}</p></div>
     ${INST.extra?`<div class="step"><div class="steplbl"><span>${INST.extra.label}</span><em>${INST.extra.hint}</em></div>
+      ${INST.id==='bond'&&owned.credit?`<p class="instnote">Credit analysis: rates are set to move
+        <strong>${s.rate>0?'+':''}${Math.round(s.rate*100)}bp</strong> over this period.</p>`:''}
       <div class="grid3">${INST.extra.opts.map(o=>`<button class="rz xo" data-x="${o.id}"
-        aria-pressed="${o.id===extraChoice}"><b>${o.n}</b><small>${o.s}</small></button>`).join('')}</div></div>`:''}
+        aria-pressed="${o.id===extraChoice}"><b>${o.n}</b><small>${
+          INST.id==='option'&&owned.deriv
+            ? money(sizeBase()*CONV.find(c=>c.id===conv).pct*o.prem)+' premium · '+o.pay.toFixed(1)+'x'
+            : o.s}</small></button>`).join('')}</div></div>`:''}
     <div class="step"><div class="steplbl"><span>${INST.id==='short'?'Which do you sell?':INST.id==='pairs'?'Which leg do you own?':'What drives your call?'}</span></div>
       <div class="grid4">${REASONS.map(r=>`<button class="rz" data-r="${r.id}" aria-pressed="false"><b>${r.name}</b><small>${r.hint}</small></button>`).join('')}</div></div>
     <div class="step"><div class="steplbl"><span>Position size</span><em>${arc===2?'Fund '+money(aum):'Portfolio '+money(port)}</em></div>
       <div class="grid4">${CONV.map(c=>{const ok=allowedSizes().includes(c.id);
         return `<button class="rz cv" data-c="${c.id}" ${ok?'':'disabled'} aria-pressed="${c.id===conv}"><b>${c.n}</b><small>${ok?money(sizeBase()*c.pct)+' at risk':job().n==='Fund founder'?'':'needs PM'}</small></button>`;}).join('')}</div></div>
     <button class="btn" id="go" disabled>Commit position</button>
-    <div id="rev"></div>${sigHTML()}`;
+    <div id="rev"></div>${statsHTML()}${sigHTML()}`;
   document.querySelectorAll('.co').forEach(el=>el.addEventListener('click',()=>{if(locked)return;
     pick=el.dataset.k;document.querySelectorAll('.co').forEach(x=>x.setAttribute('aria-pressed',String(x.dataset.k===pick)));sync();}));
   document.querySelectorAll('.rz[data-r]').forEach(el=>el.addEventListener('click',()=>{if(locked)return;
@@ -100,6 +105,7 @@ function commit(){
   }
   peak=Math.max(peak,port);maxDD=Math.max(maxDD,(peak-port)/peak);
   if(sound){xp+=100;streak++;best=Math.max(best,streak);}else streak=0;
+  repFromCall(sound);
   focus=Math.max(0,focus-focusDecay());
   const q=sound?(won?'gpgo':'gpbo'):(won?'bpgo':'bpbo');quad[q]++;
   const QN={gpgo:'Sound process, good outcome',gpbo:'Sound process, bad outcome',

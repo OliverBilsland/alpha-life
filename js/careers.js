@@ -129,3 +129,39 @@ function roomRecruit(){
   });
   $('rOut').addEventListener('click',leave);
 }
+
+/* ---------- the private bank: credit against wealth, not title ---------- */
+/* Meridian lends against your salary. Cavendish lends against your balance sheet,
+   which is a different -- and much larger -- kind of access. */
+const pbLine=()=>Math.max(0,Math.round((port+homeEquity())*0.45));
+const pbRate=()=>owned.negot?0.0055:0.0065;
+function roomPbank(){
+  const room=pbLine()-debt;
+  $('sheet').innerHTML=`<div class="roomhd"><h2>CAVENDISH TRUST</h2>
+      <span class="sub">Private bank · ${money(pbLine())} line</span></div>
+    <p class="note">Meridian lends against your title. Cavendish lends against your balance sheet —
+      45% of portfolio and property, at ${(pbRate()*1200).toFixed(1)}% a year rather than
+      ${(0.009*1200).toFixed(1)}%.</p>
+    <div class="ledger">
+      <div class="lr"><span>Portfolio + property</span><span>${money(port+homeEquity())}</span></div>
+      <div class="lr"><span>Line available</span><span>${money(pbLine())}</span></div>
+      <div class="lr"><span>Drawn</span><span class="neg">${money(debt)}</span></div>
+      <div class="lr"><span>Room</span><span class="pos">${money(Math.max(0,room))}</span></div>
+    </div>
+    <div class="rrow">
+      ${[25000,100000].map(v=>`<button class="rbtn" data-d="${v}" ${room<v?'disabled':''}>Draw ${money(v)}</button>`).join('')}
+      <button class="rbtn" data-d="max" ${room<1000?'disabled':''}>Draw the lot</button>
+      <button class="rbtn" data-p="max" ${debt<1||cash<1?'disabled':''}>Repay from cash</button>
+    </div>
+    <p class="note k" style="margin-top:18px">Borrowing against a portfolio to buy more portfolio is
+      how good years become extraordinary and bad years become terminal. The rate is better here
+      because the collateral is better — which is exactly what makes it dangerous.</p>
+    <button class="btn ghost" id="pbOut">Leave</button>`;
+  document.querySelectorAll('.rbtn[data-d]').forEach(el=>el.addEventListener('click',()=>{
+    const room2=pbLine()-debt;
+    const a=Math.min(el.dataset.d==='max'?room2:+el.dataset.d,room2);
+    if(a>0){debt+=a;port+=a;hud();} roomPbank();}));
+  document.querySelectorAll('.rbtn[data-p]').forEach(el=>el.addEventListener('click',()=>{
+    repayCredit(cash);roomPbank();}));
+  $('pbOut').addEventListener('click',leave);
+}

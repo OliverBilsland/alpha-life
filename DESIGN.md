@@ -240,6 +240,26 @@ scoreboards would have merged.
 The comparison loop stays underneath all five. Every instrument still asks which business is better
 and on which axis; what changes is what you do with the answer, and therefore how you can lose.
 
+## Rule 9 — Status is a currency, and currencies must convert
+
+Reputation and contacts exist because "networking" has to mean something mechanical or it is
+decoration. Each one has a source, a sink, and an exchange rate:
+
+- **Reputation** comes from sound calls (and can be bought outright at the Rostrum). It gates the
+  portfolio-manager seat, gates the Headland, and multiplies the outside-capital offer from 1.0× to
+  2.0×. That last one is the payoff that makes standing worth buying.
+- **Contacts** come from club membership and hosting. They convert at the Headland into committed
+  capital at the best rate in the game.
+
+Two rules keep this honest. **No tier may be dominated** — gala cost per point has to fall as the
+gift grows, or the large ones are decoration with a price tag. And **no venue may sell accuracy**:
+the gym raises the focus ceiling, the club buys introductions, the courses reveal data or improve
+terms, and not one of them changes the chance that a call is right.
+
+The focus economy now has three owners and no overlap: housing sets the slope, venues set the level,
+the gym sets the ceiling. When three systems touch one resource, each must touch a different part of
+it, or two of them are the same upgrade wearing different names.
+
 ## The through-line
 
 Money is the score everyone watches and the one the game refuses to grade you on. Information is what

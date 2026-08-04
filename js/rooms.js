@@ -8,14 +8,20 @@ function enter(b){
   if(b.id==='office') roomOffice();
   else if(b.id==='apt') roomApt();
   else if(b.id==='bar') roomVenue('THE LONG ROOM','Bar',80,2,'A quiet drink and an hour not thinking about the market. Cheap, partial.');
-  else if(b.id==='club') roomVenue('MERIDIAN CLUB','Members only',250,5,'Loud, expensive, and full of people who allocate capital. Full focus.');
+  else if(b.id==='club') roomClub();
   else if(b.id==='dealer') roomDealer();
-  else if(b.id==='school') roomShop('CITY INSTITUTE','Courses',['acct','term']);
+  else if(b.id==='school') roomShop('CITY INSTITUTE','Courses',['acct','term','credit','deriv','stats','negot']);
   else if(b.id==='realtor') roomRealtor();
   else if(b.id==='tech') roomShop('BYTE WORKS','Dev studio',['app']);
   else if(b.id==='prime') roomPrime();
   else if(b.id==='bank') roomBank();
   else if(b.id==='recruit') roomRecruit();
+  else if(b.id==='gym') roomGym();
+  else if(b.id==='rostrum') roomRostrum();
+  else if(b.id==='headland') roomHeadland();
+  else if(b.id==='floor') roomFloor();
+  else if(b.id==='pbank') roomPbank();
+  else if(b.id==='estates') roomRealtor();
 }
 function leave(){
   inRoom=null;$('ov').classList.remove('on');$('exitBtn').classList.remove('on');
@@ -43,6 +49,10 @@ function roomShop(title,sub,ids){
     if(k==='term')toast('Terminal installed. You can see the crowd now.');
     if(k==='apt')toast('You moved. Focus will hold longer.');
     if(k==='app')toast('Build started. Three months to revenue.');
+    if(k==='credit')toast('Rate moves now visible before you pick duration.');
+    if(k==='deriv')toast('Option premiums now shown in cash.');
+    if(k==='stats')toast('Your own base rates now show at the desk.');
+    if(k==='negot')toast('Better terms, everywhere money changes hands.');
     hud();roomShop(title,sub,ids);
   }));
 }
