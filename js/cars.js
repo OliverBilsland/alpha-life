@@ -25,9 +25,27 @@ const CARS=[
 ];
 
 const car=()=>CARS[carTier];
+
+/* CONDITION. A car wears out with use. Neglect does not reduce a stat -- it takes
+   trips away, which is the resource cars exist to buy. Servicing is a real
+   monthly claim on cash that competes with everything else. */
+const CONDITION_BANDS=[
+ {at:75,n:'Sound',      trips:0, note:'Runs properly.'},
+ {at:45,n:'Tired',      trips:-1,note:'Something rattles. You lose a trip a month.'},
+ {at:20,n:'Unreliable', trips:-2,note:'It fails to start twice a month.'},
+ {at:0, n:'Off the road',trips:-3,note:'It is not really a car any more.'}
+];
+const conditionBand=()=>carTier===0?CONDITION_BANDS[0]:CONDITION_BANDS.find(b=>carCond>=b.at);
+const serviceCost=()=>Math.round(car().cost*0.035+180);
+function wearCar(){ if(carTier>0) carCond=Math.max(0,carCond-(3+carTier*1.6)); }
+function serviceCar(){
+  const c=serviceCost();
+  if(cash<c||carTier===0||carCond>=100) return false;
+  cash-=c; carCond=100; hud(); return true;
+}
 const carSpeed=()=>car().speed;
 const carMonthly=()=>car().ins+car().run;
-const tripsPerMonth=()=>car().trips+(homeTier>=2?1:0);   /* a home office saves a journey */
+const tripsPerMonth=()=>Math.max(2,car().trips+(homeTier>=2?1:0)+conditionBand().trips);
 
 /* ---------- trips: the monthly errand budget ---------- */
 /* The office and home are free. Everything else costs one. */
@@ -51,7 +69,14 @@ function roomDealer(){
   $('sheet').innerHTML=`<div class="roomhd"><h2>VOSS MOTORS</h2>
       <span class="sub">Cars · cash ${money(cash)}</span></div>
     <p class="note">You drive a <strong>${owned.n}</strong>. Running it costs
-      ${money(carMonthly())} a month and it gives you ${car().trips} trips.</p>
+      ${money(carMonthly())} a month and it gives you ${tripsPerMonth()} trips.</p>
+    ${carTier>0?`<div class="ledger">
+      <div class="lr"><span>Condition</span><span class="${carCond<45?'neg':''}">${Math.round(carCond)}% \u00b7 ${conditionBand().n}</span></div>
+      <div class="lr"><span>Effect</span><span>${conditionBand().note}</span></div>
+      <div class="lr"><span>Full service</span><span>${money(serviceCost())}</span></div>
+    </div>
+    <button class="btn ghost" id="svc" ${cash>=serviceCost()&&carCond<100?'':'disabled'}>${
+      carCond>=100?'Nothing to do':cash<serviceCost()?'Cannot afford a service':'Service it \u00b7 '+money(serviceCost())}</button>`:''}
     <div class="items">${CARS.slice(1).map(c=>{
       const have=carTier>=c.t, next=c.t===carTier+1;
       const tradeIn=have?0:Math.round(car().cost*0.55);
@@ -71,11 +96,13 @@ function roomDealer(){
     <p class="note k" style="margin-top:18px">A car is the only purchase that changes the map. It is
       also the only one whose running cost keeps arriving after the excitement has worn off — the
       Superba costs more per month than your first apartment did.</p>`;
+  const sv=$('svc');
+  if(sv) sv.addEventListener('click',()=>{ if(serviceCar()){toast('Serviced. Back to full trips.');roomDealer();} });
   document.querySelectorAll('.item:not([disabled])').forEach(el=>el.addEventListener('click',()=>{
     const t=+el.dataset.t, c=CARS[t];
     const due=Math.max(0,c.cost-Math.round(car().cost*0.55));
     if(cash<due) return;
-    cash-=due; carTier=t; P.driving=t>0;
+    cash-=due; carTier=t; carCond=100; P.driving=t>0;
     hud(); leave();
     moment(c.n.toUpperCase(), t>=3?'The city just got small.':'Everything just got closer.');
   }));

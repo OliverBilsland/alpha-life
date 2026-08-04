@@ -5,6 +5,8 @@ function payday(){
   cash+=inc-exp;
   if(appLeft>0){appLeft--;if(appLeft===0)appLive=true;}
   if(arc===2) fundMonthEnd();
+  wearCar();
+  lastReview=runReview();
   let forced=0;
   if(cash<0){
     forced=-cash;
@@ -32,6 +34,7 @@ function renderPayday(inc,exp,forced){
       Expenses exceeded everything you could sell. The lifestyle was not the mistake on its own —
       it was the lifestyle plus the monthly commitments that arrive whether or not the market
       cooperated.</p>`:''}
+    ${reviewNoteHTML()}
     ${fundNoteHTML()}
     ${forced?`<p class="note" style="color:var(--warn)">Expenses exceeded cash. ${money(forced)} was liquidated from the portfolio to cover the gap \u2014 the most expensive way to fund a lifestyle.</p>`:''}
     <div class="ledger">
@@ -60,6 +63,7 @@ function renderPayday(inc,exp,forced){
     if(offer){roomFundOffer();return;}
     if(last){finish();return;}
     month++;sessionsLeft=ROUNDS_PER_MONTH;monthPnl=0;
+    stepPropertyMarket();
     trips=tripsPerMonth();research=researchPerMonth();gymMonth=false;floorMonth=false;
     inRoom=null;$('ov').classList.remove('on');
     P.x=330;P.y=470;hud();toast('Month '+month+'. Five sessions.');

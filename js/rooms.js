@@ -66,7 +66,9 @@ function roomVenue(title,sub,cost,gain,copy){
     <p class="note k" style="margin-top:18px">This is consumption. It buys you nothing you can sell. It is also the only way to keep reading five metrics instead of three \u2014 which is the argument for spending money on yourself, made honestly.</p>`;
   if(can)$('buy').addEventListener('click',()=>{
     cash-=cost; focus=Math.min(focusCap(),focus+gain); hud();
-    toast(gain>=5?'Focus restored.':'Focus +'+gain);
+    const m=(title==='THE LONG ROOM')?meetAt('bar'):null;
+    if(m&&m.now) moment(m.p.n.toUpperCase(),m.p.role);
+    else toast(m?'You got talking to '+m.p.n+'.':gain>=5?'Focus restored.':'Focus +'+gain);
     leave();
   });
 }

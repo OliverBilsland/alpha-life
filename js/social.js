@@ -16,8 +16,38 @@ const repTier=()=>REP_TIERS.filter(t=>rep>=t.at).pop();
 function repFromCall(sound){ if(sound){rep+=1; if(streak>=3) rep+=1;} }
 
 /* The fund offer scales with standing: this is rep's biggest single payoff. */
-const offerMultiplier=()=>1+Math.min(rep,120)/120;          /* 1.0x .. 2.0x */
+const offerMultiplier=()=>(1+Math.min(rep,120)/120)*(knows('kestrel')?1.25:1);
 const offeredCapital=()=>Math.round(AUM0*offerMultiplier());
+
+/* RELATIONSHIPS. Contacts were a counter; these are people. Each one is met at a
+   specific venue, needs a number of meetings to mature, and unlocks exactly one
+   thing that nothing else in the game provides. */
+const PEOPLE=[
+ {id:'kestrel',n:'Ana Kestrel',   role:'Allocator, family office', at:'headland', need:3,
+  gives:'Will seed a fund at better terms: +25% on any capital you are offered.'},
+ {id:'moss',   n:'Daniel Moss',   role:'Sell-side analyst',        at:'bar',      need:2,
+  gives:'Reads you his notes. The street line shows without the terminal.'},
+ {id:'vance',  n:'Priya Vance',   role:'Prime brokerage',          at:'club',     need:3,
+  gives:'Cheaper borrow: short fees fall by a third.'},
+ {id:'ozal',   n:'Hakan Ozal',    role:'Credit desk',              at:'rostrum',  need:2,
+  gives:'Flags issuers he would not lend to. Bond defaults are shown in advance.'},
+ {id:'renn',   n:'Marta Renn',    role:'Headhunter',               at:'recruit',  need:2,
+  gives:'Keeps you employed: a failed review costs no seat, once.'}
+];
+const metWith=id=>met[id]||0;
+const knows=id=>metWith(id)>=(PEOPLE.find(p=>p.id===id)||{need:99}).need;
+function meetAt(venue){
+  const here=PEOPLE.filter(p=>p.at===venue&&!knows(p.id));
+  if(!here.length) return null;
+  const p=here[0];
+  met[p.id]=metWith(p.id)+1;
+  return {p, now:knows(p.id)};
+}
+function relationshipHTML(){
+  return `<div class="reftab">${PEOPLE.map(p=>`<div><b>${p.n}</b>
+    <span>${p.role} \u00b7 ${p.gives}</span>
+    <em>${knows(p.id)?'known':metWith(p.id)+'/'+p.need}</em></div>`).join('')}</div>`;
+}
 
 /* ---------- the gym: the only non-money route to readable metrics ---------- */
 function roomGym(){
@@ -67,7 +97,11 @@ function roomClub(){
   if(can) $('buy').addEventListener('click',()=>{
     cash-=cost; focus=Math.min(focusCap(),focus+5);
     if(member){contacts+=2;rep+=1;}
-    hud(); toast(member?'Focus restored. Two introductions made.':'Focus restored.'); leave();
+    const m=member?meetAt('club'):null;
+    hud();
+    if(m&&m.now) moment(m.p.n.toUpperCase(),m.p.role);
+    else toast(m?'You spoke to '+m.p.n+' again.':member?'Focus restored. Two introductions made.':'Focus restored.');
+    leave();
   });
   const j=$('join');
   if(j&&canJoin) j.addEventListener('click',()=>{
@@ -108,8 +142,9 @@ function roomRostrum(){
     <button class="btn ghost" id="roOut">Leave</button>`;
   document.querySelectorAll('.item:not([disabled])').forEach(el=>el.addEventListener('click',()=>{
     const g=GALAS[+el.dataset.g]; if(cash<g.cost) return;
-    cash-=g.cost; rep+=g.rep; contacts+=g.contacts; hud(); roomRostrum();
-    toast('+'+g.rep+' reputation.');
+    cash-=g.cost; rep+=g.rep; contacts+=g.contacts;
+    const m=meetAt('rostrum'); hud(); roomRostrum();
+    if(m&&m.now) moment(m.p.n.toUpperCase(),m.p.role); else toast('+'+g.rep+' reputation.');
   }));
   $('roOut').addEventListener('click',leave);
 }
@@ -138,6 +173,8 @@ function roomHeadland(){
       !allowed?'Not seated':n?`Convert ${n} contact${n>1?'s':''} · ${money(raise)}`:'No contacts to convert'}</button>
     <button class="btn ghost" id="hOut">Leave</button>`;
   if(allowed&&n>0) $('raise').addEventListener('click',()=>{
+    const m=meetAt('headland');
+    if(m&&m.now) moment(m.p.n.toUpperCase(),m.p.role);
     contacts-=n;
     if(arc===2){aum+=raise;aumStart+=raise;} else {port+=raise;}
     rep+=2; hud(); leave();

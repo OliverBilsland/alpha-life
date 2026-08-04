@@ -292,6 +292,26 @@ The character earns its place the same way. A dot cannot face anywhere, cannot w
 into a car. A figure with legs that swing only while you are actually moving tells you the game is
 reading your input — the smallest possible piece of feedback, delivered continuously.
 
+## Rule 12 — Depth is a new way to lose, not a bigger number
+
+The test every Phase 2 addition had to pass: does it introduce a *failure mode the player did not
+previously have*? A higher price for a bigger effect is not depth, it is inflation.
+
+- Bonds can now **default**. That is not a larger loss, it is a loss duration cannot hedge — a
+  different question about the same card.
+- Shorts pay **borrow** whether or not they are right, and a crowded name **squeezes**. The decision
+  is no longer just which company is worse, it is whether your thesis is already consensus.
+- Pairs choose a **hedge ratio**, which is the choice to let direction back into a market-neutral
+  trade. Being fully hedged is now a decision rather than a definition.
+- Options can be **right and still expire**. Being early is indistinguishable from being wrong once
+  the contract dies, which is the game's central theme expressed in a payoff formula.
+- Cars **wear out**, and neglect costs trips rather than points — it takes away decisions.
+- Houses have a **price**, so buying is a question of when.
+- Seats can be **lost**, so process pressure never stops.
+
+What did not get built: extra car tiers, extra home tiers, higher-paying seats. Every one of those
+would have been a bigger number at a higher price, which is the thing this rule exists to refuse.
+
 ## The through-line
 
 Money is the score everyone watches and the one the game refuses to grade you on. Information is what

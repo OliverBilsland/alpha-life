@@ -492,6 +492,39 @@ enough. A reckless bot over 20 runs never triggered it, so it is honestly a guar
 tested one, and it closes a real hole where `port` could go negative and produce negative position
 sizes. Fixing it also caught a bug where selling a $585,000 estate released none of its equity.
 
+### 6l. Second axes (Phase 2 depth)
+
+Every system gained a mechanism rather than a bigger number.
+
+**Instruments** each got a second way to lose:
+
+| Instrument | New axis | The failure it introduces |
+|---|---|---|
+| Bonds | `s.deflt` + issuer quality | A weak issuer (≥3.4× levered, ≤52% conversion) can simply not pay. Duration cannot hedge a default |
+| Short | Borrow choice + `s.crowded` | Borrow is paid whether or not you are right; a crowded name on general collateral squeezes 34% |
+| Pairs | Hedge ratio 70/100/130% | Whatever is unhedged rides `s.sector_move` — direction re-enters a market-neutral trade by choice |
+| Options | `late` per strike | Right business, wrong clock: a correct-but-slow thesis returns part of the premium, and nothing at all on the far strike |
+
+All four extras are deterministic per scenario index (`bondDefaultFor`, `crowdedFor`,
+`sectorMoveFor`), same seed discipline as the generator. The terminal and the credit course now
+*reveal* those axes, which is what makes them worth owning.
+
+**Cars** gained condition. `carCond` decays each month by `3 + tier*1.6`, so bigger cars wear faster,
+and `conditionBand()` subtracts **trips** — the resource cars exist to buy — rather than a stat.
+Servicing is a real monthly claim on cash.
+
+**Housing** gained a market. `propIndex` mean-reverts inside 0.62–1.55, and `HOUSE_PRICE()` scales
+every price, tax, upkeep and your equity. The mortgage is fixed at what you paid, so a falling market
+compresses equity without reducing the bill — which is exactly how negative equity works.
+
+**Careers** gained reviews. `runReview()` runs every ≥5 calls: under 30% sound loses the seat (and
+its salary, credit line and position sizes), over 70% pays a bonus. Process pressure becomes
+continuous rather than a one-off gate.
+
+**Lifestyle** gained five named people, each met at a different venue over repeat visits, each
+unlocking exactly one thing nothing else provides — Kestrel +25% capital, Moss the street line
+without a terminal, Vance cheaper borrow, Ozal advance default warnings, Renn one absorbed review.
+
 **Metric gating** is what the shop items plug into, and it's all read at render time in `roomOffice`:
 
 - `f` (cash conversion) renders as `locked` italic text unless `owned.acct`;

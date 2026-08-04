@@ -11,6 +11,11 @@ let instr='equity', extraChoice='med';   /* instruments.js */
 let debt=0;                              /* drawn against the credit line */
 let gymMonth=false, floorMonth=false;    /* once-a-month purchases */
 let bankrupt=false;
+let carCond=100;                         /* cars.js -- wear */
+let propIndex=1, propHist=[1];           /* housing.js -- the property market */
+let reviewedAt=0, reviewedSound=0;       /* careers.js -- performance reviews */
+let met={};                              /* social.js -- relationships */
+let lastReview=null, rennUsed=false;
 let sessionsLeft=ROUNDS_PER_MONTH, month=1, monthPnl=0, peak=10000, maxDD=0;
 let pick=null,reason=null,conv='std',locked=false,inRoom=null,gameOver=false;
 let genSeed=(Math.random()*2147483647)|0;

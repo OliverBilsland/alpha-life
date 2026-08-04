@@ -12,9 +12,11 @@ function roomOffice(){
   if(!instrumentUnlocked(instrumentById(instr))) instr='equity';
   if(!allowedSizes().includes(conv)) conv='std';
   const INST=instrumentById(instr);
-  if(INST.extra&&!INST.extra.opts.some(o=>o.id===extraChoice)) extraChoice=INST.extra.opts[1].id;
+  if(INST.extra&&!INST.extra.opts.some(o=>o.id===extraChoice))
+    extraChoice=INST.extra.opts[Math.min(1,INST.extra.opts.length-1)].id;
   const s=scenarioAt(idx);
-  s.rate=rateMoveFor(idx);
+  s.rate=rateMoveFor(idx); s.deflt=bondDefaultFor(idx);
+  s.sector_move=sectorMoveFor(idx); s.crowded=crowdedFor(idx);
   const red = (focus<3 ? (focus<1?['m','l']:['m']) : []).filter(k=>!revealed.includes(k));
   const row=(l,v,c)=>`<div class="m ${c||''}"><span class="lbl">${l}</span><span class="val">${v}</span></div>`;
   $('sheet').innerHTML=`<div class="roomhd"><h2>ARDENT CAPITAL</h2>
@@ -34,7 +36,7 @@ function roomOffice(){
         ${row('P / E',c.p+'\u00d7')}
         ${owned.acct?row('Cash conversion',c.f+'%','extra'):row('Cash conversion','locked','locked')}
       </button>`}).join('')}</div>
-    ${owned.term?`<div class="street"><b>Terminal \u00b7 street positioning</b>${s.street}</div>`:''}
+    ${owned.term||knows('moss')?`<div class="street"><b>${owned.term?'Terminal':'Daniel Moss'} \u00b7 street positioning</b>${s.street}</div>`:''}
     ${arc===2&&capacityFactor()<0.95?`<p class="instnote"><strong>Capacity drag ${Math.round((1-capacityFactor())*100)}%.</strong>
       At ${money(aum)} the same idea returns less than it would at ${money(AUM0)} — size moves the
       price against you and the best ideas stop being big enough to matter.</p>`:''}
@@ -46,8 +48,14 @@ function roomOffice(){
       }).join('')}</div>
       <p class="instnote">${INST.teach}</p></div>
     ${INST.extra?`<div class="step"><div class="steplbl"><span>${INST.extra.label}</span><em>${INST.extra.hint}</em></div>
+      ${INST.id==='bond'&&s.deflt&&(owned.credit||knows('ozal'))?`<p class="instnote" style="color:var(--loss)"><strong>Default warning.</strong> One of these issuers is not good for the coupon.</p>`:''}
       ${INST.id==='bond'&&owned.credit?`<p class="instnote">Credit analysis: rates are set to move
         <strong>${s.rate>0?'+':''}${Math.round(s.rate*100)}bp</strong> over this period.</p>`:''}
+      ${INST.id==='short'&&owned.term&&s.crowded?`<p class="instnote">Terminal: <strong>${s[s.crowded].t}</strong>
+        is already heavily shorted. General collateral is cheap for a reason.</p>`:''}
+      ${INST.id==='pairs'&&owned.term?`<p class="instnote">Terminal: the sector is set to move
+        <strong>${s.sector_move>0?'+':''}${(s.sector_move*100).toFixed(1)}%</strong> — everything you
+        leave unhedged rides on that.</p>`:''}
       <div class="grid3">${INST.extra.opts.map(o=>`<button class="rz xo" data-x="${o.id}"
         aria-pressed="${o.id===extraChoice}"><b>${o.n}</b><small>${
           INST.id==='option'&&owned.deriv
@@ -91,9 +99,11 @@ function sigHTML(){
 function commit(){
   if(locked||!pick||!reason)return;locked=true;
   const s=scenarioAt(idx);
-  s.rate=rateMoveFor(idx);
+  s.rate=rateMoveFor(idx); s.deflt=bondDefaultFor(idx);
+  s.sector_move=sectorMoveFor(idx); s.crowded=crowdedFor(idx);
   const INST=instrumentById(instr);
-  const choice={pick,reason,dur:extraChoice,strike:extraChoice};
+  const choice={pick,reason,dur:extraChoice,strike:extraChoice,
+    borrow:extraChoice,hedge:extraChoice};
   const sound=INST.sound(s,choice);
   const res=INST.settle(s,choice);
   const won=res.won;

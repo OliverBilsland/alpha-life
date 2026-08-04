@@ -27,16 +27,35 @@ const HOMES=[
 ];
 
 const home=()=>HOMES[homeTier];
+
+/* THE PROPERTY MARKET. Values move every month, so a house is an asset with a
+   price rather than a fixed badge -- and buying becomes a question of when, not
+   just whether. propIndex is a multiplier on every price and on your equity. */
+const HOUSE_PRICE=h=>Math.round(h.price*propIndex);
+function stepPropertyMarket(){
+  /* mean-reverting drift: property is slow, and it does turn */
+  const pull=(1-propIndex)*0.06;
+  const shock=(Math.random()*2-1)*0.028;
+  propIndex=Math.max(0.62,Math.min(1.55,propIndex+pull+shock));
+  propHist.push(Math.round(propIndex*1000)/1000);
+  if(propHist.length>8) propHist.shift();
+}
+const propTrend=()=>{
+  if(propHist.length<2) return 0;
+  return propIndex/propHist[0]-1;
+};
 const focusCap=()=>home().cap+(gymMonth?1:0);
 const researchPerMonth=()=>home().office;
 const hostPower=()=>home().host;
 
 /* Owned property: 1.1%/yr tax, plus maintenance that scales with the building. */
-const propertyTax=()=>home().own?Math.round(home().price*0.011/12):0;
-const maintenance=()=>home().own?Math.round(home().price*0.0045/12):0;
-const mortgage=()=>home().own?Math.round(home().price*0.065/12):0;   /* interest-only */
+const propertyTax=()=>home().own?Math.round(HOUSE_PRICE(home())*0.011/12):0;
+const maintenance=()=>home().own?Math.round(HOUSE_PRICE(home())*0.0045/12):0;
+/* the mortgage is fixed at what you paid; only tax, upkeep and equity float */
+const mortgage=()=>home().own?Math.round(home().price*0.065/12):0;
 function housingMonthly(){return home().rent+mortgage()+propertyTax()+maintenance();}
-const homeEquity=()=>home().own?Math.round(home().price*0.30):0;      /* 30% deposit put down */
+/* you own 30% of the house outright, so your equity moves with the whole value */
+const homeEquity=()=>home().own?Math.round(HOUSE_PRICE(home())-home().price*0.70):0;
 
 /* focus decays once every `decay` sessions -- tier 1 halves it, tier 4 quarters it */
 function focusDecay(){return (idx%home().decay===0)?1:0;}
@@ -87,16 +106,22 @@ function roomRealtor(){
   const cur=home();
   $('sheet').innerHTML=`<div class="roomhd"><h2>HALE PROPERTY</h2>
       <span class="sub">Leasing &amp; sales · cash ${money(cash)}</span></div>
+    ${cur.own?`<p class="note ${propTrend()>=0?'':'k'}">The market is
+      <strong>${propIndex>=1?'up':'down'} ${Math.abs((propIndex-1)*100).toFixed(1)}%</strong> on where
+      it started${propHist.length>1?`, and ${propTrend()>=0?'rising':'falling'} over the last few months`:''}.
+      Your equity is ${money(homeEquity())} on a house now worth ${money(HOUSE_PRICE(cur))}.</p>`
+     :`<p class="note">Property is <strong>${propIndex>=1?'up':'down'} ${Math.abs((propIndex-1)*100).toFixed(1)}%</strong>
+      on where it started. Everything below is priced at today's market.</p>`}
     <p class="note">You live in <strong>${cur.n}</strong>, costing ${money(housingMonthly())} a month
       ${cur.own?`(mortgage ${money(mortgage())}, tax ${money(propertyTax())}, upkeep ${money(maintenance())})`
                :`in rent`}.</p>
     <div class="items">${HOMES.slice(1).map(h=>{
       const have=homeTier>=h.t;
-      const deposit=h.own?Math.round(h.price*0.30):Math.round(h.rent*2);
+      const deposit=h.own?Math.round(HOUSE_PRICE(h)*0.30):Math.round(h.rent*2);
       const afford=cash>=deposit;
       const dis=have||!afford;
       /* derived from the same rates housingMonthly() charges, so the shop cannot understate it */
-      const monthly=h.rent+(h.own?Math.round(h.price*0.065/12)+Math.round(h.price*0.011/12)+Math.round(h.price*0.0045/12):0);
+      const monthly=h.rent+(h.own?Math.round(h.price*0.065/12)+Math.round(HOUSE_PRICE(h)*0.011/12)+Math.round(HOUSE_PRICE(h)*0.0045/12):0);
       return `<button class="item ${have?'owned':''}" data-t="${h.t}" ${dis?'disabled':''}>
         <div class="nm"><span>${h.n}</span><span class="pr">${have?'LIVED IN':(h.own?'Deposit '+money(deposit):'Deposit '+money(deposit))}</span></div>
         <div class="ef">${h.d} ${h.ef}</div>
@@ -105,7 +130,7 @@ function roomRealtor(){
           <span>focus cap ${h.cap}</span>
           <span>${h.office?h.office+' research/mo':'no home office'}</span>
           <span>${h.host?'hosting x'+h.host:'no hosting'}</span>
-          <span>${h.own?'owned · '+money(Math.round(h.price*0.30))+' equity':'rented'}</span></div>
+          <span>${h.own?'owned · '+money(Math.round(HOUSE_PRICE(h)*0.30))+' equity':'rented'}</span></div>
         ${!have&&!afford?`<div class="rec">Short ${money(deposit-cash)}</div>`:''}</button>`;
     }).join('')}</div>
     <p class="note k" style="margin-top:18px">Buying costs <em>more</em> every month than renting,
@@ -114,7 +139,7 @@ function roomRealtor(){
       worth it depends entirely on what your portfolio would have done with the deposit.</p>`;
   document.querySelectorAll('.item:not([disabled])').forEach(el=>el.addEventListener('click',()=>{
     const t=+el.dataset.t, h=HOMES[t];
-    const deposit=h.own?Math.round(h.price*0.30):Math.round(h.rent*2);
+    const deposit=h.own?Math.round(HOUSE_PRICE(h)*0.30):Math.round(h.rent*2);
     if(cash<deposit) return;
     cash-=deposit; homeTier=t; focus=Math.min(focus,focusCap());
     research=researchPerMonth();

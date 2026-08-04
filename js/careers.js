@@ -43,6 +43,34 @@ function jobReqs(j){
 const jobEligible=j=>jobReqs(j).every(x=>x.ok);
 const nextJob=()=>JOBS[careerStage+1]||null;
 
+/* THE REVIEW. Seats are not permanent. Every three months your recent process is
+   read, and a bad enough stretch loses you the desk -- which takes the salary,
+   the credit line and the position sizes with it. Process pressure becomes
+   continuous rather than a one-off gate. */
+const REVIEW_EVERY=3;
+function runReview(){
+  if(careerStage===0||arc===2) return null;
+  const recent=idx-reviewedAt;
+  if(recent<5) return null;
+  const soundNow=quad.gpgo+quad.gpbo;
+  const rate=(soundNow-reviewedSound)/recent;
+  reviewedAt=idx; reviewedSound=soundNow;
+  if(rate<0.30){
+    /* a headhunter who knows you can absorb exactly one bad review */
+    if(typeof knows==='function'&&knows('renn')&&!rennUsed){
+      rennUsed=true; return {saved:true, rate, seat:job().n};
+    }
+    careerStage=Math.max(0,careerStage-1);
+    if(!allowedSizes().includes(conv)) conv='std';
+    return {down:true, rate, seat:job().n};
+  }
+  if(rate>=0.70){
+    const b=Math.round(job().pay*0.75);
+    cash+=b; rep+=4; return {bonus:b, rate, seat:job().n};
+  }
+  return {flat:true, rate, seat:job().n};
+}
+
 function promote(){
   const n=nextJob(); if(!n||!jobEligible(n)) return false;
   careerStage=n.t;
@@ -103,6 +131,7 @@ function roomRecruit(){
   const n=nextJob();
   $('sheet').innerHTML=`<div class="roomhd"><h2>HOLBROOK &amp; CO</h2>
       <span class="sub">Recruitment · ${job().n}</span></div>
+    ${relationshipHTML()}
     <p class="note k">Seats are filled on evidence. They read your decision record, not your balance —
       which is why the requirements below are process and equipment, never cash.</p>
     <div class="items">${JOBS.map(j=>{
@@ -123,6 +152,7 @@ function roomRecruit(){
       : `<p class="note" style="margin-top:16px">You do not qualify for ${n.n.toLowerCase()} yet.</p>`)
      :`<p class="note" style="margin-top:16px">There is nothing above where you are.</p>`}
     <button class="btn ghost" id="rOut">Leave</button>`;
+  const mr=meetAt('recruit');
   const b=$('takeJob');
   if(b) b.addEventListener('click',()=>{
     const to=nextJob(); if(promote()){leave();moment(to.n.toUpperCase(),money(to.pay)+' a month');}
@@ -164,4 +194,19 @@ function roomPbank(){
   document.querySelectorAll('.rbtn[data-p]').forEach(el=>el.addEventListener('click',()=>{
     repayCredit(cash);roomPbank();}));
   $('pbOut').addEventListener('click',leave);
+}
+
+function reviewNoteHTML(){
+  const v=lastReview; if(!v) return '';
+  if(v.down) return `<p class="note" style="color:var(--loss)"><strong>Review: you lost the desk.</strong>
+    ${Math.round(v.rate*100)}% of your recent calls were defensible, and the bar is 30%. You are back
+    to ${job().n} — the salary, the credit line and the position sizes go with the seat.</p>`;
+  if(v.saved) return `<p class="note" style="color:var(--process)"><strong>Review: Marta Renn made a
+    call for you.</strong> ${Math.round(v.rate*100)}% was not enough to keep the seat on merit. That
+    favour does not come twice.</p>`;
+  if(v.bonus) return `<p class="note" style="color:var(--gain)"><strong>Review: ${Math.round(v.rate*100)}%
+    sound.</strong> A bonus of ${money(v.bonus)} and your name goes around. This is process being paid
+    directly, which almost never happens in real life and is the one place this game is generous.</p>`;
+  return `<p class="note"><strong>Review: ${Math.round(v.rate*100)}% sound.</strong> Enough to keep the
+    seat, not enough to be noticed.</p>`;
 }
