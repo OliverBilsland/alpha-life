@@ -9,7 +9,7 @@ function roomOffice(){
     $('out').addEventListener('click',leave);return;
   }
   pick=null;reason=null;locked=false;
-  const s=S[order[idx]];
+  const s=scenarioAt(idx);
   const red = focus<3 ? (focus<1?['m','l']:['m']) : [];
   const row=(l,v,c)=>`<div class="m ${c||''}"><span class="lbl">${l}</span><span class="val">${v}</span></div>`;
   $('sheet').innerHTML=`<div class="roomhd"><h2>ARDENT CAPITAL</h2>
@@ -54,7 +54,7 @@ function sigHTML(){
 
 function commit(){
   if(locked||!pick||!reason)return;locked=true;
-  const s=S[order[idx]];
+  const s=scenarioAt(idx);
   const sound=pick===s.better&&reason===s.driver, won=pick===s.market;
   const size=port*CONV.find(c=>c.id===conv).pct;
   const delta=won?size*WIN_R:-size*LOSE_R;

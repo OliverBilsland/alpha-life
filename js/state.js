@@ -5,6 +5,7 @@ let order=[],idx=0,port=10000,cash=2000,xp=0,streak=0,best=0,focus=5;
 let salary=2400,rent=1200,owned={},appLeft=0,appLive=false;
 let sessionsLeft=ROUNDS_PER_MONTH, month=1, monthPnl=0, peak=10000, maxDD=0;
 let pick=null,reason=null,conv='std',locked=false,inRoom=null,gameOver=false;
+let genSeed=(Math.random()*2147483647)|0;
 const quad={gpgo:0,gpbo:0,bpgo:0,bpbo:0};
 const P={x:330,y:470,vx:0,vy:0,dir:0,driving:false};
 

@@ -172,6 +172,32 @@ the right answer. The game's currency is information and time, not advantage. An
 
 ---
 
+## Rule 6 — Generated cases owe the player the same contract as written ones
+
+The bank is effectively unlimited, but a procedural case is not allowed to be a worse deal than a
+hand-written one. Two things the authored twenty do implicitly are enforced in code, and a case that
+fails either is rebuilt rather than shipped:
+
+- **Exactly one metric decides it.** The player is required to name the axis, so more than one
+  defensible reason would be an unfair loss. The driver's advantage must be at least 1.15
+  normalised units and at least 1.7× any other axis. A player who ranks the four axes by advantage
+  lands on the intended driver in 100% of cases — that is a test, not an aspiration.
+- **The wrong answer always looks good.** The losing company must win on at least two of the other
+  three axes. A case where the better business is also the obvious business teaches nothing.
+
+The corollaries matter as much:
+
+- **No positional tell.** `better` is `'a'` 49.8% of the time. If it skewed, the game would be
+  beatable without reading anything.
+- **The 25% disagreement rate is preserved**, and a `twist` is attached exactly when the market
+  disagrees — so the `gpbo` box keeps filling and keeps being explained.
+- **Cash conversion still lies in the same direction it lies in the authored set** — flattering the
+  mature, melting company on growth and value calls. It's a supporting metric, never the decider,
+  which is why it can afford to mislead.
+
+What the generator must never do is make a case *easier* to guess than an authored one. Variety is
+the goal; a lower difficulty floor is not.
+
 ## The through-line
 
 Money is the score everyone watches and the one the game refuses to grade you on. Information is what

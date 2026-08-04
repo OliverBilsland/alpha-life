@@ -31,6 +31,7 @@ The scripts, **in load order** — the order is load-bearing, see below:
 | `js/state.js` | tuning constants, all mutable globals, `$`/`money`/`shuffle`, `expenses()`/`income()`, `hud()`, `toast()` |
 | `js/city.js` | `resize()`, `draw()`, `door()`, `nearBuilding()`, `blocked()`, keyboard + touch input, `step()`, `promptFor()` |
 | `js/rooms.js` | `enter()`/`leave()`, `roomShop`, `roomVenue`, `roomApt` |
+| `js/generate.js` | `genScenario()`, `validate()`, sector/prose banks, `scenarioAt()` deck router |
 | `js/market.js` | `roomOffice()`, `sync()`, `sigHTML()`, `commit()` — the actual game |
 | `js/tutorial.js` | `TUT` coach steps, `tutPanel()`/`tutAfter()`/`tutBind()`, `roomRef()` reference screen |
 | `js/ledger.js` | `payday()`, `renderPayday()`, `finish()` |
@@ -246,6 +247,36 @@ punishing a correct read.
 **Deck handling** is deliberately minimal: `order = shuffle([...S.keys()])` at boot, and `idx`
 advances monotonically. `S[order[idx]]` is the current scenario. Sector order varies between runs;
 the scenarios themselves never do.
+
+### 6b. The generator
+
+`generate.js` extends the bank indefinitely. `scenarioAt(i)` is the single entry point the office
+uses: `i < S.length` returns the authored case at `order[i]`, anything beyond is generated. Because
+the intro arc is exactly `ROUNDS_PER_MONTH * MONTHS === S.length === 20`, the authored set is always
+the whole first playthrough and generated cases only appear in the fund arc (§6c).
+
+Scenarios are a **pure function of `(genSeed, i)`** via `mulberry32`, so nothing is stored — only the
+seed is saved, and the same seed replays the same run forever. `genCache` memoises within a session
+so `roomOffice()` and `commit()` cannot disagree about what the player is looking at.
+
+The generator **constructs and then validates** rather than sampling and hoping. Two invariants that
+the authored set only satisfies implicitly are enforced explicitly:
+
+1. **One deciding metric.** The better company's advantage on the driver axis must be ≥1.15
+   scale-units *and* ≥1.7× the largest advantage on any other axis. Scoring requires the player to
+   name the axis, so an ambiguous case would be an unfair loss. Advantages are normalised per axis
+   (growth ÷20, margin ÷10, leverage ÷2.0, P/E ÷12) with `dir:-1` for the two where lower is better.
+2. **A tempting wrong answer.** The other company must win on ≥2 of the remaining 3 axes, so the
+   trap is always baited.
+
+Construction picks the driver, samples the loser inside sector bands, then places the better company
+at a forced gap on the driver and *behind* on two trap axes. Band clamping can eat the gap at an
+edge, so the loser is pushed away instead; the loop re-validates and widens up to 24 times. Measured
+over 20,000 cases: zero ambiguous, zero untrapped, weakest driver lead 1.20 scale-units.
+
+`market` disagrees with `better` 25% of the time and a `twist` is attached exactly when it does.
+Cash conversion deliberately **flatters the loser** on growth and value calls — the mature-but-melting
+pattern the authored Caldwell and Alden cases use — and supports the winner on profit and balance calls.
 
 **Metric gating** is what the shop items plug into, and it's all read at render time in `roomOffice`:
 
