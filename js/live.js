@@ -192,11 +192,28 @@
      the pile. Wrapping means city.js and art.js are untouched. */
   function drawPeers(cx){
     if(!peers.size) return;
-    const halfW = (typeof VW === 'number' ? VW : 1200) / 2 + 90;
-    const halfH = (typeof VH === 'number' ? VH : 800) / 2 + 90;
+
+    /* The same clamped camera city.js computes at the top of draw(). It is a
+       local const there, so it is recomputed rather than reached for — the two
+       must stay in step if that line ever changes.
+
+       Culling used to be |p.x - P.x| > halfW, which silently assumed the
+       viewport is centred on the player. It is not near a world edge: standing
+       at x=330 with a 1920-wide viewport, everything from x=1050 rightwards is
+       on screen and was being culled anyway. Real players vanished in exactly
+       the corners of the map where you are most likely to be. */
+    const vw = (typeof VW === 'number' ? VW : 1200);
+    const vh = (typeof VH === 'number' ? VH : 800);
+    const camX = Math.max(0, Math.min((typeof W === 'number' ? W : 4200) - vw, P.x - vw / 2));
+    const camY = Math.max(0, Math.min((typeof H === 'number' ? H : 2400) - vh, P.y - vh / 2));
+    const M = 90;   /* slack, so a peer is not clipped mid-sprite at the border */
 
     for(const p of peers.values()){
-      if(Math.abs(p.x - P.x) > halfW || Math.abs(p.y - P.y) > halfH) continue;
+      if(p.x < camX - M || p.x > camX + vw + M ||
+         p.y < camY - M || p.y > camY + vh + M){
+        drawPeerEdge(cx, p, camX, camY, vw, vh);
+        continue;
+      }
 
       cx.save();
       cx.translate(p.x, p.y);
@@ -212,6 +229,34 @@
 
       drawPeerName(cx, p);
     }
+  }
+
+  /* An off-screen player used to be drawn as nothing at all, which made "three
+     people are here" and "the street is empty" look identical — and the city is
+     big enough to play a whole session two blocks from someone and never know.
+     A chevron at the edge of the viewport, pointing at them.
+
+     Drawn in world coordinates, clamped into the viewport box around P, so it
+     stays inside the camera translate drawPlayer() already established and
+     needs no screen-space conversion. */
+  function drawPeerEdge(cx, p, camX, camY, vw, vh){
+    const M = 26;   /* inset, so the chevron is not half off the screen */
+    const x = Math.max(camX + M, Math.min(camX + vw - M, p.x));
+    const y = Math.max(camY + M, Math.min(camY + vh - M, p.y));
+
+    cx.save();
+    cx.translate(x, y);
+    /* Point from the marker towards the player it stands for, not from the
+       local player — off the corner of a clamped camera those differ. */
+    cx.rotate(Math.atan2(p.y - y, p.x - x));
+    /* Faint on purpose: this is peripheral information, not a waypoint, and it
+       must not compete with the city or read as a game objective. */
+    cx.globalAlpha = 0.5;
+    cx.fillStyle = '#8FA3FF';
+    cx.beginPath();
+    cx.moveTo(8, 0); cx.lineTo(-4, 5); cx.lineTo(-4, -5); cx.closePath();
+    cx.fill();
+    cx.restore();
   }
 
   function drawPeerName(cx, p){

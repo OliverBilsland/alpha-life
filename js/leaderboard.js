@@ -49,7 +49,20 @@
         border:1px solid #F7F2E73D;color:var(--hud-dim);border-radius:3px;
         font-family:var(--mono);font-size:9.5px;letter-spacing:.14em;
         text-transform:uppercase;padding:8px 16px;cursor:pointer;transition:.15s}
-      #lbSplashBtn:hover{border-color:#F7F2E77A;color:var(--hud-ink)}`;
+      #lbSplashBtn:hover{border-color:#F7F2E77A;color:var(--hud-ink)}
+
+      /* The in-game entry point. Borrows .st/.st b from the HUD so it sits in
+         the pod as if it had always been there; only the states that .st has no
+         vocabulary for are defined here. */
+      #podOnline{position:relative}
+      #hOnline.lbWord{font-size:11px;letter-spacing:.1em;font-family:var(--mono)}
+      #hOnline.lbLive{color:#8FA3FF}
+      #podOnline:active b{color:var(--amber)}
+      /* A dot that only exists while someone else is actually in the city. */
+      #podOnline.lbHas::after{content:'';position:absolute;top:1px;right:-7px;
+        width:4px;height:4px;border-radius:50%;background:#8FA3FF;
+        animation:lbPulse 2s ease-in-out infinite}
+      @keyframes lbPulse{0%,100%{opacity:.35}50%{opacity:1}}`;
     document.head.appendChild(s);
   }
 
@@ -262,6 +275,79 @@
     b.textContent = 'Leaderboard';
     b.addEventListener('click', ev => { ev.stopPropagation(); openBoard(); });
     foot.parentNode.insertBefore(b, foot.nextSibling);
+  }
+
+  /* ---------- a way in from the HUD ----------
+     The splash button is only reachable before the run starts, so during play
+     both online features were invisible: the board could not be opened at all,
+     and nothing told you whether anyone else was in the city — live players
+     were drawn, but if none happened to be near you, "working" and "nobody
+     here" looked identical.
+
+     One HUD stat does both jobs. It reads live.js through its public
+     window.liveStatus() handle rather than reaching into it, and degrades to a
+     plain leaderboard button if that file bailed out. Injected, not written
+     into index.html, for the same reason as the splash button: it must not
+     exist when online is switched off. */
+  let hudTimer = null;
+
+  function paintHud(){
+    const el = document.getElementById('podOnline');
+    const b  = document.getElementById('hOnline');
+    if(!el || !b) return;
+
+    /* Without a name you can see other players but never appear to them
+       (js/live.js maybeSend), which is a confusing state to be in silently.
+       Say so, and make the tap fix it. */
+    if(!storedName()){
+      b.textContent = 'SET NAME';
+      b.className = 'lbWord warn';
+      el.classList.remove('lbHas');
+      el.title = 'You can see other players, but they cannot see you until you pick a name';
+      return;
+    }
+
+    const st = (typeof window.liveStatus === 'function') ? window.liveStatus() : null;
+    if(!st || !st.joined){
+      b.textContent = st && st.gaveUp ? 'OFFLINE' : '—';
+      b.className = 'lbWord';
+      el.classList.remove('lbHas');
+      el.title = 'Not connected to the city right now — tap for the leaderboard';
+      return;
+    }
+
+    b.textContent = String(st.peers);
+    b.className = st.peers > 0 ? 'lbLive' : '';
+    el.classList.toggle('lbHas', st.peers > 0);
+    el.title = st.peers === 1
+      ? '1 other player in the city — tap for the leaderboard'
+      : st.peers + ' other players in the city — tap for the leaderboard';
+  }
+
+  addEventListener('DOMContentLoaded', addHudEntry);
+  addHudEntry();
+  function addHudEntry(){
+    if(document.getElementById('podOnline')) return;
+    /* Anchor on #newBtn so this lands in the right-hand pod, before it. */
+    const anchor = document.getElementById('newBtn');
+    if(!anchor || !anchor.parentNode) return;
+
+    injectCSS();
+    const el = document.createElement('div');
+    el.className = 'st tap';
+    el.id = 'podOnline';
+    el.innerHTML = 'ONLINE<b id="hOnline">—</b>';
+    el.addEventListener('click', ev => {
+      ev.stopPropagation();
+      if(!storedName()){ openNameEntry(); return; }
+      openBoard();
+    });
+    anchor.parentNode.insertBefore(el, anchor);
+
+    /* One second is well below human patience and far above the cost of
+       reading two integers; the peer map is swept every three. */
+    if(!hudTimer) hudTimer = setInterval(paintHud, 1000);
+    paintHud();
   }
 
   /* First run with online switched on: ask for a name once, after the title
