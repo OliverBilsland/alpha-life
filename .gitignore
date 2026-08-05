@@ -1,0 +1,9 @@
+# Local Supabase keys — never commit. Copy js/config.example.js to js/config.js.
+js/config.js
+
+# Editor / OS noise
+.DS_Store
+Thumbs.db
+
+# Claude Code workspace
+.claude/

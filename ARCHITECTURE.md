@@ -991,3 +991,83 @@ feature completely and leaves no trace in the save format.
 
 The game is **not** paused while the panel is open — that is deliberate and consistent with
 `shell.js` (§6e): losing focus never pauses this game.
+
+---
+
+## 11. The online layer (optional)
+
+Four files, all additive, all inert unless `js/config.js` exists with real Supabase keys. Loaded
+after `shell.js`, before `devtools.js`.
+
+| File | What's there |
+|---|---|
+| `js/vendor/obscenity.js` | vendored obscenity 0.4.6, bundled to an IIFE. Exposes `AlphaProfanity` |
+| `js/names.js` | `cleanName()`, `validateName()`, `displayName()`, `escapeName()` — pure, no I/O |
+| `js/config.js` | **gitignored**, absent on a fresh clone. Sets `window.ALPHA_CONFIG` |
+| `js/online.js` | Supabase REST: `onlineReady()`, `submitRun()`, `fetchLeaderboard()`, `saveIsTainted()` |
+| `js/leaderboard.js` | the three screens: name entry, the board, and the end-screen submit |
+
+**No SDK.** Supabase's REST surface is PostgREST — plain HTTP with an `apikey` and a bearer header —
+so `online.js` talks to it with `fetch` directly. That keeps the repo's "no build step, no
+dependencies" property: nothing to bundle, nothing pulled from a CDN at runtime, and `file://` still
+works. The one vendored file is the profanity dataset, which is not something worth reimplementing.
+
+### Why it cannot become load-bearing
+
+`onlineReady()` is false whenever `ALPHA_CONFIG` is missing, empty, still holding the template's
+placeholder strings, or not `https://`. Every entry point checks it:
+
+- `leaderboard.js` returns before wiring anything, so with online off there is no title-screen
+  button, no overlay in the DOM, no `finish()` wrapper — the game is byte-for-byte what it was.
+- `online.js` returns `{ok:false, why}` rather than throwing, so a caller never needs a `try`.
+- Every request has an 8s `AbortController` timeout, so a hung Supabase cannot hang a screen.
+
+Nothing in the single-player loop calls into any of it. The coupling runs one way only.
+
+### It wraps rather than edits
+
+`leaderboard.js` reaches the end screen by wrapping `finish()`, the same pattern `persist.js` and
+`feel.js` use on `hud()`. `ledger.js` is untouched, and because all three endings — normal, bankrupt
+and the arc-2 fund — funnel through `finish()`, one wrapper covers them all. Its overlay is its own
+`#lbOv`, not the shared `#ov`/`#sheet`, so it can never collide with `enter()`/`leave()`.
+
+### Names are checked on every path, not just on entry
+
+`validateName()` is called at entry, again inside `submitRun()` before the row is built, and again in
+`fetchLeaderboard()` on every row that comes back. That third one is the one that matters: those
+names were written by other people's browsers, and a database row is not a promise about its
+contents. `displayName()` substitutes `Player` rather than throwing, so one bad row cannot blank the
+screen, and `escapeName()` is used for anything reaching `innerHTML` — which is every interior in
+this game.
+
+The rules, and what the library does versus what this repo does:
+
+| Handled by obscenity | Handled in `names.js` |
+|---|---|
+| leetspeak (`sh1t`, `f4ck`) | length 3–16, counted in code points |
+| masking (`f*ck`) | empty / whitespace-only |
+| repeats (`fuuuck`) | control, zero-width and bidi characters (stripped, not rejected) |
+| unicode confusables | NFKC normalisation, so full-width forms are seen |
+| case | character allowlist: `\p{L}\p{M}\p{N}`, space, `' . _ -` |
+| | spaced spelling (`f u c k`, `fu ck`) via the token rule |
+| | `NAME_ALLOW`, for surnames the dataset gets wrong |
+
+Two deliberate compromises, both documented at the code:
+
+- **`NAME_ALLOW`** exists because the English dataset flags `Dickinson`, `Penistone`, `Cockburn` and
+  friends. Matched whole-string and lower-cased, never as a substring, so it cannot smuggle anything.
+- **A split with one long token — `fuc k` — is not caught.** Condensing those would mean joining any
+  two tokens, and `Ana L` then reads as a slur. The two are structurally identical, so this is a
+  choice about which mistake to make, not a bug to fix.
+
+### The cheat gate
+
+`saveIsTainted()` reads `alphalife.dev.tainted`, the marker `devtools.js` writes when it grants cash
+(§10). A tainted save is refused in two independent places: `leaderboard.js` does not render the
+submit button at all and says why, and `submitRun()` returns early before building a row — so calling
+it from the console does not get past it either.
+
+This is an honest-player gate, not a security control; anyone can clear their own localStorage. It
+cannot be otherwise without a server watching the whole run. What it does guarantee is the thing that
+mattered: the dev tool cannot quietly push inflated numbers into other people's standings. The RLS
+`CHECK` constraints in SHIP.md §8.2 are the second layer, and the only one a client cannot touch.

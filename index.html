@@ -79,6 +79,17 @@
 <script src="js/boot.js"></script>
 <script src="js/persist.js"></script>
 <script src="js/shell.js"></script>
+
+<!-- OPTIONAL ONLINE LAYER. Everything below is additive: js/config.js is
+     gitignored and absent on a fresh clone, so its 404 is expected and
+     harmless, ALPHA_CONFIG stays undefined, and every online feature switches
+     itself off. The single-player game never touches the network. -->
+<script src="js/vendor/obscenity.js"></script>
+<script src="js/names.js"></script>
+<script src="js/config.js"></script>
+<script src="js/online.js"></script>
+<script src="js/leaderboard.js"></script>
+
 <!-- Developer testing aid, local only. Delete this line and js/devtools.js to remove. -->
 <script src="js/devtools.js"></script>
 </body>

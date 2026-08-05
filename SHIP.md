@@ -11,8 +11,28 @@ requires a Mac, Xcode, and a paid Apple Developer account, none of which I can r
 
 ## 1. Verified offline
 
-The game makes **zero network requests**. Confirmed by grep across `index.html`, `css/game.css` and
-all of `js/`: no `https://`, no `fetch`, no `XMLHttpRequest`, no `WebSocket`, no `import()`.
+**The invariant changed in the online phase, and it changed narrowly. Read this before assuming
+either the old or the new version of it.**
+
+- **The game** — the whole single-player loop: city, rooms, market, payday, tutor, save/resume —
+  still makes **zero network requests**, and must keep making zero. Nothing in the core loop is
+  allowed to call out, wait on a response, or degrade when there is no network.
+- **The optional online layer** — leaderboard and live players, both set up in §8 — does make requests, but
+  only when `js/config.js` exists with real Supabase keys in it. That file is **gitignored and
+  absent on a fresh clone**, so out of the box the game still makes zero requests and the old
+  invariant holds exactly as before.
+
+So the honest statement is now: *no network dependency*, rather than *no network code*. The game
+never needs the network; it can optionally use it.
+
+Confirmed by grep across `index.html`, `css/game.css` and `js/`: no `import()`, no `type="module"`,
+no remote `<script src>` or `<link href>` — every asset is local, and the game still opens from
+`file://` by double-clicking. The only files containing `fetch`/`WebSocket` are `js/online.js` and
+`js/live.js`, both of which return early when unconfigured.
+
+**If you are shipping to the App Store and want the old guarantee back**, delete `js/config.js` (or
+never create it) and the app is network-free again with no code changes. See §8.5 for the privacy
+declarations you need if you *do* ship the online layer.
 
 The Google Fonts links were removed in Phase 5. The trade-off: **IBM Plex is no longer used**, and the
 CSS falls back to system stacks (`-apple-system` / SF Pro on iOS, condensed falls back to Avenir Next
@@ -33,6 +53,12 @@ break offline use and add a third-party tracker Apple will ask about:
 game must boot, play a full month, save, and resume. Also open `index.html` directly by
 double-clicking (`file://`) — it must work there too, since a `file://` failure usually means
 something crept in that needs a server.
+
+Do that check **twice**: once with `js/config.js` absent, and once with it present and pointing at a
+host that cannot be reached. Both must play identically. The second is the one that catches an online
+feature that has quietly become load-bearing — if the game stalls, blocks on a spinner, or throws
+with the network off, something in the core loop started waiting on the online layer and needs to be
+put back behind a fail-soft path.
 
 ---
 
@@ -234,3 +260,108 @@ Honest list of what is *not* done:
   that translation would be a real project rather than a string extraction.
 - **IBM Plex is not bundled**, so the shipped typography is not the designed typography until §1 is
   followed.
+
+---
+
+## 8. The online layer — Supabase setup
+
+Both online features are optional and off until you do this. Ten minutes, once.
+
+### 8.1 Create the project
+
+1. Sign in at `supabase.com` → **New project**. Any region near you; the free tier is enough.
+2. Wait for it to finish provisioning (~2 min).
+
+### 8.2 Create the table and its policies
+
+Dashboard → **SQL Editor** → **New query** → paste all of this → **Run**.
+
+```sql
+create table if not exists public.runs (
+  id            uuid primary key default gen_random_uuid(),
+  name          text        not null,
+  net_worth     bigint      not null,
+  process_score integer     not null,
+  process_total integer     not null,
+  created_at    timestamptz not null default now()
+);
+
+-- Ranked by process, so this is the index that matters.
+create index if not exists runs_process_idx
+  on public.runs (process_score desc, net_worth desc);
+
+alter table public.runs enable row level security;
+
+-- Anyone may read the board.
+create policy "runs are readable by everyone"
+  on public.runs for select
+  to anon
+  using (true);
+
+-- Anyone may add a run, but only one that passes these checks. This is the
+-- server-side half of the rules in js/names.js: the client is not trusted,
+-- because the client is a browser someone else is holding.
+create policy "runs are insertable with sane values"
+  on public.runs for insert
+  to anon
+  with check (
+    char_length(name) between 3 and 16
+    and name !~ '[[:cntrl:]]'
+    and process_total between 0 and 500
+    and process_score between 0 and process_total
+    and net_worth between -1000000000 and 1000000000
+  );
+
+-- No updates, no deletes: nothing is granted, so nothing is possible.
+```
+
+Note there is deliberately **no `to anon` update or delete policy**. With RLS on and no policy, those
+operations are refused outright, so a leaked anon key cannot rewrite or wipe the board.
+
+### 8.3 Paste your keys
+
+Dashboard → **Settings** → **API**. Copy two values:
+
+| Dashboard field | Goes into |
+|---|---|
+| **Project URL** | `SUPABASE_URL` |
+| **Project API keys → `anon` `public`** | `SUPABASE_ANON_KEY` |
+
+Then, in the repo:
+
+```bash
+cp js/config.example.js js/config.js     # js/config.js is gitignored
+```
+
+and edit `js/config.js`:
+
+```js
+window.ALPHA_CONFIG = {
+  SUPABASE_URL:      'https://abcdefghijklm.supabase.co',
+  SUPABASE_ANON_KEY: 'eyJhbGciOi...',
+};
+```
+
+Reload. A **Leaderboard** button appears on the title screen — that button's presence is the signal
+that the config was read.
+
+**Never paste the `service_role` key.** It bypasses RLS entirely. The `anon` key is meant to be
+public and ships in every browser; the policies above are what actually protect the table.
+
+### 8.4 What this costs
+
+Nothing, in practice. The free tier covers 500MB of database and 5GB egress/month. A leaderboard row
+is roughly 100 bytes, and the board is read on demand rather than polled.
+
+### 8.5 Privacy declarations, if you ship it
+
+§3.5 changes if the online layer is enabled. You are now collecting a user-supplied display name and
+game statistics, linked to nothing else:
+
+- **Data collected:** "Other data" → the display name and run statistics. Not linked to identity, not
+  used for tracking.
+- You are no longer able to answer "no data collected" on the App Store privacy questionnaire.
+- Supabase is a third-party processor; name it in your privacy policy.
+
+If you would rather not deal with any of that, ship without `js/config.js` and the answer stays "no
+data collected".

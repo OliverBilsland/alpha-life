@@ -449,6 +449,31 @@ studying could raise your process score, the score would stop measuring your dec
 instead is honest: it records your sound rate the day you register, and shows you the difference
 later. If the teaching works, the number moves on its own.
 
+## Rule 20 — The leaderboard ranks process, because money is the thing being argued with
+
+The board is sorted by **sound decisions**, and net worth is a column beside it. Never the reverse.
+
+Sorting by money would undo the entire game in one line of SQL. Rule 1 says the player can do
+everything right and lose; a money-ranked board answers that by putting the luckiest player on top
+and calling them the best. Position size is a percentage of portfolio and the win/loss ratio is
+asymmetric (.25 up, .18 down), so a coin-flip player drifts upward — given enough runs, the top of a
+money board is a list of people who got the variance, not the reasoning.
+
+Net worth is still shown, because hiding it would be dishonest in the other direction — money is
+what everyone actually watches, and the game has never pretended otherwise. Showing both is the
+point: a large number next to a poor process score is the most instructive row on the board, and it
+is legible as exactly what it is.
+
+This is also why the developer cash tool cannot submit. Granted money moves net worth and nothing
+else, so a cheated run would appear as an enormous number beside an untouched process score — not
+first place, but noise in the column that is supposed to be the honest one. The refusal is in
+`js/online.js` and in the end screen, and the server's own `CHECK` constraints are the backstop. See
+*Dev tools sit outside the economy*, below, and ARCHITECTURE §11.
+
+And names are filtered on every path, not just at the box you type into. A name that arrives from
+another player's browser is checked again before it is drawn, because the leaderboard is the first
+surface in this game where one player's input reaches another player's screen.
+
 ## Dev tools sit outside the economy
 
 There is a hidden developer panel that grants cash on demand (`Ctrl`+`Shift`+`Alt`+`D`; see
