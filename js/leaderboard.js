@@ -64,7 +64,38 @@
       #podOnline.lbHas::after{content:'';position:absolute;top:1px;right:-7px;
         width:4px;height:4px;border-radius:50%;background:#8FA3FF;
         animation:lbPulse 2s ease-in-out infinite}
-      @keyframes lbPulse{0%,100%{opacity:.35}50%{opacity:1}}`;
+      @keyframes lbPulse{0%,100%{opacity:.35}50%{opacity:1}}
+
+      /* ---- the board as a drawer, not a screen over the game ----
+         Only the panel takes pointer events, so the city stays visible and lit
+         behind it and nothing is blocked that does not need to be. The id
+         carries the specificity needed to beat .ov.on .sheet's transform. */
+      #lbOv.lbSide{background:transparent;overflow:hidden;pointer-events:none}
+      #lbOv.lbSide .sheet{position:absolute;top:0;right:0;bottom:0;
+        width:340px;max-width:86vw;height:100%;min-height:0;margin:0;
+        overflow-y:auto;border-radius:0;padding:20px 18px 28px;
+        padding-top:calc(20px + env(safe-area-inset-top));
+        box-shadow:-16px 0 44px #000A;pointer-events:auto;
+        transform:translateX(102%);
+        transition:transform .26s cubic-bezier(.2,.75,.3,1)}
+      #lbOv.lbSide.on .sheet{transform:translateX(0)}
+      #lbOv.lbSide .roomhd h2{font-size:20px}
+      #lbOv.lbSide .lbNet{width:72px}
+      #lbOv.lbSide .lbRow{padding:6px 0}
+
+      /* ---- who is in the city right now ----
+         Live players are not leaderboard rows and must not look like them:
+         they hold no score, because they have not finished a run. */
+      #lbOv .lbNow{margin:0 0 16px;padding:9px 11px;background:#3B4FD80D;
+        border:1px solid var(--rule-2);border-radius:3px}
+      #lbOv .lbNowHd{font-family:var(--mono);font-size:9px;letter-spacing:.13em;
+        text-transform:uppercase;color:var(--ink-3);margin-bottom:6px}
+      #lbOv .lbNowRow{display:flex;align-items:center;gap:8px;padding:2px 0;
+        font-size:13px;font-weight:500}
+      #lbOv .lbDot{width:5px;height:5px;border-radius:50%;background:#8FA3FF;
+        flex:none;animation:lbPulse 2s ease-in-out infinite}
+      #lbOv .lbNowRow em{font-style:normal;font-family:var(--mono);font-size:9px;
+        letter-spacing:.1em;text-transform:uppercase;color:var(--ink-3)}`;
     document.head.appendChild(s);
   }
 
@@ -86,6 +117,10 @@
     addEventListener('keydown', e => {
       if(!isOpen()) return;
       if(e.key === 'Escape'){ e.stopPropagation(); close(); return; }
+      /* Only the centred sheet is modal. The drawer deliberately leaves the
+         city visible and playable beside it, so swallowing WASD there would
+         mean a panel that looks non-blocking and is not. */
+      if(ov.classList.contains('lbSide')) return;
       if(!sheet.contains(e.target)) e.stopPropagation();
     }, true);
   }
@@ -98,8 +133,17 @@
   }
 
   const isOpen = () => ov && ov.classList.contains('on');
-  function open(){ if(!ov) build(); ov.classList.add('on'); }
-  function close(){ if(ov) ov.classList.remove('on'); }
+  /* side=true is the board: a drawer that leaves the game on screen. Name entry
+     stays a centred sheet, because it is a question that wants an answer. */
+  function open(side){
+    if(!ov) build();
+    ov.classList.toggle('lbSide', !!side);
+    ov.classList.add('on');
+  }
+  function close(){
+    if(ov) ov.classList.remove('on');
+    if(nowTimer){ clearInterval(nowTimer); nowTimer = null; }
+  }
 
   /* ---------- name entry ---------- */
   function openNameEntry(onSaved){
@@ -142,13 +186,49 @@
     input.addEventListener('input', () => { err.textContent = ''; });
   }
 
+  /* ---------- who is in the city right now ----------
+     The runs table holds FINISHED runs, so someone walking around outside your
+     window is not in it and will not be until they complete one. Listing them
+     separately is the only way the board can answer "who is here", which is a
+     different question from "who did well". Read from live.js's public handle;
+     if that file bailed out, this section simply does not appear. */
+  let nowTimer = null;
+
+  function liveNowHTML(){
+    const me = storedName();
+    const peers = (typeof window.livePeers === 'function') ? window.livePeers() : [];
+    const rows = [];
+    if(me) rows.push({name: me, you: true});
+    for(const [, p] of peers) rows.push({name: p.name, you: false});
+    if(!rows.length) return '';
+    return '<div class="lbNow">' +
+      '<div class="lbNowHd">In the city now · ' + rows.length + '</div>' +
+      rows.map(r =>
+        '<div class="lbNowRow">' +
+          '<i class="lbDot"></i>' +
+          /* escapeName: a peer name came off the network, same as a board row. */
+          '<span class="lbName">' + escapeName(r.name) + '</span>' +
+          (r.you ? '<em>you</em>' : '') +
+        '</div>').join('') +
+      '</div>';
+  }
+
+  function paintLiveNow(){
+    const wrap = sheet && sheet.querySelector('#lbNowWrap');
+    if(wrap) wrap.innerHTML = liveNowHTML();
+  }
+
   /* ---------- the board ---------- */
   async function openBoard(){
-    open();
+    open(true);
     sheet.innerHTML =
       '<div class="roomhd"><h2>Leaderboard</h2>' +
         '<span class="sub">Ranked by process</span></div>' +
+      '<div id="lbNowWrap">' + liveNowHTML() + '</div>' +
       '<p class="note">Loading…</p>';
+
+    /* People arrive and leave while the panel is open, so keep it current. */
+    if(!nowTimer) nowTimer = setInterval(paintLiveNow, 1500);
 
     const res = await fetchLeaderboard(LB_LIMIT);
     if(!isOpen()) return;              /* they closed it while we waited */
@@ -157,9 +237,12 @@
       sheet.innerHTML =
         '<div class="roomhd"><h2>Leaderboard</h2>' +
           '<span class="sub">Unavailable</span></div>' +
+        /* Live players come over a separate socket, so they can still be listed
+           when the standings request fails. */
+        '<div id="lbNowWrap">' + liveNowHTML() + '</div>' +
         '<p class="note">' + res.why + ' The game is unaffected — everything ' +
         'else works offline.</p>' +
-        '<div class="lbBtns"><button class="btn" id="lbBack">Back</button></div>';
+        '<div class="lbBtns"><button class="btn" id="lbBack">Close</button></div>';
       sheet.querySelector('#lbBack').addEventListener('click', close);
       return;
     }
@@ -180,6 +263,7 @@
     sheet.innerHTML =
       '<div class="roomhd"><h2>Leaderboard</h2>' +
         '<span class="sub">Ranked by process</span></div>' +
+      '<div id="lbNowWrap">' + liveNowHTML() + '</div>' +
       '<p class="note">Sound decisions, not money. Net worth is shown because ' +
       'it is interesting, not because it is the score — a good number there ' +
       'with a bad one beside it mostly means a lucky streak.</p>' +
@@ -192,7 +276,7 @@
           '<span class="lbNet" style="font-size:10px">NET WORTH</span></div>' +
         rows +
       '</div>' +
-      '<div class="lbBtns"><button class="btn" id="lbBack">Back</button></div>';
+      '<div class="lbBtns"><button class="btn" id="lbBack">Close</button></div>';
     sheet.querySelector('#lbBack').addEventListener('click', close);
   }
 
