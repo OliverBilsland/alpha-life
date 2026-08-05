@@ -43,6 +43,16 @@
         color:var(--ink);margin-top:4px}
       #lbOv .lbIn:focus{outline:none;border-color:var(--process)}
       #lbOv .lbBtns{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}
+      /* Matches #newBtn exactly — it sits beside it and the two are the same
+         kind of thing: a control on the HUD rather than a game statistic.
+         Duplicated rather than shared because game.css must not need editing
+         for an optional layer that may not load at all. */
+      #lbHudBtn{pointer-events:auto;align-self:center;background:#F7F2E70D;
+        border:1px solid #F7F2E72E;color:var(--hud-dim);border-radius:3px;
+        font-family:var(--mono);font-size:9.5px;letter-spacing:.12em;
+        text-transform:uppercase;padding:6px 10px;cursor:pointer;transition:.15s}
+      #lbHudBtn:hover{border-color:#8FA3FF88;color:#8FA3FF}
+
       /* The in-game entry point. Borrows .st/.st b from the HUD so it sits in
          the pod as if it had always been there; only the states that .st has no
          vocabulary for are defined here. */
@@ -328,6 +338,17 @@
       openBoard();
     });
     anchor.parentNode.insertBefore(el, anchor);
+
+    /* A button that says what it is, sitting next to New game.
+       The stat beside it opens the same screen, but a number under the word
+       ONLINE does not announce itself as a way to reach the standings — the
+       only thing saying so was a tooltip, which is not a label. */
+    const b = document.createElement('button');
+    b.id = 'lbHudBtn';
+    b.textContent = 'Leaderboard';
+    b.title = 'The standings, ranked by process';
+    b.addEventListener('click', ev => { ev.stopPropagation(); openBoard(); });
+    anchor.parentNode.insertBefore(b, anchor);
 
     /* One second is well below human patience and far above the cost of
        reading two integers; the peer map is swept every three. */
