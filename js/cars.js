@@ -14,7 +14,7 @@ const CARS=[
   cost:0,     ins:0,   run:0,    speed:1.9,
   note:'Old Town only. Everything else is a bus ride you cannot fit into a working month.'},
  {t:1,n:'Voss Estate',    d:'Nine years old, honest, slow.',
-  cost:4500,  ins:60,  run:150,  speed:4.1,
+  cost:2800,  ins:60,  run:150,  speed:4.1,
   note:'Opens Midtown: the dealership, the bank, the recruiters. The analyst desk needs a car.'},
  {t:2,n:'Kestrel 400',    d:'Executive saloon. Quietly expensive.',
   cost:19000, ins:190, run:310,  speed:5.2,

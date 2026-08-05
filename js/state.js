@@ -29,6 +29,7 @@ let hangover=false, nightOutMonth=0;
 /* tutor.js -- teaching as a second income */
 let tutorReg=false, tutorLevel=1, tutorSeen={}, tutorEarnedMonth=0;
 let tutorAnswered=0, tutorLevelCorrect=0, tutorStartSound=null, tutorCurrent=null;
+let tutorRight={};   /* question id -> answered correctly at least once */
 let encounterCooldown=600, pendingEncounter=null;
 let sessionsLeft=ROUNDS_PER_MONTH, month=1, monthPnl=0, peak=10000, maxDD=0;
 let pick=null,reason=null,conv='std',locked=false,inRoom=null,gameOver=false;

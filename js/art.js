@@ -351,9 +351,10 @@ function propsFor(id){
   if(id==='apt'){
     /* the laptop: a blue desk-light in your window */
     if(owned.laptop){
-      cx.fillStyle='rgba(110,190,255,0.16)'; cx.fillRect(b.x+18,b.y+42,48,36);
-      cx.fillStyle='#6FD6F2'; cx.fillRect(b.x+30,b.y+54,22,15);
-      cx.fillStyle='#BFEEFF'; cx.fillRect(b.x+30,b.y+54,22,3);
+      const lx=b.x+16+32, ly=b.y+42;                       /* one window on the grid */
+      cx.fillStyle='rgba(110,190,255,0.20)'; cx.fillRect(lx-7,ly-7,17+14,15+14);
+      cx.fillStyle='#6FD6F2'; cx.fillRect(lx,ly,17,15);
+      cx.fillStyle='#BFEEFF'; cx.fillRect(lx,ly,17,3);
     }
     /* the upgrade: a lit extra floor and a balcony */
     if(homeTier>=1){

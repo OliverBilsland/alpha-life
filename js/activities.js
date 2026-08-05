@@ -201,10 +201,6 @@ const ENCOUNTERS=[
     if(pending.length){const p=pending[0];met[p.id]=metWith(p.id)+1;
       return 'A step closer to '+p.n+'.';}
     rep+=2; return 'Two points of standing.';}},
- {id:'block', w:2, min:0, n:'Roadworks',
-  d:'A diversion, and a long way round in slow traffic.',
-  fx:()=>{if(carTier) carCond=Math.max(0,carCond-6);
-    return carTier?'A little more wear on the car. It cost you nothing else.':'Time, and nothing else.';}}
 ];
 function rollEncounter(){
   const pool=ENCOUNTERS.filter(e=>carTier>=e.min);

@@ -151,7 +151,9 @@
   .reftab em{font-style:normal;font-family:var(--mono);font-size:10px;color:var(--process);
     text-align:right}
 
-  .items{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .items{display:grid;grid-template-columns:1fr 1fr;gap:10px;align-items:stretch}
+  .item{display:flex;flex-direction:column}
+  .item .rec:last-child{margin-top:auto;padding-top:5px}
   .item{border:1px solid var(--rule);padding:14px;text-align:left;font:inherit;background:transparent;
     cursor:pointer;transition:.15s}
   
@@ -161,7 +163,14 @@
     letter-spacing:.03em;display:flex;justify-content:space-between;gap:8px}
   .item .pr{font-family:var(--mono);font-size:12.5px;color:var(--ink-2)}
   .item .ef{font-size:11.5px;color:var(--ink-2);margin-top:6px;line-height:1.45}
-  .item .rec{font-family:var(--mono);font-size:10px;color:var(--warn);margin-top:5px}
+  .item .rec{font-family:var(--mono);font-size:10px;color:var(--warn);margin-top:5px;
+    line-height:1.5;white-space:normal}
+  /* What the purchase actually does, in prose. It used to borrow .carstat, whose
+     spans are nowrap chips -- a sentence in there could not wrap and spilled out
+     of the cell. */
+  .item .lfx{font-size:11.5px;color:var(--ink);margin-top:8px;line-height:1.5;
+    padding-top:8px;border-top:1px solid var(--rule)}
+  .item .rec.short{color:var(--loss)}
   .ledger{border:1px solid var(--rule);background:var(--card);padding:16px;margin-bottom:18px;border-radius:4px}
   .lr{display:flex;justify-content:space-between;padding:6px 0;font-family:var(--mono);font-size:12.5px;
     border-bottom:1px solid var(--rule-2)}

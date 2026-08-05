@@ -31,7 +31,7 @@ const LIFE=[
   can:()=>!owned.acct,
   buy(){ owned.acct=true; }},
 
- {id:'car', n:'Used car', cost:4500,
+ {id:'car', n:'Used car', cost:2800,
   d:'Nine years old, honest, and it starts.',
   fx:'Opens Midtown and qualifies you for the analyst seat. Costs $210 a month to run.',
   world:'It is parked outside your building whenever you are not in it.',
@@ -95,14 +95,14 @@ function roomLife(){
       whether this month's progress is worth more than next year's compounding.</p>
     <div class="items">${LIFE.map(u=>{
       const done=!u.can(), afford=cash>=u.cost;
-      return `<button class="item ${done?'owned':''} ${justBought===u.id?'fresh':''}"
-        data-l="${u.id}" ${done||!afford?'disabled':''}>
-        <div class="nm"><span>${u.n}</span><span class="pr">${done?'DONE':money(u.cost)}</span></div>
-        <div class="ef">${u.d}</div>
-        <div class="carstat"><span>${u.fx}</span></div>
-        <div class="rec">In the city: ${u.world}</div>
-        ${!done&&!afford?`<div class="rec">Short ${money(u.cost-cash)}</div>`:''}
-      </button>`;}).join('')}</div>
+      const cls=['item',done?'owned':'',justBought===u.id?'fresh':''].filter(Boolean).join(' ');
+      return `<button class="${cls}" data-l="${u.id}" ${done||!afford?'disabled':''}>`
+        +`<div class="nm"><span>${u.n}</span><span class="pr">${done?'DONE':money(u.cost)}</span></div>`
+        +`<div class="ef">${u.d}</div>`
+        +`<div class="lfx">${u.fx}</div>`
+        +`<div class="rec">In the city: ${u.world}</div>`
+        +(!done&&!afford?`<div class="rec short">Short ${money(u.cost-cash)}</div>`:'')
+        +`</button>`;}).join('')}</div>
     <div class="step"><div class="steplbl"><span>Aim at one</span><em>the bar at the desk tracks it</em></div>
       <div class="rrow">${lifeAvailable().map(u=>
         `<button class="rbtn ${g&&g.id===u.id?'on':''}" data-g="${u.id}">${u.n}</button>`).join('')}</div></div>

@@ -118,7 +118,7 @@ function promptFor(b){
   if(b.id==='apt') return sessionsLeft>0? 'Sleeping ends the month early':'End the month';
   if(b.id==='bar') return '$80 \u00b7 restores 2 focus';
   if(b.id==='club') return '$250 \u00b7 full focus, and people talk';
-  if(b.id==='dealer') return owned.car?'You already own the car':'Used car \u00b7 $4,500';
+  if(b.id==='dealer') return owned.car?'You already own the car':'Used car \u00b7 '+money(CARS[1].cost);
   if(b.id==='school') return tutorReg?'Courses \u00b7 tutoring pays '+money(tutorRoomLeft())+' more this month':'Courses \u00b7 and paid tutoring work';
   if(b.id==='annex') return 'Bottle service, tips, and people who talk';
   if(b.id==='rest') return 'Eat \u00b7 moves relationships along';

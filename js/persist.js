@@ -8,7 +8,7 @@ const SAVE_KEY='alphalife.save.v1', SAVE_V=1;
 
 function snapshot(){
   return {v:SAVE_V,order,idx,port,cash,xp,streak,best,focus,
-    owned,appLeft,appLive,sessionsLeft,month,monthPnl,peak,maxDD,conv,gameOver,tutOn,genSeed,carTier,homeTier,careerStage,rep,contacts,research,gymMonth,floorMonth,bankrupt,carCond,propIndex,propHist,reviewedAt,reviewedSound,met,rennUsed,tips,eventDone,hostedMonth,headlandMonth,taught,chapterSeen,offerMade,recent,goal,hangover,nightOutMonth,tutorReg,tutorLevel,tutorSeen,tutorEarnedMonth,tutorAnswered,tutorLevelCorrect,tutorStartSound,instr,extraChoice,debt,arc,aum,aumStart,aumPeak,retHist,fundClosed,
+    owned,appLeft,appLive,sessionsLeft,month,monthPnl,peak,maxDD,conv,gameOver,tutOn,genSeed,carTier,homeTier,careerStage,rep,contacts,research,gymMonth,floorMonth,bankrupt,carCond,propIndex,propHist,reviewedAt,reviewedSound,met,rennUsed,tips,eventDone,hostedMonth,headlandMonth,taught,chapterSeen,offerMade,recent,goal,hangover,nightOutMonth,tutorReg,tutorLevel,tutorSeen,tutorEarnedMonth,tutorAnswered,tutorLevelCorrect,tutorStartSound,tutorRight,instr,extraChoice,debt,arc,aum,aumStart,aumPeak,retHist,fundClosed,
     quad:{gpgo:quad.gpgo,gpbo:quad.gpbo,bpgo:quad.bpgo,bpbo:quad.bpbo},
     /* Only 'payday' is worth restoring: payday() charges the month's bills
        before rendering, but month++/sessionsLeft reset happen in the OK
@@ -62,7 +62,7 @@ function applySave(d){
   goal=d.goal||null; hangover=!!d.hangover; nightOutMonth=d.nightOutMonth||0;
   tutorReg=!!d.tutorReg; tutorLevel=d.tutorLevel||1; tutorSeen=d.tutorSeen||{};
   tutorEarnedMonth=d.tutorEarnedMonth||0; tutorAnswered=d.tutorAnswered||0;
-  tutorLevelCorrect=d.tutorLevelCorrect||0;
+  tutorLevelCorrect=d.tutorLevelCorrect||0; tutorRight=d.tutorRight||{};
   tutorStartSound=(d.tutorStartSound===undefined?null:d.tutorStartSound);
   instr=d.instr||'equity'; extraChoice=d.extraChoice||'med';
   arc=d.arc||1; aum=d.aum||0; aumStart=d.aumStart||0; aumPeak=d.aumPeak||d.aum||0;
