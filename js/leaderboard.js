@@ -90,12 +90,15 @@
         border:1px solid var(--rule-2);border-radius:3px}
       #lbOv .lbNowHd{font-family:var(--mono);font-size:9px;letter-spacing:.13em;
         text-transform:uppercase;color:var(--ink-3);margin-bottom:6px}
-      #lbOv .lbNowRow{display:flex;align-items:center;gap:8px;padding:2px 0;
-        font-size:13px;font-weight:500}
+      #lbOv .lbNowRow{align-items:center;padding:5px 0;border-bottom-color:#DCD0B966}
+      #lbOv .lbNowRow .lbPos{width:16px}
       #lbOv .lbDot{width:5px;height:5px;border-radius:50%;background:#8FA3FF;
         flex:none;animation:lbPulse 2s ease-in-out infinite}
       #lbOv .lbNowRow em{font-style:normal;font-family:var(--mono);font-size:9px;
-        letter-spacing:.1em;text-transform:uppercase;color:var(--ink-3)}`;
+        letter-spacing:.1em;text-transform:uppercase;color:var(--ink-3);
+        margin-left:5px}
+      #lbOv .lbSub{font-family:var(--mono);font-size:9px;letter-spacing:.13em;
+        text-transform:uppercase;color:var(--ink-3);margin:18px 0 6px}`;
     document.head.appendChild(s);
   }
 
@@ -194,21 +197,40 @@
      if that file bailed out, this section simply does not appear. */
   let nowTimer = null;
 
+  /* This player's own row, computed locally from the same three numbers
+     js/online.js submits and js/live.js broadcasts. */
+  function myRow(){
+    const name = storedName();
+    if(!name) return null;
+    if(typeof netWorth !== 'function' || typeof quad !== 'object' || !quad) return null;
+    const net = Math.round(netWorth());
+    if(!isFinite(net)) return null;
+    return {name, net,
+            ps: (quad.gpgo | 0) + (quad.gpbo | 0),
+            pt: (typeof idx === 'number' && isFinite(idx)) ? idx : 0,
+            you: true};
+  }
+
   function liveNowHTML(){
-    const me = storedName();
-    const peers = (typeof window.livePeers === 'function') ? window.livePeers() : [];
-    const rows = [];
-    if(me) rows.push({name: me, you: true});
-    for(const [, p] of peers) rows.push({name: p.name, you: false});
+    const rows = (typeof window.liveBoard === 'function') ? window.liveBoard() : [];
+    const mine = myRow();
+    if(mine) rows.push(mine);
     if(!rows.length) return '';
+
+    /* Ranked the way the standings are ranked, so the two tables read the
+       same: process first, net worth only to break a tie. */
+    rows.sort((a, b) => (b.ps - a.ps) || (b.net - a.net));
+
     return '<div class="lbNow">' +
       '<div class="lbNowHd">In the city now · ' + rows.length + '</div>' +
-      rows.map(r =>
-        '<div class="lbNowRow">' +
+      rows.map((r, i) =>
+        '<div class="lbRow lbNowRow' + (r.you ? ' lbMe' : '') + '">' +
+          '<span class="lbPos">' + (i + 1) + '</span>' +
           '<i class="lbDot"></i>' +
           /* escapeName: a peer name came off the network, same as a board row. */
-          '<span class="lbName">' + escapeName(r.name) + '</span>' +
-          (r.you ? '<em>you</em>' : '') +
+          '<span class="lbName">' + escapeName(r.name) + (r.you ? ' <em>you</em>' : '') + '</span>' +
+          '<span class="lbProc">' + r.ps + '/' + r.pt + '</span>' +
+          '<span class="lbNet">' + money(r.net) + '</span>' +
         '</div>').join('') +
       '</div>';
   }
@@ -258,15 +280,19 @@
         '<span class="lbProc">' + r.processScore + '/' + r.processTotal + '</span>' +
         '<span class="lbNet">' + money(r.netWorth) + '</span>' +
       '</div>';
-    }).join('') : '<p class="note">No runs yet. Be the first.</p>';
+    }).join('') : '<p class="note">Nothing submitted yet.</p>';
 
     sheet.innerHTML =
       '<div class="roomhd"><h2>Leaderboard</h2>' +
         '<span class="sub">Ranked by process</span></div>' +
+      /* Live standings first: the game is endless and a run is continued rather
+         than finished, so where everyone stands right now is the board most of
+         the time. The submitted table below is the permanent record. */
       '<div id="lbNowWrap">' + liveNowHTML() + '</div>' +
       '<p class="note">Sound decisions, not money. Net worth is shown because ' +
       'it is interesting, not because it is the score — a good number there ' +
       'with a bad one beside it mostly means a lucky streak.</p>' +
+      '<div class="lbSub">Submitted runs</div>' +
       '<div class="ledger" style="margin-top:6px">' +
         '<div class="lbRow" style="border-bottom:1px solid var(--rule)">' +
           '<span class="lbPos"></span><span class="lbName" ' +

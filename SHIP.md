@@ -385,13 +385,21 @@ retrying forever — so the symptom is simply that nobody ever appears.
 
 ### 9.2 Cost
 
-Free tier: 200 concurrent connections, 2 million messages/month. The throttling is built for that —
-a stationary player, a player in a room, and a player on the title screen all send **zero** messages.
-Only actual movement costs anything, at most 5 messages/second. A player who moves for 10 minutes of
-a 30-minute session spends roughly 3,000 messages.
+Free tier: 200 concurrent connections, 2 million messages/month.
 
-If you outgrow it, raise `SEND_MS` in `js/live.js` (200 → 300 roughly halves the traffic) before
-paying for anything.
+**Two streams, and the second one changed this.** Positions (`pos`) are still gated entirely on
+movement, at most 5/second — a stationary player sends none. But the live leaderboard needs the
+standings of players who are *not* moving, since somebody sitting at the desk doing the analysis is
+exactly who the board is about. So status (`stat`) rides its own beat: on change, and otherwise every
+`STAT_MS` (10s), floored at `STAT_FLOOR` (1.5s) so a payday cannot burst.
+
+The floor on an idle connected player is therefore **~6 messages/minute**, where it used to be zero.
+Sustained, that is roughly 260k messages/month for one player connected around the clock — well
+inside the free tier for a handful of players, and the number to watch if it ever gets popular. Note
+the socket is torn down when the tab is hidden, so "connected around the clock" means a visible tab.
+
+If you outgrow it, in order of effect: raise `STAT_MS` (10s → 30s cuts idle traffic by two thirds),
+then `SEND_MS` (200 → 300 roughly halves movement traffic). Both are in `js/live.js`.
 
 ### 9.3 Testing it with one machine
 

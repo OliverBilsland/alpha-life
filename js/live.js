@@ -43,6 +43,22 @@
   /* id -> {name, x, y, dir, driving, at} */
   const peers = new Map();
 
+  /* ---------- standings ----------
+     A separate map from `peers`, on purpose. `peers` is positions, and it only
+     fills while someone moves — a player reading the market screen or standing
+     still broadcasts nothing, by design, because that is what keeps the message
+     count survivable. That is fine for drawing and useless for a scoreboard:
+     the people most worth ranking are the ones sitting still doing the analysis.
+
+     So status rides its own slow beat, independent of movement and of the frame
+     loop, and lives in its own map with its own TTL. Someone can be in `stats`
+     and not in `peers` — online, ranked, simply not walking. */
+  const stats = new Map();   /* id -> {name, net, ps, pt, at} */
+  const STAT_MS    = 10000;  /* heartbeat when nothing changes */
+  const STAT_FLOOR = 1500;   /* never faster than this, even on a change  */
+  const STAT_TTL   = 26000;  /* two missed beats and you are off the board */
+  let statTimer = null, lastStatAt = 0, lastStatKey = '';
+
   const nextRef = () => String(++ref);
 
   /* ---------- socket ---------- */
@@ -87,6 +103,9 @@
       if(m.event === 'broadcast' && m.payload && m.payload.event === 'pos'){
         acceptPeer(m.payload.payload);
       }
+      if(m.event === 'broadcast' && m.payload && m.payload.event === 'stat'){
+        acceptStat(m.payload.payload);
+      }
     };
 
     ws.onclose = () => { joined = false; teardown(false); retry(); };
@@ -103,12 +122,16 @@
 
   function teardown(hard){
     if(hbTimer){ clearInterval(hbTimer); hbTimer = null; }
+    if(statTimer){ clearInterval(statTimer); statTimer = null; }
     if(hard !== false){
       if(sweepTimer){ clearInterval(sweepTimer); sweepTimer = null; }
       if(retryTimer){ clearTimeout(retryTimer); retryTimer = null; }
     }
     if(ws){ try{ ws.onclose = null; ws.close(); }catch(e){} ws = null; }
     peers.clear();
+    stats.clear();
+    /* so the first send after reconnecting is not suppressed as unchanged */
+    lastStatKey = ''; lastStatAt = 0;
   }
 
   function retry(){
@@ -147,9 +170,74 @@
     });
   }
 
+  /* Same rule as acceptPeer: this arrived from someone else's browser, so
+     nothing in it is believed. The numbers are clamped to the same ranges the
+     RLS policy enforces on a submitted run, so a hostile client cannot put an
+     absurd figure at the top of everyone's panel. */
+  function acceptStat(d){
+    if(!d || typeof d !== 'object') return;
+    const id = String(d.id || '').slice(0, 24);
+    if(!id || id === SELF_ID) return;
+    if(!stats.has(id) && stats.size >= MAX_PEERS) return;
+
+    const net = Number(d.net), ps = Number(d.ps), pt = Number(d.pt);
+    if(!isFinite(net) || !isFinite(ps) || !isFinite(pt)) return;
+
+    const total = Math.max(0, Math.min(500, Math.round(pt)));
+    stats.set(id, {
+      name:  displayName(d.name),
+      net:   Math.max(-1e9, Math.min(1e9, Math.round(net))),
+      /* score can never exceed total — the one invariant the board relies on */
+      ps:    Math.max(0, Math.min(total, Math.round(ps))),
+      pt:    total,
+      at:    Date.now(),
+    });
+  }
+
+  /* What this player currently is, in the same three numbers a finished run is
+     submitted with (js/online.js submitRun) — so a live row and a completed row
+     mean the same thing and can be read against each other. */
+  function myStats(){
+    const name = storedName();
+    if(!name) return null;                       /* no name, no appearance */
+    if(typeof netWorth !== 'function' || typeof quad !== 'object' || !quad) return null;
+    const net = Math.round(netWorth());
+    if(!isFinite(net)) return null;
+    return {
+      name,
+      net,
+      ps: (quad.gpgo | 0) + (quad.gpbo | 0),
+      pt: (typeof idx === 'number' && isFinite(idx)) ? idx : 0,
+    };
+  }
+
+  /* On a timer rather than in the draw wrapper: draw() does not run while a
+     room screen is up, and a player at the desk is exactly who the board is
+     about. Sends on change, and otherwise on a slow heartbeat. */
+  function maybeSendStat(){
+    if(!joined) return;
+    if(typeof gameOver !== 'undefined' && gameOver) return;
+    if(typeof splashDone !== 'undefined' && !splashDone) return;
+
+    const s = myStats();
+    if(!s) return;
+
+    const now = Date.now();
+    if(now - lastStatAt < STAT_FLOOR) return;    /* a payday must not burst */
+    const key = s.name + '|' + s.net + '|' + s.ps + '|' + s.pt;
+    if(key === lastStatKey && now - lastStatAt < STAT_MS) return;
+
+    lastStatKey = key; lastStatAt = now;
+    send({topic: TOPIC, event: 'broadcast', ref: nextRef(), payload: {
+      type: 'broadcast', event: 'stat',
+      payload: {id: SELF_ID, name: s.name, net: s.net, ps: s.ps, pt: s.pt},
+    }});
+  }
+
   function sweep(){
     const now = Date.now();
     for(const [id, p] of peers) if(now - p.at > PEER_TTL) peers.delete(id);
+    for(const [id, s] of stats) if(now - s.at > STAT_TTL) stats.delete(id);
   }
 
   /* ---------- sending ----------
@@ -291,6 +379,7 @@
   }
 
   sweepTimer = setInterval(sweep, SWEEP_MS);
+  statTimer  = setInterval(maybeSendStat, 2000);
   connect();
 
   /* Stop talking when the tab is hidden — the game deliberately keeps running
@@ -301,13 +390,25 @@
       teardown(); gaveUp = false; tries = 0;
     }else if(!ws && !gaveUp){
       sweepTimer = sweepTimer || setInterval(sweep, SWEEP_MS);
+      statTimer  = statTimer  || setInterval(maybeSendStat, 2000);
       connect();
     }
   });
 
   /* Handles for testing and for the console. */
   window.livePeers  = () => Array.from(peers.entries());
-  window.liveStatus = () => ({connected: !!ws && ws.readyState === 1, joined, gaveUp,
-                              peers: peers.size, selfId: SELF_ID});
+  /* Everyone else's current status, for the leaderboard panel. */
+  window.liveBoard  = () => Array.from(stats.values())
+                              .map(s => ({name: s.name, net: s.net, ps: s.ps, pt: s.pt}));
+  window.liveStatus = () => {
+    /* Online means either signal: someone standing still still counts, and
+       someone who has not picked a name is seen but sends no status. */
+    const here = new Set();
+    for(const id of peers.keys()) here.add(id);
+    for(const id of stats.keys()) here.add(id);
+    return {connected: !!ws && ws.readyState === 1, joined, gaveUp,
+            peers: here.size, moving: peers.size, ranked: stats.size, selfId: SELF_ID};
+  };
   window.__liveAccept = acceptPeer;   /* used by the test harness */
+  window.__liveStat   = acceptStat;
 })();
