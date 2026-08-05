@@ -43,14 +43,6 @@
         color:var(--ink);margin-top:4px}
       #lbOv .lbIn:focus{outline:none;border-color:var(--process)}
       #lbOv .lbBtns{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}
-      /* The title screen is dark; .btn is an interior (paper) style and reads
-         as a black slab on it. This one borrows the splash's own palette. */
-      #lbSplashBtn{margin-top:16px;background:transparent;
-        border:1px solid #F7F2E73D;color:var(--hud-dim);border-radius:3px;
-        font-family:var(--mono);font-size:9.5px;letter-spacing:.14em;
-        text-transform:uppercase;padding:8px 16px;cursor:pointer;transition:.15s}
-      #lbSplashBtn:hover{border-color:#F7F2E77A;color:var(--hud-ink)}
-
       /* The in-game entry point. Borrows .st/.st b from the HUD so it sits in
          the pod as if it had always been there; only the states that .st has no
          vocabulary for are defined here. */
@@ -263,32 +255,18 @@
     };
   }
 
-  /* A way in from the title screen. Added rather than hard-coded into
-     index.html so the button does not exist when online is switched off. */
-  addEventListener('DOMContentLoaded', addSplashEntry);
-  addSplashEntry();
-  function addSplashEntry(){
-    const foot = document.getElementById('splashFoot');
-    if(!foot || document.getElementById('lbSplashBtn')) return;
-    const b = document.createElement('button');
-    b.id = 'lbSplashBtn';   /* styled by id, not .btn — see injectCSS() */
-    b.textContent = 'Leaderboard';
-    b.addEventListener('click', ev => { ev.stopPropagation(); openBoard(); });
-    foot.parentNode.insertBefore(b, foot.nextSibling);
-  }
+  /* ---------- the only way in: the HUD ----------
+     There is deliberately no button on the title screen. The board belongs to
+     the game, not to the menu in front of it — a title screen should get you
+     into a run, and standings you have not set yet are not what you came to
+     look at. It also could not be reached once a run started, which is the
+     moment you actually want it.
 
-  /* ---------- a way in from the HUD ----------
-     The splash button is only reachable before the run starts, so during play
-     both online features were invisible: the board could not be opened at all,
-     and nothing told you whether anyone else was in the city — live players
-     were drawn, but if none happened to be near you, "working" and "nobody
-     here" looked identical.
-
-     One HUD stat does both jobs. It reads live.js through its public
+     One HUD stat does both jobs: it opens the board, and it says how many
+     people are in the city. It reads live.js through its public
      window.liveStatus() handle rather than reaching into it, and degrades to a
-     plain leaderboard button if that file bailed out. Injected, not written
-     into index.html, for the same reason as the splash button: it must not
-     exist when online is switched off. */
+     plain leaderboard button if that file bailed out. Injected rather than
+     written into index.html so it does not exist when online is switched off. */
   let hudTimer = null;
 
   function paintHud(){
@@ -357,14 +335,43 @@
     paintHud();
   }
 
-  /* No name prompt on the way in. It used to fire 420ms after the title screen
-     was dismissed, which put a dialog between the player and the first frame of
-     a game they had just asked to start — the one moment they are least willing
-     to be interrupted, and for something entirely optional.
+  /* ---------- ask for a name on the way in ----------
+     Immediately on entering the game, if there is not one yet — but not a
+     moment before. The old version fired on a flat 420ms timer, which raced
+     the title screen's own .32s fade and landed while it was still on screen,
+     so it read as part of the loading sequence rather than as the game asking.
 
-     Nothing is lost by dropping it. The HUD stat says SET NAME until one is
-     picked and opens the same dialog on tap, so the way in is permanent and
-     costs nothing; and submitting a run still asks if it is still missing. */
+     Waiting for the fade to actually finish is the difference. transitionend
+     on #splash is the real signal; the timer is only a fallback for the case
+     where there is no transition to end (reduced motion, or a browser that
+     skips it on a hidden tab).
+
+     This hooks the button rather than wrapping dismissSplash(), because
+     shell.js binds that function by reference before this file loads — a
+     wrapper on the global would never be called.
+
+     Not a wall: openNameEntry() closes on "Not now", and the HUD keeps saying
+     SET NAME afterwards. */
+  const splashBtn = document.getElementById('splashBtn');
+  if(splashBtn) splashBtn.addEventListener('click', () => {
+    if(storedName()) return;
+    whenSplashGone(() => { if(!storedName() && !isOpen()) openNameEntry(); });
+  });
+
+  function whenSplashGone(fn){
+    const sp = document.getElementById('splash');
+    if(!sp){ fn(); return; }
+    let fired = false;
+    const go = () => {
+      if(fired) return;
+      fired = true;
+      sp.removeEventListener('transitionend', go);
+      clearTimeout(t);
+      fn();
+    };
+    sp.addEventListener('transitionend', go);
+    const t = setTimeout(go, 600);   /* .32s fade + slack */
+  }
 
   /* Console handles, so the board can be opened without finishing a run. */
   window.openLeaderboard = openBoard;
