@@ -186,12 +186,10 @@ const ENCOUNTERS=[
  {id:'card',  w:3, min:1, n:'A card through the window',
   d:'A valet you tipped once has been telling people about you.',
   fx:()=>{contacts+=1; rep+=1; return 'One contact, one point of standing.';}},
- {id:'break', w:2, min:1, n:'It will not start',
-  d:'Something under the bonnet gives up in traffic.',
-  fx:()=>{carCond=Math.max(0,carCond-22); return 'The car is in worse shape than it was.';}},
- {id:'fine',  w:2, min:1, n:'A parking fine',
-  d:'Forty minutes over, and they were waiting.',
-  fx:()=>{const f=60+carTier*45; cash=Math.max(0,cash-f); return money(f)+' gone, for nothing.';}},
+ /* The two punitive encounters — a parking fine and a breakdown — are gone.
+    They took money or wrecked the car at random, with no decision attached and
+    nothing to learn from, which is friction rather than difficulty. The game's
+    subject is the quality of a call; a coin-flip tax on driving is not one. */
  {id:'lunch', w:2, min:2, n:'Someone flags you down',
   d:'A face from the club. They have twenty minutes and a view on a sector.',
   fx:()=>{focus=Math.min(focusCap(),focus+1); rep+=1; return 'A point of focus and a point of standing.';}},
@@ -202,30 +200,51 @@ const ENCOUNTERS=[
       return 'A step closer to '+p.n+'.';}
     rep+=2; return 'Two points of standing.';}},
 ];
+/* Returns null when nothing is eligible. Every encounter needs a car (min>=1),
+   so on foot the pool is empty — and this used to return pool[0], undefined,
+   which the caller then dereferenced. step() in js/city.js calls maybeEncounter()
+   with no try/catch and schedules the next frame AFTER it, so that throw stopped
+   the loop and froze the city for good. On foot at 60fps it came up about once
+   every 48 seconds, which is inside the first minute of a new game. */
 function rollEncounter(){
   const pool=ENCOUNTERS.filter(e=>carTier>=e.min);
+  if(!pool.length) return null;
   const total=pool.reduce((a,e)=>a+e.w,0);
   let x=Math.random()*total;
   for(const e of pool){ x-=e.w; if(x<=0) return e; }
-  return pool[0];
+  return pool[pool.length-1];   /* float dust, not an empty pool */
 }
 function maybeEncounter(){
   if(inRoom||gameOver||!splashDone) return;
   if(encounterCooldown>0){encounterCooldown--;return;}
+  /* Nothing can happen without a car, so do not spend a roll finding that out
+     every frame — wait out a cooldown as though one had. */
+  if(!carTier){ encounterCooldown=1400; return; }
   /* a better car is out more, and meets more */
   const chance=0.00035*(1+carTier*0.55);
   if(Math.random()>chance) return;
   encounterCooldown=1400;
   const e=rollEncounter();
-  pendingEncounter=e;
-  inRoom='encounter'; $('ov').classList.add('on'); $('exitBtn').classList.remove('on');
-  enterRoom();
-  $('sheet').innerHTML=`<div class="roomhd"><h2>${e.n}</h2>
-      <span class="sub">On the road · ${districtAt(P.x).n}</span></div>
-    <p class="note">${e.d}</p>
-    <button class="btn" id="encOk">See what it is</button>`;
-  $('encOk').addEventListener('click',()=>{
-    const msg=e.fx(); pendingEncounter=null;
-    hud(); leave(); toast(msg);
-  });
+  if(!e) return;
+  /* Applied straight away rather than behind a button. The sheet this used to
+     open covered the screen and offered a single "See what it is" — an
+     interruption charging the price of a decision without containing one. */
+  const msg=e.fx();
+  hud();
+  showEncNote(e.n,msg);
+}
+
+/* A corner notice that leaves on its own. Nothing to dismiss, nothing to click,
+   and the car keeps moving underneath it. */
+let encNoteTimer=null;
+function showEncNote(title,msg){
+  const el=$('encNote');
+  if(!el){ toast(msg); return; }        /* markup missing — say it somehow */
+  el.innerHTML='<b></b><span></span>';
+  el.firstChild.textContent=title;      /* textContent, so an event name can
+                                           never inject markup */
+  el.lastChild.textContent=msg;
+  el.classList.add('on');
+  clearTimeout(encNoteTimer);
+  encNoteTimer=setTimeout(()=>el.classList.remove('on'),5200);
 }

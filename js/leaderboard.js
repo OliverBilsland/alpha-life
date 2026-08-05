@@ -316,12 +316,19 @@
       return;
     }
 
-    b.textContent = String(st.peers);
-    b.className = st.peers > 0 ? 'lbLive' : '';
-    el.classList.toggle('lbHas', st.peers > 0);
-    el.title = st.peers === 1
-      ? '1 other player in the city — tap for the leaderboard'
-      : st.peers + ' other players in the city — tap for the leaderboard';
+    /* peers holds OTHER people, so showing it raw read "ONLINE 0" at the exact
+       moment you were demonstrably online. Count yourself: connected and alone
+       is one player in the city, not none. The dot and the colour still key off
+       the others, because those are what mean "someone is out there". */
+    const others = st.peers;
+    b.textContent = String(others + 1);
+    b.className = others > 0 ? 'lbLive' : '';
+    el.classList.toggle('lbHas', others > 0);
+    el.title = others === 0
+      ? 'Just you in the city right now — tap for the leaderboard'
+      : others === 1
+        ? 'You and 1 other player in the city — tap for the leaderboard'
+        : 'You and ' + others + ' other players in the city — tap for the leaderboard';
   }
 
   addEventListener('DOMContentLoaded', addHudEntry);
@@ -350,13 +357,14 @@
     paintHud();
   }
 
-  /* First run with online switched on: ask for a name once, after the title
-     screen is out of the way. Never blocks the game — "Not now" just closes,
-     and it is asked again at submit time if it is still missing. */
-  const splashBtn = document.getElementById('splashBtn');
-  if(splashBtn) splashBtn.addEventListener('click', () => {
-    setTimeout(() => { if(!storedName() && !isOpen()) openNameEntry(); }, 420);
-  });
+  /* No name prompt on the way in. It used to fire 420ms after the title screen
+     was dismissed, which put a dialog between the player and the first frame of
+     a game they had just asked to start — the one moment they are least willing
+     to be interrupted, and for something entirely optional.
+
+     Nothing is lost by dropping it. The HUD stat says SET NAME until one is
+     picked and opens the same dialog on tap, so the way in is permanent and
+     costs nothing; and submitting a run still asks if it is still missing. */
 
   /* Console handles, so the board can be opened without finishing a run. */
   window.openLeaderboard = openBoard;
