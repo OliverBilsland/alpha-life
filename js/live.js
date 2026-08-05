@@ -106,6 +106,9 @@
       if(m.event === 'broadcast' && m.payload && m.payload.event === 'stat'){
         acceptStat(m.payload.payload);
       }
+      if(m.event === 'broadcast' && m.payload && m.payload.event === 'chat'){
+        acceptChat(m.payload.payload);
+      }
     };
 
     ws.onclose = () => { joined = false; teardown(false); retry(); };
@@ -232,6 +235,69 @@
       type: 'broadcast', event: 'stat',
       payload: {id: SELF_ID, name: s.name, net: s.net, ps: s.ps, pt: s.pt},
     }});
+  }
+
+  /* ---------- chat ----------
+     Transport only. js/chat.js owns the UI and never touches the socket: it
+     calls sendChat() and listens for the 'alphalife:chat' event, so there is
+     one connection and one place that knows the wire format.
+
+     Text is filtered on the way OUT and again on the way IN, the same rule
+     js/names.js states for names: whatever path a string took to get here, it
+     has been through the filter before anybody sees it. The receiving half is
+     the one that matters, because the sender is a browser someone else holds. */
+  const CHAT_MAX   = 140;
+  const CHAT_FLOOR = 700;    /* ms between messages from this client */
+  let lastChatAt = 0;
+
+  const chatClean = t => String(t == null ? '' : t)
+    .replace(/[\u0000-\u001F\u007F]/g, ' ')   /* control chars, incl. newlines */
+    .replace(/\s+/g, ' ')
+    .trim()
+    .slice(0, CHAT_MAX);
+
+  function chatProfane(t){
+    const P = (typeof AlphaProfanity !== 'undefined') ? AlphaProfanity : null;
+    if(!P) return false;                    /* vendor absent — fail open, never crash */
+    try{ return P.hasMatch(t); }catch(e){ return false; }
+  }
+
+  function emitChat(msg){
+    try{ window.dispatchEvent(new CustomEvent('alphalife:chat', {detail: msg})); }
+    catch(e){}
+  }
+
+  function sendChat(raw){
+    if(!joined)        return {ok:false, why:'Not connected.'};
+    const name = storedName();
+    if(!name)          return {ok:false, why:'Pick a name first.'};
+
+    const text = chatClean(raw);
+    if(!text)          return {ok:false, why:''};
+    if(chatProfane(text)) return {ok:false, why:'Not that.'};
+
+    const now = Date.now();
+    if(now - lastChatAt < CHAT_FLOOR) return {ok:false, why:'Slow down.'};
+    lastChatAt = now;
+
+    send({topic: TOPIC, event: 'broadcast', ref: nextRef(), payload: {
+      type: 'broadcast', event: 'chat',
+      payload: {id: SELF_ID, name, text},
+    }});
+    /* The channel is joined with broadcast self:false, so our own message never
+       comes back — echo it locally or the sender never sees what they said. */
+    emitChat({name, text, self: true});
+    return {ok:true};
+  }
+
+  function acceptChat(d){
+    if(!d || typeof d !== 'object') return;
+    const id = String(d.id || '').slice(0, 24);
+    if(!id || id === SELF_ID) return;
+    const text = chatClean(d.text);
+    if(!text) return;
+    if(chatProfane(text)) return;           /* dropped, not masked: say nothing */
+    emitChat({name: displayName(d.name), text, self: false});
   }
 
   function sweep(){
@@ -409,6 +475,11 @@
     return {connected: !!ws && ws.readyState === 1, joined, gaveUp,
             peers: here.size, moving: peers.size, ranked: stats.size, selfId: SELF_ID};
   };
+  /* js/chat.js calls this and listens for 'alphalife:chat'. It never touches
+     the socket, so the wire format lives in exactly one file. */
+  window.liveSay = sendChat;
+
   window.__liveAccept = acceptPeer;   /* used by the test harness */
   window.__liveStat   = acceptStat;
+  window.__liveChat   = acceptChat;
 })();

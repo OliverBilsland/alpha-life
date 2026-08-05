@@ -398,6 +398,9 @@ Sustained, that is roughly 260k messages/month for one player connected around t
 inside the free tier for a handful of players, and the number to watch if it ever gets popular. Note
 the socket is torn down when the tab is hidden, so "connected around the clock" means a visible tab.
 
+Chat (`chat`) is the third stream and the cheapest: one message per thing somebody actually types,
+rate-limited to one per `CHAT_FLOOR` (700ms) per client. It cannot run away on its own.
+
 If you outgrow it, in order of effect: raise `STAT_MS` (10s → 30s cuts idle traffic by two thirds),
 then `SEND_MS` (200 → 300 roughly halves movement traffic). Both are in `js/live.js`.
 
