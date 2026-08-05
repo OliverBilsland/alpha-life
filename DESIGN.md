@@ -449,6 +449,28 @@ studying could raise your process score, the score would stop measuring your dec
 instead is honest: it records your sound rate the day you register, and shows you the difference
 later. If the teaching works, the number moves on its own.
 
+## Dev tools sit outside the economy
+
+There is a hidden developer panel that grants cash on demand (`Ctrl`+`Shift`+`Alt`+`D`; see
+ARCHITECTURE §10). It exists so the upper tiers can be tested without playing twenty sessions to
+afford them. It is a testing aid, and the rules above still have to survive its existence.
+
+**It grants money and nothing else.** Not process XP, not a quadrant, not a streak, not a sound call.
+This is Rule 1 held from the other side: if the cheat could raise your process score, the score would
+stop measuring your decisions — the same reason the tutor pays cash but awards no XP (Rule 19). A
+granted million buys the Ferrata and the Coast estate, and the end screen will still tell you your
+process was weak, because it was.
+
+**It changes no prices and no payouts.** The balance stays the balance; the only thing skipped is the
+grind to reach it. If a purchase feels wrong when tested with granted cash, that is a real finding
+about the purchase, not an artefact of the tool.
+
+**It is local, and it is marked.** It writes to one device's own save and reaches no shared surface —
+there is none in this build to reach. If a leaderboard is ever added, the tool leaves a
+`alphalife.dev.tainted` marker precisely so a cheated save can be kept out of it. A cheat that could
+quietly launder itself into other people's standings would not be a testing aid; it would be a way to
+make the honest score meaningless, which is the one thing this game cannot afford.
+
 ## The through-line
 
 Money is the score everyone watches and the one the game refuses to grade you on. Information is what

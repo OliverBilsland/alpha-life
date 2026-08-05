@@ -52,6 +52,7 @@ The scripts, **in load order** — the order is load-bearing, see below:
 | `js/boot.js` | shuffle the deck, paint HUD, start the loop, tutorial toast |
 | `js/persist.js` | localStorage save/load, autosave wrappers, `newGame()` |
 | `js/shell.js` | title screen, pause/resume, lifecycle |
+| `js/devtools.js` | **not part of the game** — hidden local-only cash grant for testing (§10) |
 
 **Why the order matters.** Almost nothing executes at parse time — the files are overwhelmingly
 `function` declarations and `const`/`let` initializers — but three things do:
@@ -929,3 +930,64 @@ position autosaves separately on an 800ms poll
   every existing path does) or `save()` directly.
 - **Everything is a global.** `pick`, `reason`, `conv`, `locked` are office-scoped in meaning but
   file-scoped in fact, and `roomOffice()` resets them on entry (`market.js:9`).
+
+---
+
+## 10. Developer tools (local only)
+
+`js/devtools.js` is a testing aid, not a feature. It grants cash on demand so purchases, the
+payday maths and the upper tiers of the ladder can be exercised without grinding twenty sessions to
+afford a Ferrata. It is loaded **last**, after `shell.js`, from a single `<script>` line in
+`index.html`. No game file references it, and nothing in the game reads anything it writes.
+
+**Trigger.** `Ctrl` + `Shift` + `Alt` + `D` (`Cmd` on macOS) toggles a small panel. The panel is
+hidden until the chord is pressed — nothing is built, styled or shown before that. Detection uses
+`e.code === 'KeyD'`, so it is keyboard-layout independent.
+
+**Removing it for release:** delete `js/devtools.js` and its one `<script>` line. That is the whole
+removal. To disable without deleting, set `DEV_TOOLS_ARMED = false` at the top of the file.
+
+### The local-only boundary
+
+This is the load-bearing property of the file, and the reason it is quarantined this way.
+
+- It mutates exactly one global: **`cash`**. Then it calls `hud()`, which `persist.js` has already
+  wrapped to write `localStorage` (§7) — so the grant persists across reloads by the normal save
+  path, with no save-format change.
+- It does **not** touch `port`, `xp`, `streak`, `quad` or `recent`. Granted money buys things; it
+  can never make a call sound. That keeps DESIGN Rule 1 intact — see DESIGN *Dev tools sit outside
+  the economy*.
+- It does **not** touch `WIN_R`/`LOSE_R`, `CONV`, prices, payouts or any tuning constant.
+- It performs **no network calls of any kind**, preserving the zero-requests release invariant in
+  SHIP.md §1. Verified at runtime: a grant produces no requests at all.
+
+There is no leaderboard, no shared backend and no multiplayer anywhere in this build — the end
+screen (`finish()`, `ledger.js`) is a private scorecard that is rendered locally and submitted
+nowhere. So granted cash has nowhere to leak to. **If any of those are ever added**, `devtools.js`
+writes a marker to its own storage key `alphalife.dev.tainted`:
+
+```json
+{"tainted":true,"totalGranted":2250000,"grants":3}
+```
+
+Check that key before submitting a score from a device, and exclude saves that carry it. It is
+deliberately a *separate* key from `alphalife.save.v1`, so that deleting the file removes the
+feature completely and leaves no trace in the save format.
+
+### Two input details worth keeping if this is ever edited
+
+`city.js` binds `keydown` on `window` in bubble phase and latches every key into `keys`. So:
+
+- The chord is caught in **capture** phase on `window`, so it works wherever focus is — including
+  inside the panel's own number field.
+- Keys typed into the amount field are stopped in **bubble** phase on the field itself. That
+  ordering matters: the event has already reached the input (so typing and `Enter` still work), but
+  is stopped before `city.js` can latch it or read `Enter` as "enter the building you are standing
+  on". Stopping it in capture phase instead would kill the input's own handler — typing would
+  silently do nothing.
+- The swallow is scoped to the **field**, not the whole panel, and the buttons blur themselves after
+  a click. Otherwise a button left focused after a grant keeps eating WASD and the car will not move
+  when you drive off to spend it.
+
+The game is **not** paused while the panel is open — that is deliberate and consistent with
+`shell.js` (§6e): losing focus never pauses this game.
