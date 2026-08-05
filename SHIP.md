@@ -406,3 +406,63 @@ so share a name, which is confusing rather than broken.
 
 **Do not test with the tab in the background.** Chrome freezes timers in hidden tabs and the socket
 is deliberately torn down when the tab is hidden, so nothing will move until it is visible again.
+
+---
+
+## 10. Deploying to the web — Vercel
+
+`js/config.js` is gitignored, so a public repo deploys without it: the `<script>` tag 404s and the
+site is the offline single-player game. That is correct behaviour, and on a deployment it is not what
+you want. `scripts/make-config.js` regenerates the file at build time from environment variables.
+
+**First, the thing that decides the design.** The publishable key is *not* a secret and none of this
+makes it one — `js/online.js` sends it from the browser as an `apikey` header, so it is visible in
+DevTools on any deployment. **Row Level Security is the boundary**, per §8.2. What keeping it out of
+git buys is repo hygiene: no secret-scanner noise, forks do not inherit your project, and rotating a
+key does not need a commit. Do not mistake it for secrecy, and do not build a serverless function to
+"hide" it — that adds a cold start and a failure mode to serve a public constant.
+
+### 10.1 Setup
+
+1. Vercel → project → **Settings → Environment Variables**, add both, for all environments:
+
+   | Name | Value |
+   |---|---|
+   | `SUPABASE_URL` | `https://<ref>.supabase.co` — the project origin |
+   | `SUPABASE_ANON_KEY` | the publishable / anon key |
+
+2. Framework Preset must be **Other**. `vercel.json` sets `buildCommand` and `outputDirectory`
+   already; there is no `package.json` and none should be added.
+3. Redeploy. The build log prints `[make-config] Wrote js/config.js for https://…` with the key
+   truncated — build logs are retained, so the key is never printed in full.
+
+### 10.2 What the generator does
+
+- **No env vars** → warns, writes nothing, **exits 0**. The deploy is the playable offline game, per
+  §1, rather than a failed build.
+- **A secret key** (`sb_secret_…`, or a JWT whose payload is `role: service_role`) → **exits 1 and
+  fails the build**. That key bypasses RLS and this file is served to every visitor.
+- **A URL with an API path on it** (`…supabase.co/rest/v1/`) → strips it back to the origin. The
+  dashboard displays the REST endpoint, which is easy to paste by mistake, and `js/online.js` appends
+  `/rest/v1/` itself — so the unstripped form yields `/rest/v1/rest/v1/runs` and a `PGRST125`.
+- **No dependencies**, and none may be added; it must keep running as bare `node scripts/make-config.js`.
+
+### 10.3 The tradeoff
+
+This adds a build step to a project whose first stated property is *no build step*. It is narrow —
+deploy-time only, Vercel only, ~40 lines of dependency-free Node — and the repo keeps the property
+that matters: `index.html` still opens by double-clicking, and `npx cap sync ios` in §4 is unaffected
+because the iOS bundle uses a hand-written `js/config.js`, or none at all.
+
+`.vercelignore` keeps `ARCHITECTURE.md`, `DESIGN.md`, `SHIP.md`, and `.claude/` out of the
+deployment, mirroring the exclusion list in §4.
+
+### 10.4 Verifying a deployment
+
+```bash
+curl -s https://<your-deployment>/js/config.js          # 200, and the values are right
+```
+
+Then load the site: the **Leaderboard** button on the title screen is the signal the config parsed.
+If `curl` returns 404, the build did not run the command or the variables are unset — check the build
+log for the `[make-config]` line, which is present either way and says which case it was.

@@ -1,0 +1,6 @@
+# Development files — not part of the deployable game. Mirrors the exclusion
+# list in SHIP.md §4 for the iOS bundle.
+ARCHITECTURE.md
+DESIGN.md
+SHIP.md
+.claude/
