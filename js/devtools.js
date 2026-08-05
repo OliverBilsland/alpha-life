@@ -25,10 +25,16 @@
        The whole app makes zero network requests and that is a release invariant
        (see SHIP.md §1) — keep it that way here.
 
-   There is no leaderboard, no shared backend and no multiplayer in this build,
-   so granted cash has nowhere to leak to. If any of those are ever added, the
-   `alphalife.dev.tainted` flag written below marks this save as dev-modified so
-   it can be excluded from submission. Check it before you post a score.
+   A leaderboard and live players now exist, so the older claim here — that
+   granted cash has nowhere to leak to — no longer holds on its own. Two things
+   carry it instead. The `alphalife.dev.tainted` flag written below marks the
+   save as dev-modified, and js/online.js refuses to submit a tainted run. And
+   the host check below means the panel is not built at all anywhere except a
+   local machine, so a public deployment does not hand every visitor a cheat.
+
+   THE HOST CHECK IS NOT ENOUGH FOR THE iOS BUNDLE. Capacitor serves the app
+   from `localhost`, which this check treats as local and would arm. For a
+   release build, delete this file and its <script> line as SHIP.md §4 says.
    =========================================================================== */
 
 (function(){
@@ -46,6 +52,22 @@
   const TAINT_KEY = 'alphalife.dev.tainted';
 
   if(!DEV_TOOLS_ARMED) return;
+
+  /* ---------- local only, enforced rather than asserted ----------
+     The header calls this file local-only, but nothing made it so: any host
+     serving the repo serves this too, and a hidden chord is not a boundary —
+     it is a secret, and anyone can press it. So check where we are running.
+
+     file:// reports an empty hostname, which is the double-click case in
+     SHIP.md §1; .local covers testing from a phone on the LAN. Anything else
+     — a deployment — gets no panel, no styles, no key listener. */
+  const LOCAL_HOST = (() => {
+    const h = location.hostname;
+    return h === '' || h === 'localhost' || h === '127.0.0.1' ||
+           h === '::1' || h === '[::1]' || /\.local$/i.test(h);
+  })();
+  if(!LOCAL_HOST) return;
+
   /* If the game somehow did not load, stay out of the way entirely. */
   if(typeof cash === 'undefined' || typeof hud !== 'function') return;
 

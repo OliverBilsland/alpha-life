@@ -457,6 +457,12 @@ because the iOS bundle uses a hand-written `js/config.js`, or none at all.
 `.vercelignore` keeps `ARCHITECTURE.md`, `DESIGN.md`, `SHIP.md`, and `.claude/` out of the
 deployment, mirroring the exclusion list in §4.
 
+`js/devtools.js` ships, but checks `location.hostname` and builds nothing unless it is `localhost`,
+`127.0.0.1`, `::1`, a `.local` name, or `file://`. A deployment therefore gets no cheat panel even
+though the file is served. **This is not sufficient for the iOS bundle** — Capacitor serves from
+`localhost`, which passes the check, so a release build must delete the file and its `<script>` line
+as §4 says.
+
 ### 10.4 Verifying a deployment
 
 ```bash
