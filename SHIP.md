@@ -365,3 +365,44 @@ game statistics, linked to nothing else:
 
 If you would rather not deal with any of that, ship without `js/config.js` and the answer stays "no
 data collected".
+
+---
+
+## 9. Live players — Realtime setup
+
+Commit 2's feature. Nothing to create: it uses Supabase **Broadcast**, which needs no table and no
+migration. If §8 is done, this already works — the same URL and anon key.
+
+### 9.1 Check Realtime is on
+
+Dashboard → **Realtime** (or Settings → API → Realtime). It is enabled by default on new projects.
+The game joins topic `realtime:alphalife-city` as a **public** channel.
+
+If your project is set to **private channels only**, anon clients cannot join a public topic and the
+socket will be refused. Either turn that off, or add a policy allowing anon to read and write
+`realtime.messages` for this topic. The game handles refusal gracefully — it gives up rather than
+retrying forever — so the symptom is simply that nobody ever appears.
+
+### 9.2 Cost
+
+Free tier: 200 concurrent connections, 2 million messages/month. The throttling is built for that —
+a stationary player, a player in a room, and a player on the title screen all send **zero** messages.
+Only actual movement costs anything, at most 5 messages/second. A player who moves for 10 minutes of
+a 30-minute session spends roughly 3,000 messages.
+
+If you outgrow it, raise `SEND_MS` in `js/live.js` (200 → 300 roughly halves the traffic) before
+paying for anything.
+
+### 9.3 Testing it with one machine
+
+Two ordinary windows are enough, but they must not share a display name — identity is per tab:
+
+1. Open the game in a normal window, set a name, and walk into the street.
+2. Open a **second window in incognito** (separate `localStorage`), set a *different* name.
+3. Walk one of them. The other should show a figure with a name pill above it, moving.
+
+Both must be on the same origin. Two tabs in the same non-incognito window share `localStorage` and
+so share a name, which is confusing rather than broken.
+
+**Do not test with the tab in the background.** Chrome freezes timers in hidden tabs and the socket
+is deliberately torn down when the tab is hidden, so nothing will move until it is visible again.

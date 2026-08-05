@@ -1071,3 +1071,82 @@ This is an honest-player gate, not a security control; anyone can clear their ow
 cannot be otherwise without a server watching the whole run. What it does guarantee is the thing that
 mattered: the dev tool cannot quietly push inflated numbers into other people's standings. The RLS
 `CHECK` constraints in SHIP.md §8.2 are the second layer, and the only one a client cannot touch.
+
+---
+
+## 12. Live players (optional)
+
+`js/live.js` — other people moving around the same city, with their names above them. Loaded last,
+after `leaderboard.js`. Like everything in §11 it is inert unless `js/config.js` holds real keys: with
+online off it does not open a socket, start a timer, or install its draw wrapper, and `drawPlayer`
+is left exactly as `art.js` defined it.
+
+**No SDK, again.** Supabase Realtime speaks the Phoenix channel protocol, which is four JSON message
+shapes over a WebSocket — `phx_join`, `phx_reply`, `heartbeat`, `broadcast`. `live.js` speaks them
+directly:
+
+```js
+{topic:'realtime:alphalife-city', event:'phx_join',   payload:{config:{broadcast:{self:false}}, access_token:key}}
+{topic:'phoenix',                 event:'heartbeat',  payload:{}}                      // every 25s
+{topic:'realtime:alphalife-city', event:'broadcast',  payload:{type:'broadcast', event:'pos', payload:{…}}}
+```
+
+`broadcast.self` is false, so the server does not echo our own position back to us.
+
+### Rendering: a wrapper, not an edit
+
+`draw()` (`city.js`) calls `drawPlayer()` inside the camera `translate`, immediately before
+`restore()`. So wrapping `drawPlayer` gives remote players **world coordinates for free** and needs
+no change to `city.js` or `art.js`:
+
+```js
+const _drawPlayerLive = drawPlayer;
+drawPlayer = function(cx, phase){
+  try{ maybeSend(); drawPeers(cx); }catch(e){}   // never break a frame
+  _drawPlayerLive(cx, phase);                     // you are drawn last, on top
+};
+```
+
+Peers reuse `drawCharacter()`/`drawCar()` from `art.js`. They get a static pose: walk phase is not
+transmitted, and inventing one animates them out of step with their own movement. Names are drawn as
+a pill plus text, because light text alone disappears over a lit window.
+
+### What keeps it inside the free tier
+
+Position updates are gated three ways, and the middle one does most of the work:
+
+| Gate | Effect |
+|---|---|
+| Not while `inRoom`, `gameOver`, or before `splashDone` | a player reading the market screen is silent |
+| `SEND_MS = 200` | at most 5 messages/sec, never per-frame |
+| `MOVE_EPS = 2` px, plus a facing threshold | **standing still sends nothing at all** |
+
+Because the throttle transmits only the first frame of a burst, a trailing update goes out once the
+window expires — otherwise a peer would be left rendered at a stale position. There is a test for
+exactly that; it is easy to "fix" it into a bug.
+
+Inbound: `PEER_TTL` 15s with a 3s sweep, so a player who closes the tab fades rather than freezing;
+`MAX_PEERS` 24 as a draw ceiling. The socket is torn down when the tab is hidden — the game itself
+deliberately keeps running (§6e), but there is no reason to broadcast to a city nobody is watching,
+and that is most of the saving.
+
+### Nothing that arrives is believed
+
+Every field in a `pos` message came from someone else's browser:
+
+- the name goes through `displayName()` — the same filter as the entry box, substituting `Player`
+  rather than throwing, so a hostile name cannot interrupt anyone's frame;
+- coordinates are clamped into `W`/`H`, and non-finite ones are dropped, so one bad packet cannot
+  draw a label at infinity;
+- `id` is truncated, and our own id is ignored.
+
+This is the third place `names.js` is called, and the one the requirement is really about: the
+leaderboard and the city are the two surfaces where one player's typing reaches another player's
+screen.
+
+### Failure
+
+`connect()` retries on a 2/4/8/16/30s backoff and then gives up permanently rather than hammering a
+wall. A `phx_reply` with `status:'error'` — a configuration problem, not a blip — gives up
+immediately. `send()` is a no-op unless the socket is open. The draw wrapper is wrapped in `try`, so
+even a bug in this file cannot stop the city rendering.

@@ -474,6 +474,24 @@ And names are filtered on every path, not just at the box you type into. A name 
 another player's browser is checked again before it is drawn, because the leaderboard is the first
 surface in this game where one player's input reaches another player's screen.
 
+## Rule 21 — Other players are weather, not opponents
+
+Live players can be seen and cannot be interacted with. No trading, no chat, no bumping, no shared
+economy. They walk past; that is the whole feature.
+
+This is a restraint, not a stub. The moment another player can affect your run, the run stops being
+a clean record of your own decisions, and Rule 1 — *you can do everything right and lose, and the
+game will still tell you that you did it right* — becomes unprovable, because the loss might have
+been theirs. The end screen has to be able to say the sentence honestly.
+
+What presence is actually for is the thing the city was always for (Rule 11): making the world feel
+like somewhere rather than a menu. A figure crossing the junction while you are deciding whether the
+Ferrata is defensible tells you other people are also deciding something. That is atmosphere, and
+atmosphere is allowed to be free.
+
+It also has to be free in the literal sense. A stationary player broadcasts nothing, so the cost of
+standing still and thinking — which is most of this game — is zero.
+
 ## Dev tools sit outside the economy
 
 There is a hidden developer panel that grants cash on demand (`Ctrl`+`Shift`+`Alt`+`D`; see
