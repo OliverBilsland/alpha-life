@@ -17,37 +17,59 @@ const DISTRICTS=[
 ];
 const districtAt=x=>DISTRICTS.find(d=>x>=d.x0&&x<d.x1)||DISTRICTS[0];
 
+/* ---------- what a place is, as a shape and a colour ----------
+   Every building carries a `k`. It drives the pictogram over the door, the
+   colour of the door plaque, and the dot on the minimap — the same mark in all
+   three places, so a building is identified once and recognised everywhere
+   after that. The point is that you can cross the city and know what you are
+   looking at without reading a single sign.
+
+   Nine kinds, not twenty: a legend you cannot hold in your head is a legend you
+   read every time, which is the thing being removed. */
+const KINDS={
+  desk:   {c:'#6FA8FF', n:'Trading desk'},
+  home:   {c:'#E8A33D', n:'Where you live'},
+  money:  {c:'#4FD1A5', n:'Money and credit'},
+  learn:  {c:'#B58BFF', n:'Learn something'},
+  social: {c:'#FF7BA8', n:'People and contacts'},
+  work:   {c:'#7FD0E8', n:'Work for money'},
+  car:    {c:'#FFD166', n:'Cars'},
+  body:   {c:'#8FE07A', n:'Health and focus'},
+  status: {c:'#D98BFF', n:'Status and access'}
+};
+
 const B=[
  /* ---- Old Town: everything the opening arc needs, on foot ---- */
- {id:'office', x:760, y:150, w:360,h:230,n:'ARDENT CAPITAL', s:'Your desk',c:'#2B3A4F'},
- {id:'apt',    x:150, y:190, w:250,h:200,n:'APARTMENT 4B',   s:'Home',c:'#4A4036'},
- {id:'bar',    x:170, y:1500,w:230,h:170,n:'THE LONG ROOM',  s:'Bar',c:'#5A3A32'},
- {id:'school', x:700, y:1540,w:330,h:220,n:'CITY INSTITUTE', s:'Courses',c:'#33454A'},
- {id:'realtor',x:200, y:880, w:220,h:150,n:'HALE PROPERTY',  s:'Leasing',c:'#4A4453'},
- {id:'gym',    x:790, y:880, w:210,h:150,n:'THE YARD',       s:'Gym',c:'#3D4A3C'},
- {id:'rest',   x:430, y:1500,w:230,h:170,n:"BRUNO'S",        s:'Dining',c:'#7A4030'},
- {id:'board',  x:1120,y:880, w:230,h:150,n:'THE NOTICE',     s:'What is on',c:'#2E4658'},
+ {id:'office', x:760, y:150, w:360,h:230,n:'ARDENT CAPITAL', s:'Your desk',c:'#2B3A4F',k:'desk'},
+ {id:'apt',    x:150, y:190, w:250,h:200,n:'APARTMENT 4B',   s:'Home',c:'#4A4036',k:'home'},
+ {id:'bar',    x:170, y:1500,w:230,h:170,n:'THE LONG ROOM',  s:'Bar',c:'#5A3A32',k:'social'},
+ {id:'school', x:700, y:1540,w:330,h:220,n:'CITY INSTITUTE', s:'Courses',c:'#33454A',k:'learn'},
+ {id:'realtor',x:200, y:880, w:220,h:150,n:'HALE PROPERTY',  s:'Leasing',c:'#4A4453',k:'home'},
+ {id:'gym',    x:790, y:880, w:210,h:150,n:'THE YARD',       s:'Gym',c:'#3D4A3C',k:'body'},
+ {id:'rest',   x:430, y:1500,w:230,h:170,n:"BRUNO'S",        s:'Dining',c:'#7A4030',k:'social'},
+ {id:'board',  x:1120,y:880, w:230,h:150,n:'THE NOTICE',     s:'What is on',c:'#2E4658',k:'learn'},
 
  /* ---- Midtown: cars, employers, credit ---- */
- {id:'dealer', x:1290,y:220, w:340,h:210,n:'VOSS MOTORS',    s:'Cars',c:'#3A4A3E'},
- {id:'tech',   x:1830,y:230, w:250,h:180,n:'BYTE WORKS',     s:'Dev studio',c:'#2E4440'},
- {id:'bank',   x:1290,y:1220,w:300,h:200,n:'MERIDIAN BANK',  s:'Credit',c:'#2F3B4A'},
- {id:'recruit',x:1830,y:1250,w:280,h:190,n:'HOLBROOK & CO',  s:'Recruiters',c:'#453A4E'},
+ {id:'dealer', x:1290,y:220, w:340,h:210,n:'VOSS MOTORS',    s:'Cars',c:'#3A4A3E',k:'car'},
+ {id:'tech',   x:1830,y:230, w:250,h:180,n:'BYTE WORKS',     s:'Dev studio',c:'#2E4440',k:'work'},
+ {id:'bank',   x:1290,y:1220,w:300,h:200,n:'MERIDIAN BANK',  s:'Credit',c:'#2F3B4A',k:'money'},
+ {id:'recruit',x:1830,y:1250,w:280,h:190,n:'HOLBROOK & CO',  s:'Recruiters',c:'#453A4E',k:'work'},
 
  /* ---- The Heights: status, networking, desk access ---- */
- {id:'club',   x:2260,y:250, w:290,h:210,n:'MERIDIAN CLUB',  s:'Members only',c:'#3E2C46'},
- {id:'annex',  x:2660,y:250, w:300,h:200,n:'THE ANNEX',      s:'Nightclub',c:'#5A2C4E'},
- {id:'prime',  x:2250,y:1250,w:280,h:190,n:'PRIME BROKERAGE',s:'Desk access',c:'#25404A'},
- {id:'rostrum',x:2720,y:1250,w:300,h:200,n:'THE ROSTRUM',    s:'Benefit galas',c:'#4B3B2E'},
+ {id:'club',   x:2260,y:250, w:290,h:210,n:'MERIDIAN CLUB',  s:'Members only',c:'#3E2C46',k:'status'},
+ {id:'annex',  x:2660,y:250, w:300,h:200,n:'THE ANNEX',      s:'Nightclub',c:'#5A2C4E',k:'social'},
+ {id:'prime',  x:2250,y:1250,w:280,h:190,n:'PRIME BROKERAGE',s:'Desk access',c:'#25404A',k:'desk'},
+ {id:'rostrum',x:2720,y:1250,w:300,h:200,n:'THE ROSTRUM',    s:'Benefit galas',c:'#4B3B2E',k:'status'},
 
  /* ---- Harbour: the professional end of the market ---- */
- {id:'floor',  x:3160,y:280, w:320,h:220,n:'THE FLOOR',      s:'Exchange',c:'#2A3D3A'},
- {id:'pbank',  x:3180,y:1350,w:290,h:200,n:'CAVENDISH TRUST',s:'Private bank',c:'#37384A'},
+ {id:'floor',  x:3160,y:280, w:320,h:220,n:'THE FLOOR',      s:'Exchange',c:'#2A3D3A',k:'desk'},
+ {id:'pbank',  x:3180,y:1350,w:290,h:200,n:'CAVENDISH TRUST',s:'Private bank',c:'#37384A',k:'money'},
 
  /* ---- The Coast ---- */
- {id:'estates', x:3820,y:660, w:300,h:230,n:'COAST PROPERTY',s:'Estates',c:'#4A4443'},
- {id:'headland',x:3820,y:1560,w:300,h:210,n:'THE HEADLAND',  s:'Private club',c:'#42304A'}
+ {id:'estates', x:3820,y:660, w:300,h:230,n:'COAST PROPERTY',s:'Estates',c:'#4A4443',k:'home'},
+ {id:'headland',x:3820,y:1560,w:300,h:210,n:'THE HEADLAND',  s:'Private club',c:'#42304A',k:'status'}
 ];
+const kindOf=b=>KINDS[b&&b.k]||KINDS.desk;
 
 const ROADS=[
  {x:0,y:500,w:W,h:110},{x:0,y:1120,w:W,h:110},{x:0,y:1830,w:W,h:110},
