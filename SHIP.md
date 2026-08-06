@@ -468,11 +468,18 @@ because the iOS bundle uses a hand-written `js/config.js`, or none at all.
 `.vercelignore` keeps `ARCHITECTURE.md`, `DESIGN.md`, `SHIP.md`, and `.claude/` out of the
 deployment, mirroring the exclusion list in §4.
 
-`js/devtools.js` ships, but checks `location.hostname` and builds nothing unless it is `localhost`,
-`127.0.0.1`, `::1`, a `.local` name, or `file://`. A deployment therefore gets no cheat panel even
-though the file is served. **This is not sufficient for the iOS bundle** — Capacitor serves from
-`localhost`, which passes the check, so a release build must delete the file and its `<script>` line
-as §4 says.
+`js/devtools.js` ships **armed**, on the deployment as well as locally. It had a `location.hostname`
+check restricting it to localhost and `file://`; that was removed deliberately, so anyone who finds
+the chord (Ctrl/Cmd+Shift+Alt+D) on the public site can grant themselves cash.
+
+What that costs is bounded: the `alphalife.dev.tainted` flag marks a cheated save and `js/online.js`
+refuses to submit it, so it cannot reach anyone else's leaderboard. What it does not cover is a
+player who clears that one localStorage key — it is an honest-player gate, not a security control.
+
+To switch it off, set `DEV_TOOLS_ARMED = false` in `js/devtools.js` (one line, kills the chord, the
+DOM and the key listener together). **For a release build, delete the file and its `<script>` line**
+as §4 says — that is the only reliable removal, since Capacitor serves from `localhost` and would
+defeat any host check.
 
 ### 10.4 Verifying a deployment
 

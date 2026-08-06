@@ -26,15 +26,23 @@
        (see SHIP.md §1) — keep it that way here.
 
    A leaderboard and live players now exist, so the older claim here — that
-   granted cash has nowhere to leak to — no longer holds on its own. Two things
-   carry it instead. The `alphalife.dev.tainted` flag written below marks the
-   save as dev-modified, and js/online.js refuses to submit a tainted run. And
-   the host check below means the panel is not built at all anywhere except a
-   local machine, so a public deployment does not hand every visitor a cheat.
+   granted cash has nowhere to leak to — is no longer true by itself, and this
+   file now ships armed on the public deployment. ONE thing holds the line: the
+   `alphalife.dev.tainted` flag written below marks the save as dev-modified,
+   and js/online.js refuses to submit a tainted run. So a stranger who finds
+   the chord can enrich their own game and cannot put the result on anybody
+   else's leaderboard.
 
-   THE HOST CHECK IS NOT ENOUGH FOR THE iOS BUNDLE. Capacitor serves the app
-   from `localhost`, which this check treats as local and would arm. For a
-   release build, delete this file and its <script> line as SHIP.md §4 says.
+   What that does NOT cover, and should not be assumed to: the flag lives in
+   localStorage, so anyone willing to clear one key can launder a cheated save
+   back into a submittable one. It is an honest-player gate, not a security
+   control, and it cannot be otherwise without a server that watches the whole
+   run. Live positions and chat are unaffected either way — neither carries
+   money.
+
+   FOR A RELEASE BUILD, delete this file and its <script> line, per SHIP.md §4.
+   That is the only reliable removal; a host check is not one, because
+   Capacitor serves the app from localhost.
    =========================================================================== */
 
 (function(){
@@ -53,20 +61,14 @@
 
   if(!DEV_TOOLS_ARMED) return;
 
-  /* ---------- local only, enforced rather than asserted ----------
-     The header calls this file local-only, but nothing made it so: any host
-     serving the repo serves this too, and a hidden chord is not a boundary —
-     it is a secret, and anyone can press it. So check where we are running.
+  /* NO HOST CHECK, DELIBERATELY. There was one, restricting this to localhost
+     and file://; it was removed on request so the panel is available on the
+     deployed build too. Anyone who finds the chord on the public site can give
+     themselves cash, and that is the accepted trade — see the boundary note in
+     the header for what that does and does not reach.
 
-     file:// reports an empty hostname, which is the double-click case in
-     SHIP.md §1; .local covers testing from a phone on the LAN. Anything else
-     — a deployment — gets no panel, no styles, no key listener. */
-  const LOCAL_HOST = (() => {
-    const h = location.hostname;
-    return h === '' || h === 'localhost' || h === '127.0.0.1' ||
-           h === '::1' || h === '[::1]' || /\.local$/i.test(h);
-  })();
-  if(!LOCAL_HOST) return;
+     To take it out again, set DEV_TOOLS_ARMED above to false, which is one
+     line and kills the chord, the DOM and the key listener together. */
 
   /* If the game somehow did not load, stay out of the way entirely. */
   if(typeof cash === 'undefined' || typeof hud !== 'function') return;
