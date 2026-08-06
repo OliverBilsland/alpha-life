@@ -52,6 +52,7 @@ The scripts, **in load order** — the order is load-bearing, see below:
 | `js/boot.js` | shuffle the deck, paint HUD, start the loop, tutorial toast |
 | `js/persist.js` | localStorage save/load, autosave wrappers, `newGame()` |
 | `js/shell.js` | title screen, pause/resume, lifecycle |
+| `js/devtools.js` | **not a game system** — the armed-only local cash grant. See section 10 |
 
 **Why the order matters.** Almost nothing executes at parse time — the files are overwhelmingly
 `function` declarations and `const`/`let` initializers — but three things do:
@@ -65,6 +66,9 @@ The scripts, **in load order** — the order is load-bearing, see below:
 - `persist.js` must come **after** `boot.js`. `boot.js` shuffles a fresh deck and calls `hud()`; if
   the autosave wrapper were already installed, that call would overwrite the save with default state
   before it was ever read.
+- `devtools.js` is loaded **last**, after `persist.js`, for two reasons: it assigns `cash` by bare
+  name (so `state.js` must have run), and it calls `hud()` expecting persist's autosave wrapper to
+  already be in place, so a grant is written to storage immediately.
 
 Top-level `let`/`const` in a classic script live in the shared global lexical environment rather than
 on `globalThis`, which is why `persist.js` can assign `port`, `idx`, `order` and the rest by bare
@@ -929,3 +933,43 @@ position autosaves separately on an 800ms poll
   every existing path does) or `save()` directly.
 - **Everything is a global.** `pick`, `reason`, `conv`, `locked` are office-scoped in meaning but
   file-scoped in fact, and `roomOffice()` resets them on entry (`market.js:9`).
+
+---
+
+## 10. Developer tools — `js/devtools.js`
+
+A testing aid for exercising purchases and the economy without grinding for the money first. It is
+**not a game system**, it is not referenced by any game file, and nothing in `js/` depends on it.
+
+**Armed, not on.** The file returns immediately unless `localStorage['alphalife.dev'] === 'on'`.
+Loading the page with `#dev` (or `?dev`) in the URL sets that flag and it then persists, so the
+day-to-day loop is just the chord. Unarmed, no panel is built, no key is bound, and `window.DEV` is
+never defined — a player who does not type `#dev` cannot reach it by any input.
+
+**Trigger.** `Ctrl+Shift+$` toggles the panel; `DEV.grant(n)` / `DEV.set(n)` / `DEV.disarm()` are the
+console equivalents. Amounts accept `50000`, `50,000`, `$50,000` and `50k`/`2m`.
+
+**The boundary, and why it is written down.** The file may touch exactly one piece of state —
+`cash` — and may call `hud()`. It must never reach a leaderboard, a shared backend, or any network
+surface. Today that is free: there are no network primitives anywhere in `js/` (`SHIP.md`: "no
+network access at runtime"). The rule is recorded because it stops being free the day multiplayer
+lands — a cheat that can reach shared standings is a cheat that invalidates them. If a submit path
+is ever added, it must consult `DEV.tainted()`, backed by the separate `alphalife.dev.tainted` key
+that is set on the first grant and never cleared.
+
+**What it cannot distort.** `quad`, `xp`, `streak` and the soundness record are process scoring and
+are untouched. `peak`/`maxDD` track `port`, not `cash` (`market.js:137`), so a grant cannot flatter a
+drawdown. The one figure a grant does move is end-screen net worth — `port+cash+homeEquity()-debt`
+— which is an outcome number by definition.
+
+**Two traps worth knowing.** The panel stops `keydown`/`keyup`/`keypress` at its own root, because
+`city.js:45` binds keydown on `window` and writes `keys[e.key]` for WASD; without that, typing an
+amount during live play walks the character across the city and the arrow keys never reach the
+caret. And the chord is matched on `e.code === 'Digit4'` rather than `e.key`, because with Shift held
+`e.key` is `'$'` on a US layout and something else on others. `Ctrl+Shift+D` was the obvious first
+choice and is wrong: it is Chrome's "bookmark all tabs", and a browser-level shortcut is consumed
+before the page sees it.
+
+**Removal before release** is deleting the one `<script src="js/devtools.js">` line from
+`index.html`. The file is self-contained — its own DOM node, its own inline styles, its own storage
+keys — so nothing else needs editing.

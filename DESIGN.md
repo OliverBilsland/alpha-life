@@ -449,6 +449,31 @@ studying could raise your process score, the score would stop measuring your dec
 instead is honest: it records your sound rate the day you register, and shows you the difference
 later. If the teaching works, the number moves on its own.
 
+## Appendix — the developer cash grant is outside these rules, deliberately
+
+`js/devtools.js` hands you any amount of cash on a keystroke. That is flatly against Rule 10, which
+spends the whole economy making money scarce early and unsatisfying late. It is allowed because it
+is not part of the game: it is armed only by typing `#dev` into the URL, it ships disabled, and it
+is deleted by removing one line from `index.html`.
+
+Two boundaries keep it from corrupting anything the rules protect.
+
+**It cannot touch process scoring.** Rule 1 and Rule 2 exist to keep the quadrants honest about
+decision quality regardless of outcome. A cash grant moves neither — `quad`, `xp`, `streak` and the
+soundness record are untouched, and drawdown tracks the portfolio rather than cash. What the grant
+does move is net worth on the end screen, which is the number the game already refuses to grade you
+on. That is the correct thing for a cheat to be able to move.
+
+**It cannot touch anyone else.** The grant is local to one device and never reaches a leaderboard or
+a shared backend. This matters more than it currently looks like it does: the moment standings are
+shared, a testing aid that can write to them is not a testing aid, it is the fastest route to the
+top of a board that then means nothing. The restriction is enforced by the file having no network
+call in it and recorded in ARCHITECTURE.md section 10 so that a future submit path checks
+`DEV.tainted()` before trusting a run.
+
+The general rule this is an instance of: **a testing aid may skip the grind, but it may never touch
+the grade, and it may never touch other players.**
+
 ## The through-line
 
 Money is the score everyone watches and the one the game refuses to grade you on. Information is what
