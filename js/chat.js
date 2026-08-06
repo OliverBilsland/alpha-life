@@ -89,7 +89,7 @@
       '<div id="chatBar">' +
         '<input id="chatIn" maxlength="' + MAXLEN + '" autocomplete="off" ' +
           'spellcheck="false" placeholder="Say something…">' +
-        '<span id="chatHint">Enter</span>' +
+        '<span id="chatHint">T</span>' +
       '</div>';
     document.body.appendChild(box);
     document.body.classList.add('hasChat');
@@ -114,11 +114,13 @@
     input.addEventListener('focus', () => { box.classList.add('hot'); wake(); });
     input.addEventListener('blur',  () => { box.classList.remove('hot'); idle(); });
 
-    /* Enter anywhere else jumps into the field, the way every game does it —
-       but not while a room, the market or the name dialog is up, where Enter
-       and the letters mean something else. */
+    /* T or / opens the chat. NOT Enter — Enter belongs to the city, where it
+       walks you through the door you are standing at, and taking it here meant
+       the game could not be entered at all while this file was loaded. A chat
+       box is a guest in someone else's keyboard; it does not get the key the
+       host was already using. */
     addEventListener('keydown', e => {
-      if(e.key !== 'Enter') return;
+      if(e.key !== 't' && e.key !== 'T' && e.key !== '/') return;
       if(document.activeElement === input) return;
       if(isBusy()) return;
       e.preventDefault();

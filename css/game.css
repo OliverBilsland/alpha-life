@@ -33,7 +33,10 @@
     background:linear-gradient(180deg,#FFF6E2,#F3E4C4);color:#191410;padding:11px 20px;border-radius:3px;box-shadow:0 6px 24px #0008;font-family:var(--cond);font-weight:700;
     font-size:14px;letter-spacing:.1em;text-transform:uppercase;opacity:0;transition:.18s;
     pointer-events:none;white-space:nowrap;text-align:center}
-  .prompt.on{opacity:1}
+  /* The prompt is a button as well as a label — it names the thing you are
+     standing at, so clicking it should do the obvious. */
+  .prompt.on{opacity:1;pointer-events:auto;cursor:pointer}
+  .prompt.on:hover{background:linear-gradient(180deg,#FFFCF0,#F8EDD6)}
   .prompt small{display:block;font-family:var(--mono);font-size:9.5px;letter-spacing:.1em;
     color:#6B5B45;font-weight:400;margin-top:3px}
 

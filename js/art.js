@@ -335,9 +335,10 @@ function drawCar(cx,dir,tier){
   const sliding =typeof drifting!=='undefined'&&drifting;
   const toy=typeof carToy==='function'?carToy():null;
 
-  let body=['#E8574B','#E8574B','#3E7BD6','#D9A227','#C9354F'][tier]||'#E8574B';
-  let dark=['#B93B35','#B93B35','#2C5CA6','#A97C15','#96263A'][tier]||'#B93B35';
-  if(tier===4){ body=flashyPaint(0); dark=flashyPaint(0.5); }
+  let body=(typeof CAR_BODY!=='undefined'&&CAR_BODY[tier])||'#E8574B';
+  let dark=(typeof CAR_TRIM!=='undefined'&&CAR_TRIM[tier])||'#B93B35';
+  /* the Superba's paint will not sit still */
+  if(car&&typeof car==='function'&&car().toy==='nitro'){ body=flashyPaint(0); dark=flashyPaint(0.5); }
 
   cx.fillStyle=PAL.shadow;
   cx.beginPath(); if(cx.ellipse) cx.ellipse(0,7,22,7,0,0,7); else cx.arc(0,7,18,0,7); cx.fill();
@@ -360,6 +361,18 @@ function drawCar(cx,dir,tier){
       cx.fillStyle='rgba(140,200,255,0.5)';
       cx.beginPath(); cx.moveTo(-19,-2); cx.lineTo(-19-len*0.3,0); cx.lineTo(-19,2); cx.closePath(); cx.fill();
     }
+  }
+
+  /* The Volt burns nothing, so it crackles instead. Same signal, no flame. */
+  if(boosting&&toy&&toy.arc){
+    cx.strokeStyle='rgba(120,235,255,0.85)'; cx.lineWidth=1.6;
+    for(let i=0;i<3;i++){
+      cx.beginPath(); cx.moveTo(-19,(Math.random()-0.5)*14);
+      for(let s=1;s<=4;s++) cx.lineTo(-19-s*9,(Math.random()-0.5)*20);
+      cx.stroke();
+    }
+    cx.fillStyle='rgba(120,235,255,0.20)';
+    cx.beginPath(); cx.arc(-26,0,15,0,7); cx.fill();
   }
 
   cx.fillStyle=dark; cx.fillRect(-19,-12,38,24);
@@ -410,6 +423,26 @@ function drawPlayer(cx,phase){
     drawCharacter(cx,P.dir,phase,P.moving,0.6+0.4*(1-t));
     cx.restore();
   }
+  cx.restore();
+}
+
+/* Clicking a building you are not standing at marks it rather than opening it:
+   a ring at its door and a line from you to it. It answers "where is that" —
+   which is the actual question behind the click — without moving you. */
+function drawClickHint(cx){
+  if(typeof clickHint==='undefined'||!clickHint) return;
+  clickHint.t-=0.012;
+  if(clickHint.t<=0){ clickHint=null; return; }
+  const d=door(clickHint.b), a=clickHint.t;
+  const k=typeof kindOf==='function'?kindOf(clickHint.b):{c:'#FFE7B0'};
+
+  cx.save();
+  cx.globalAlpha=a;
+  cx.strokeStyle=k.c; cx.lineWidth=2.5;
+  cx.beginPath(); cx.arc(d.x,d.y,26+(1-a)*26,0,7); cx.stroke();
+  cx.globalAlpha=a*0.45;
+  cx.setLineDash([7,7]); cx.lineWidth=2;
+  cx.beginPath(); cx.moveTo(P.x,P.y); cx.lineTo(d.x,d.y); cx.stroke();
   cx.restore();
 }
 
@@ -623,7 +656,7 @@ function propsFor(id){
       const px=d.x+74, py=d.y+20;
       cx.save(); cx.translate(px,py);
       cx.fillStyle=PAL.shadow; cx.fillRect(-15,-6,32,16);
-      cx.fillStyle=['#E8574B','#E8574B','#3E7BD6','#D9A227','#C9354F'][carTier]||'#E8574B';
+      cx.fillStyle=(typeof CAR_BODY!=='undefined'&&CAR_BODY[carTier])||'#E8574B';
       cx.fillRect(-16,-8,32,16);
       cx.fillStyle='#151024'; cx.fillRect(-6,-6,12,12);
       cx.fillStyle='#6FD6F2'; cx.fillRect(-5,-5,10,10);

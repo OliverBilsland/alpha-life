@@ -18,6 +18,7 @@ function draw(){
   drawDistrictLabels(cx,cam,VW);
 
   drawSkids(cx);              /* rubber goes under everything you drive past */
+  drawClickHint(cx);          /* "that one, over there" */
   const near=nearBuilding();
   /* painter's order: further-up buildings first so extrusions overlap correctly */
   B.slice().sort((a,b)=>a.y-b.y).forEach(b=>drawBuilding(cx,b,near&&near.id===b.id));
@@ -51,6 +52,40 @@ addEventListener('keydown',e=>{
   if([' ','ArrowUp','ArrowDown','ArrowLeft','ArrowRight'].includes(e.key))e.preventDefault();
 });
 addEventListener('keyup',e=>keys[e.key.toLowerCase()]=false);
+
+/* ---------- click to go in ----------
+   Pressing a key at the right spot is a thing you have to be told; clicking the
+   building you are standing at is not. Both do the same thing.
+
+   Clicking the door of a building you are NOT at walks nothing and opens
+   nothing -- it points you at it instead, because silently teleporting across
+   the city would undo the map. */
+let clickHint=null;                       /* {b, t} — a ring drawn for a moment */
+function worldFromEvent(ev){
+  const r=cv.getBoundingClientRect();
+  const cam={x:Math.max(0,Math.min(W-VW,P.x-VW/2)),y:Math.max(0,Math.min(H-VH,P.y-VH/2))};
+  return {x:(ev.clientX-r.left)+cam.x, y:(ev.clientY-r.top)+cam.y};
+}
+function buildingAt(wx,wy){
+  /* the facade, its badge and the pavement under the door all count */
+  for(const b of B){
+    const d=door(b);
+    if(wx>b.x-6&&wx<b.x+b.w+6&&wy>b.y-20&&wy<b.y+b.h+34) return b;
+    if(Math.hypot(wx-d.x,wy-d.y)<40) return b;
+  }
+  return null;
+}
+function tryEnterByPointer(ev){
+  if(inRoom||gameOver||!splashDone) return;
+  const w=worldFromEvent(ev);
+  const hit=buildingAt(w.x,w.y);
+  const near=nearBuilding();
+  if(near&&(!hit||hit.id===near.id||Math.hypot(w.x-P.x,w.y-P.y)<70)){ enter(near); return; }
+  if(hit){ clickHint={b:hit,t:1}; }
+}
+cv.addEventListener('click',tryEnterByPointer);
+$('prompt').addEventListener('click',()=>{const b=nearBuilding();if(b&&!inRoom)enter(b);});
+
 let tv={x:0,y:0};
 if(matchMedia('(pointer:coarse)').matches){
   document.body.classList.add('touch');
@@ -81,7 +116,7 @@ let walkPhase=0;
    Transient and never saved: a boost meter is a thing you are doing, not a
    thing you own, and a reloaded save should not remember that you were
    mid-drift. Read by art.js to draw the meter, the flame and the rubber. */
-let boostMeter=1, boostOn=false, drifting=false;
+let boostMeter=1, boostOn=false, drifting=false, boostHeld=0;
 const vel={x:0,y:0};
 const SKIDS=[];              /* {x,y,a} — laid while drifting, fades on its own */
 const SKID_MAX=160;
@@ -95,10 +130,19 @@ function simulate(){
        runs out is not a toy, it is just a faster car. */
     const wantBoost=!!(keys['shift']&&toy);
     if(toy){
-      if(wantBoost&&boostMeter>0.015){ boostOn=true; boostMeter=Math.max(0,boostMeter-toy.burn); }
-      else { boostOn=false; boostMeter=Math.min(1,boostMeter+toy.fill); }
-      if(boostOn) sp*=toy.mult;
-    }else{ boostOn=false; boostMeter=1; }
+      if(wantBoost&&boostMeter>0.015){
+        boostOn=true; boostMeter=Math.max(0,boostMeter-toy.burn); boostHeld++;
+      }else{
+        boostOn=false; boostHeld=0; boostMeter=Math.min(1,boostMeter+toy.fill);
+      }
+      if(boostOn){
+        /* Slipstream climbs the longer it is held, so the reward is committing
+           to a straight run rather than stabbing the key. */
+        let mult=toy.mult;
+        if(toy.ramp) mult+= (toy.ramp-toy.mult)*Math.min(1,boostHeld/toy.rampFrames);
+        sp*=mult;
+      }
+    }else{ boostOn=false; boostMeter=1; boostHeld=0; }
 
     let dx=(keys['d']||keys['arrowright']?1:0)-(keys['a']||keys['arrowleft']?1:0)+tv.x;
     let dy=(keys['s']||keys['arrowdown']?1:0)-(keys['w']||keys['arrowup']?1:0)+tv.y;
@@ -112,7 +156,10 @@ function simulate(){
 
     /* On foot there is no inertia to model, so grip 1 reproduces the old
        movement exactly rather than making walking feel like ice. */
-    const grip=!P.driving?1:(drifting?0.045:0.26);
+    /* turn>1 is the Halden's whole character: it changes direction almost
+       instantly while everything faster than it washes wide. */
+    const turn=toy&&toy.turn?toy.turn:1;
+    const grip=!P.driving?1:(drifting?0.045:Math.min(0.85,0.26*turn));
     vel.x+=(dx-vel.x)*grip;
     vel.y+=(dy-vel.y)*grip;
 
