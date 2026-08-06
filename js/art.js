@@ -501,6 +501,22 @@ function drawMinimap(cx,VW,VH){
   cx.fillStyle='rgba(247,242,231,0.13)';
   for(const r of ROADS) cx.fillRect(px(r.x),py(r.y),Math.max(1,r.w*sx),Math.max(1,r.h*sy));
 
+  /* the circuit, so you can see there is one without falling into it */
+  if(typeof TRACK!=='undefined'){
+    cx.save();
+    cx.lineJoin='round';
+    cx.strokeStyle='rgba(201,53,79,0.75)'; cx.lineWidth=3.4;
+    cx.beginPath();
+    cx.moveTo(px(TRACK[0][0]),py(TRACK[0][1]));
+    for(let i=1;i<TRACK.length;i++) cx.lineTo(px(TRACK[i][0]),py(TRACK[i][1]));
+    cx.closePath(); cx.stroke();
+    cx.strokeStyle='rgba(247,242,231,0.55)'; cx.lineWidth=1.2; cx.stroke();
+    /* start line */
+    cx.fillStyle='#F7F2E7';
+    cx.fillRect(px(TRACK[0][0])-2,py(TRACK[0][1])-3,4,6);
+    cx.restore();
+  }
+
   /* Every building, wearing the badge that is over its own door. A coloured dot
      told you a kind was there; the pictogram tells you which building it is,
      which is the question you actually have when looking at a map. Same disc,
@@ -761,6 +777,20 @@ function drawHomeExtras(){
     }
   }
 
+  if(b.style==='penthouse'){
+    /* a searchlight sweeping off the roof, because it can */
+    const sw=t*0.55;
+    cx.save();
+    cx.translate(b.x+b.w/2,b.y-96);
+    cx.rotate(Math.sin(sw)*0.7-Math.PI/2);
+    const g=cx.createLinearGradient?cx.createLinearGradient(0,0,0,-320):null;
+    if(g){ g.addColorStop(0,'rgba(255,240,200,0.16)'); g.addColorStop(1,'rgba(255,240,200,0)');
+      cx.fillStyle=g;
+      cx.beginPath(); cx.moveTo(-6,0); cx.lineTo(-70,-320); cx.lineTo(70,-320); cx.lineTo(6,0);
+      cx.closePath(); cx.fill(); }
+    cx.restore();
+  }
+
   if(b.style==='estate'){
     /* gates, gravel, a pool that moves, and somewhere to land */
     cx.fillStyle='#6B6152'; cx.fillRect(b.x-6,b.y+b.h+6,b.w+12,34);   /* gravel */
@@ -798,6 +828,47 @@ function drawHomeExtras(){
     const blink=(Math.sin(t*3)>0.6)?0.9:0.15;
     cx.fillStyle='rgba(255,90,80,'+blink.toFixed(2)+')';
     cx.beginPath(); cx.arc(hx+30,hy-30,4,0,7); cx.fill();
+
+    /* the helicopter that lives on it, rotor idling */
+    cx.save(); cx.translate(hx,hy);
+    cx.fillStyle=PAL.shadow; cx.beginPath(); cx.ellipse?cx.ellipse(2,4,17,7,0,0,7):cx.arc(2,4,14,0,7); cx.fill();
+    cx.fillStyle='#2F3B4A'; cx.fillRect(-13,-7,26,14);
+    cx.fillStyle='#6FD6F2'; cx.fillRect(6,-5,7,9);
+    cx.fillStyle='#2F3B4A'; cx.fillRect(-27,-2,15,4);
+    cx.fillStyle='#1A1526'; cx.fillRect(-30,-7,4,12);
+    cx.strokeStyle='rgba(200,214,235,0.5)'; cx.lineWidth=2;
+    cx.save(); cx.rotate(t*7);
+    cx.beginPath(); cx.moveTo(-30,0); cx.lineTo(30,0); cx.stroke();
+    cx.beginPath(); cx.moveTo(0,-30); cx.lineTo(0,30); cx.stroke();
+    cx.restore();
+    cx.restore();
+
+    /* hedges along the frontage */
+    for(let i=0;i<7;i++){
+      const gx2=b.x+8+i*((b.w-16)/6);
+      cx.fillStyle='#2F4A33';
+      cx.beginPath(); cx.arc(gx2,b.y+b.h+46,11,0,7); cx.fill();
+      cx.fillStyle='#3B5C3F';
+      cx.beginPath(); cx.arc(gx2-2,b.y+b.h+43,7,0,7); cx.fill();
+    }
+  }
+
+  /* ---- the nameplate ----
+     Your name on the gatepost once you have one. It is the cheapest possible
+     way to make a building read as YOURS rather than as the next tier up, and
+     it costs nothing to anybody who never sets a name. */
+  if(homeTier>=1&&typeof storedName==='function'){
+    const nm=storedName();
+    if(nm){
+      cx.font='700 11px '+CANVAS_COND; cx.textAlign='center';
+      const w=cx.measureText(nm.toUpperCase()).width+22;
+      const nx=b.x+b.w/2, ny=b.y+b.h+(b.style==='estate'?70:22);
+      cx.fillStyle='rgba(10,8,20,0.72)';
+      if(cx.roundRect){ cx.beginPath(); cx.roundRect(nx-w/2,ny-11,w,20,3); cx.fill(); }
+      else cx.fillRect(nx-w/2,ny-11,w,20);
+      cx.fillStyle='#C9A227'; cx.fillRect(nx-w/2,ny+7,w,2);
+      cx.fillStyle='#F7F2E7'; cx.fillText(nm.toUpperCase(),nx,ny+3);
+    }
   }
 
   /* HOME, always findable: a pin over your own roof */

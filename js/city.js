@@ -12,6 +12,7 @@ function draw(){
   cx.save(); cx.translate(-cam.x,-cam.y);
 
   drawGround(cx,cam,VW,VH);
+  drawTrack(cx);              /* the circuit is ground, not scenery */
   drawRoads(cx);
   drawLamps(cx,cam,VW);
   drawLife(cx,cam,VW,VH);
@@ -27,7 +28,8 @@ function draw(){
   drawPlayer(cx,walkPhase);
   cx.restore();
   drawVignette(cx,VW,VH);
-  drawMinimap(cx,VW,VH);      /* screen space, so after the camera is undone */
+  drawRaceHud(cx,VW,VH);      /* screen space, so after the camera is undone */
+  drawMinimap(cx,VW,VH);
 }
 
 function door(b){return {x:b.x+b.w/2, y:b.y+b.h+4};}
@@ -179,6 +181,7 @@ function simulate(){
       if(SKIDS[i].a<=0) SKIDS.splice(i,1);
     }
 
+    updateLap();                /* costs nothing off the circuit */
     walkPhase=(walkPhase+moved/(P.driving?26:14))%1;
     /* getting in and out of the car is a transition, not a swap */
     const target=P.driving?1:0;
