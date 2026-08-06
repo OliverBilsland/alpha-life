@@ -50,6 +50,8 @@ function applySave(d){
   /* pre-tier saves stored these as flags */
   if(d.owned&&d.owned.car&&!d.carTier) carTier=1;
   if(d.owned&&d.owned.apt&&!d.homeTier) homeTier=1;
+  /* the world holds the address, so it has to be told which one was restored */
+  if(typeof syncHome==='function') syncHome();
   debt=d.debt||0; gymMonth=!!d.gymMonth; floorMonth=!!d.floorMonth; bankrupt=!!d.bankrupt;
   carCond=d.carCond!==undefined?d.carCond:100;
   propIndex=d.propIndex||1; propHist=Array.isArray(d.propHist)?d.propHist:[1];

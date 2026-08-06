@@ -28,6 +28,43 @@ const HOMES=[
 
 const home=()=>HOMES[homeTier];
 
+/* ---------- where you actually live ----------
+   A home used to be a line on a menu: you bought a penthouse and carried on
+   walking into the same third-floor flat. Each tier now has a real site, and
+   the building marked HOME on the map is the one you own — it moves across the
+   city as you climb, and the address is the reward as much as the room is.
+
+   Every site sits in a district you can reach at that point, and buying is
+   refused outright if you cannot reach it (see roomRealtor) — moving into a
+   house you are physically barred from would strand you with no way home.
+
+   `style` drives the extras drawn in art.js: nothing, then planters, then a
+   working loft, then a tower, then gates and a pool. */
+const HOME_SITES=[
+ {t:0, x:90,   y:180,  w:260, h:200, c:'#4A4036', s:'Home',            style:'flat'},
+ {t:1, x:1210, y:1290, w:280, h:200, c:'#46413C', s:'Home · riverside',style:'riverside'},
+ {t:2, x:1830, y:1290, w:240, h:210, c:'#3F4A55', s:'Home · the loft', style:'loft'},
+ {t:3, x:2210, y:1600, w:300, h:190, c:'#3A3350', s:'Home · penthouse',style:'penthouse'},
+ {t:4, x:3760, y:1600, w:250, h:190, c:'#4A4443', s:'Home · the estate',style:'estate'}
+];
+const homeSite=t=>HOME_SITES[t===undefined?homeTier:t]||HOME_SITES[0];
+/* "needs a Halden Verge" but "needs an Okuda Volt" */
+const aOrAn=s=>(/^[aeiou]/i.test(String(s))?'an ':'a ')+s;
+/* which car tier the address needs — read off the map rather than hardcoded */
+const homeReq=t=>districtAt(homeSite(t).x).req;
+const homeReachable=t=>carTier>=homeReq(t);
+
+/* Rewrite the `apt` entry in B so the world contains the home you actually
+   own. Keeping the id means rooms.js, the props table and every save already
+   written go on working untouched. */
+function syncHome(){
+  const b=B.find(x=>x.id==='apt');
+  if(!b) return;
+  const st=homeSite();
+  b.x=st.x; b.y=st.y; b.w=st.w; b.h=st.h; b.c=st.c;
+  b.n=home().n.toUpperCase(); b.s=st.s; b.style=st.style; b.k='home';
+}
+
 /* THE PROPERTY MARKET. Values move every month, so a house is an asset with a
    price rather than a fixed badge -- and buying becomes a question of when, not
    just whether. propIndex is a multiplier on every price and on your equity. */
@@ -127,7 +164,12 @@ function roomRealtor(){
       const have=homeTier>=h.t;
       const deposit=h.own?Math.round(HOUSE_PRICE(h)*0.30):Math.round(h.rent*2);
       const afford=cash>=deposit;
-      const dis=have||!afford;
+      /* You cannot live somewhere you cannot drive to. Without this, buying the
+         Coast estate before the car that opens the Coast puts your front door
+         behind a checkpoint and leaves you with nowhere to sleep. */
+      const reach=homeReachable(h.t);
+      const dis=have||!afford||!reach;
+      const addr=districtAt(homeSite(h.t).x);
       /* derived from the same rates housingMonthly() charges, so the shop cannot understate it */
       const monthly=h.rent+(h.own?Math.round(h.price*0.065/12)+Math.round(HOUSE_PRICE(h)*0.011/12)+Math.round(HOUSE_PRICE(h)*0.0045/12):0);
       return `<button class="item ${have?'owned':''}" data-t="${h.t}" ${dis?'disabled':''}>
@@ -138,8 +180,10 @@ function roomRealtor(){
           <span>focus cap ${h.cap}</span>
           <span>${h.office?h.office+' research/mo':'no home office'}</span>
           <span>${h.host?'hosting x'+h.host:'no hosting'}</span>
-          <span>${h.own?'owned · '+money(Math.round(HOUSE_PRICE(h)*0.30))+' equity':'rented'}</span></div>
-        ${!have&&!afford?`<div class="rec">Short ${money(deposit-cash)}</div>`:''}</button>`;
+          <span>${h.own?'owned · '+money(Math.round(HOUSE_PRICE(h)*0.30))+' equity':'rented'}</span>
+          <span style="color:var(--process)">${addr.n}</span></div>
+        ${!have&&!reach?`<div class="rec">${addr.n} is closed to you — needs ${aOrAn(CARS[homeReq(h.t)].n)}</div>`:''}
+        ${!have&&reach&&!afford?`<div class="rec">Short ${money(deposit-cash)}</div>`:''}</button>`;
     }).join('')}</div>
     <p class="note k" style="margin-top:18px">Buying costs <em>more</em> every month than renting,
       and takes a deposit out of the portfolio where it would otherwise have compounded. What you get
@@ -149,9 +193,15 @@ function roomRealtor(){
     const t=+el.dataset.t, h=HOMES[t];
     const deposit=h.own?Math.round(HOUSE_PRICE(h)*0.30):Math.round(h.rent*2);
     if(cash<deposit) return;
+    if(!homeReachable(t)) return;      /* the button is disabled; this is the second lock */
     cash-=deposit; homeTier=t; focus=Math.min(focus,focusCap());
     research=researchPerMonth();
+    syncHome();                        /* the map moves with you */
+    /* Walk out of the agent's door and the new address is already yours; put
+       the player at it, or "moved in" would mean standing outside the old one. */
+    const st=homeSite();
+    P.x=st.x+st.w/2; P.y=st.y+st.h+46;
     hud(); leave();
-    moment(h.own?'KEYS SIGNED FOR':'MOVED IN', h.n);
+    moment(h.own?'KEYS SIGNED FOR':'MOVED IN', h.n+' · '+districtAt(st.x).n);
   }));
 }

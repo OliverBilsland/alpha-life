@@ -509,6 +509,11 @@ function drawMinimap(cx,VW,VH){
     cx.beginPath(); cx.arc(x,y+1,4.2,0,7); cx.fill();
     cx.fillStyle=open?k.c:'rgba(120,112,140,0.55)';
     cx.beginPath(); cx.arc(x,y,3.4,0,7); cx.fill();
+    /* home gets a ring, so "which of these is mine" never needs asking */
+    if(b.id==='apt'){
+      cx.strokeStyle='#FFE7B0'; cx.lineWidth=1.6;
+      cx.beginPath(); cx.arc(x,y,6.4,0,7); cx.stroke();
+    }
   }
 
   /* other players, if the online layer is running */
@@ -684,4 +689,116 @@ function propsFor(id){
     }
   }
 }
-function drawProps(){ ['apt','school','bar'].forEach(propsFor); }
+/* ---------- the house you actually bought ----------
+   Drawn on top of the home building, keyed off the style in HOME_SITES. Each
+   tier adds something the last one could not afford, so the upgrade is visible
+   from the street rather than only in the ledger. */
+function drawHomeExtras(){
+  const b=B.find(x=>x.id==='apt');
+  if(!b||!b.style) return;
+  const t=Date.now()*0.001;
+  cx.save();
+
+  if(b.style==='riverside'){
+    /* planters and a bike: the first place that is yours rather than assigned */
+    for(let i=0;i<3;i++){
+      const px=b.x+26+i*((b.w-56)/2);
+      cx.fillStyle='#3A3226'; cx.fillRect(px-9,b.y+b.h-8,18,8);
+      cx.fillStyle='#4E7A46'; cx.beginPath(); cx.arc(px,b.y+b.h-12,8,0,7); cx.fill();
+    }
+    cx.strokeStyle='#8FA3FF'; cx.lineWidth=2;
+    cx.beginPath(); cx.arc(b.x+b.w+16,b.y+b.h+6,7,0,7); cx.stroke();
+    cx.beginPath(); cx.arc(b.x+b.w+34,b.y+b.h+6,7,0,7); cx.stroke();
+    cx.beginPath(); cx.moveTo(b.x+b.w+16,b.y+b.h+6); cx.lineTo(b.x+b.w+26,b.y+b.h-4);
+    cx.lineTo(b.x+b.w+34,b.y+b.h+6); cx.stroke();
+  }
+
+  if(b.style==='loft'){
+    /* skylights on the roof and a roller door: a place that is worked in */
+    for(let i=0;i<4;i++){
+      const px=b.x+22+i*((b.w-52)/3);
+      cx.fillStyle='rgba(255,214,138,0.5)';
+      cx.beginPath(); cx.moveTo(px-11,b.y-16); cx.lineTo(px,b.y-27); cx.lineTo(px+11,b.y-16);
+      cx.closePath(); cx.fill();
+    }
+    cx.fillStyle='#2A3038'; cx.fillRect(b.x+16,b.y+b.h-40,46,40);
+    for(let i=0;i<5;i++){ cx.fillStyle='rgba(255,255,255,0.06)';
+      cx.fillRect(b.x+16,b.y+b.h-38+i*8,46,3); }
+  }
+
+  if(b.style==='penthouse'){
+    /* a tower on top, and a terrace lit all night */
+    const tw=b.w*0.52, tx=b.x+(b.w-tw)/2, th=104;
+    cx.fillStyle=PAL.shadow; cx.fillRect(tx+7,b.y-th+8,tw,th);
+    cx.fillStyle='#2E2846'; cx.fillRect(tx,b.y-th,tw,th);
+    cx.fillStyle='#3B3358'; cx.fillRect(tx,b.y-th,tw,5);
+    for(let wy=b.y-th+14;wy<b.y-16;wy+=22)
+      for(let wx=tx+10;wx<tx+tw-16;wx+=24){
+        cx.fillStyle='rgba(255,214,138,0.72)'; cx.fillRect(wx,wy,15,13);
+      }
+    /* terrace rail + string lights that breathe */
+    cx.strokeStyle='rgba(247,242,231,0.35)'; cx.lineWidth=1.5;
+    cx.beginPath(); cx.moveTo(b.x+8,b.y-12); cx.lineTo(b.x+b.w-8,b.y-12); cx.stroke();
+    for(let i=0;i<7;i++){
+      const px=b.x+18+i*((b.w-36)/6);
+      const a=0.45+0.4*Math.sin(t*1.6+i);
+      cx.fillStyle='rgba(255,224,160,'+a.toFixed(2)+')';
+      cx.beginPath(); cx.arc(px,b.y-18,2.6,0,7); cx.fill();
+    }
+  }
+
+  if(b.style==='estate'){
+    /* gates, gravel, a pool that moves, and somewhere to land */
+    cx.fillStyle='#6B6152'; cx.fillRect(b.x-6,b.y+b.h+6,b.w+12,34);   /* gravel */
+    cx.fillStyle='rgba(0,0,0,0.18)';
+    for(let i=0;i<26;i++) cx.fillRect(b.x-4+((i*37)%(b.w+8)),b.y+b.h+10+((i*13)%26),2,2);
+
+    /* gateposts either side of the drive */
+    for(const gx of [b.x-14,b.x+b.w+8]){
+      cx.fillStyle='#3A3430'; cx.fillRect(gx,b.y+b.h+2,10,42);
+      cx.fillStyle='#C9A227'; cx.beginPath(); cx.arc(gx+5,b.y+b.h,5,0,7); cx.fill();
+    }
+
+    /* the pool, off to one side */
+    const pw=74, ph=40, px=b.x+b.w+26, py=b.y+b.h-56;
+    cx.fillStyle='#0F3B4A'; cx.fillRect(px-2,py-2,pw+4,ph+4);
+    cx.fillStyle='#2FA8C6'; cx.fillRect(px,py,pw,ph);
+    for(let i=0;i<4;i++){
+      const a=0.10+0.10*Math.sin(t*1.9+i*1.3);
+      cx.fillStyle='rgba(255,255,255,'+a.toFixed(2)+')';
+      cx.fillRect(px+6,py+7+i*9,pw-12,3);
+    }
+
+    /* helipad */
+    const hx=b.x-96, hy=b.y+b.h-46;
+    cx.fillStyle='#2B2A33'; cx.beginPath(); cx.arc(hx,hy,34,0,7); cx.fill();
+    cx.strokeStyle='rgba(247,242,231,0.55)'; cx.lineWidth=3;
+    cx.beginPath(); cx.arc(hx,hy,26,0,7); cx.stroke();
+    cx.lineWidth=5;
+    cx.beginPath();
+    cx.moveTo(hx-10,hy-12); cx.lineTo(hx-10,hy+12);
+    cx.moveTo(hx+10,hy-12); cx.lineTo(hx+10,hy+12);
+    cx.moveTo(hx-10,hy);    cx.lineTo(hx+10,hy);
+    cx.stroke();
+    /* an approach light, because nothing says money like a strobe */
+    const blink=(Math.sin(t*3)>0.6)?0.9:0.15;
+    cx.fillStyle='rgba(255,90,80,'+blink.toFixed(2)+')';
+    cx.beginPath(); cx.arc(hx+30,hy-30,4,0,7); cx.fill();
+  }
+
+  /* HOME, always findable: a pin over your own roof */
+  const px=b.x+b.w/2, py=b.y-(b.style==='penthouse'?128:34)-6*Math.sin(t*2);
+  cx.fillStyle='rgba(255,224,160,0.22)';
+  cx.beginPath(); cx.arc(px,py,15,0,7); cx.fill();
+  cx.fillStyle='#FFE7B0';
+  cx.beginPath(); cx.moveTo(px,py+11); cx.lineTo(px-8,py-2); cx.lineTo(px+8,py-2); cx.closePath(); cx.fill();
+  cx.beginPath(); cx.arc(px,py-6,8,0,7); cx.fill();
+  cx.fillStyle='#1A1526';
+  cx.beginPath(); cx.moveTo(px,py-13); cx.lineTo(px+6,py-7); cx.lineTo(px+4,py-7);
+  cx.lineTo(px+4,py-1); cx.lineTo(px-4,py-1); cx.lineTo(px-4,py-7); cx.lineTo(px-6,py-7);
+  cx.closePath(); cx.fill();
+
+  cx.restore();
+}
+
+function drawProps(){ ['apt','school','bar'].forEach(propsFor); drawHomeExtras(); }
