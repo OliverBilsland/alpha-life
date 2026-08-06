@@ -454,7 +454,9 @@ function drawClickHint(cx){
 
    Locked districts are not hidden. Seeing the shape of the city you cannot
    reach yet is most of the reason to want a car. */
-const MM_W=214, MM_PAD=16;
+/* Wider than it needs to be for the geography, because the markers carry the
+   same pictograms as the doors and those need room to read. */
+const MM_W=268, MM_PAD=16;
 const MM_H=Math.round(MM_W*(H/W));
 
 function mmBox(VW,VH){
@@ -499,20 +501,32 @@ function drawMinimap(cx,VW,VH){
   cx.fillStyle='rgba(247,242,231,0.13)';
   for(const r of ROADS) cx.fillRect(px(r.x),py(r.y),Math.max(1,r.w*sx),Math.max(1,r.h*sy));
 
-  /* every building, in its kind colour */
+  /* Every building, wearing the badge that is over its own door. A coloured dot
+     told you a kind was there; the pictogram tells you which building it is,
+     which is the question you actually have when looking at a map. Same disc,
+     same colour, same shape as the sign you will be standing under. */
+  const R=7.6;
   for(const b of B){
     const open=districtOpen(districtAt(b.x));
     const k=kindOf(b);
     const d=door(b);
     const x=px(d.x), y=py(b.y+b.h/2);
-    cx.fillStyle='rgba(0,0,0,0.5)';
-    cx.beginPath(); cx.arc(x,y+1,4.2,0,7); cx.fill();
-    cx.fillStyle=open?k.c:'rgba(120,112,140,0.55)';
-    cx.beginPath(); cx.arc(x,y,3.4,0,7); cx.fill();
+
+    cx.fillStyle='rgba(0,0,0,0.55)';
+    cx.beginPath(); cx.arc(x,y+1.2,R,0,7); cx.fill();
+    cx.fillStyle=open?k.c:'#6C667C';
+    cx.beginPath(); cx.arc(x,y,R,0,7); cx.fill();
+
+    cx.save();
+    cx.translate(x,y);
+    cx.globalAlpha=open?1:0.45;
+    drawKindIcon(cx,b.k,R*1.5);
+    cx.restore();
+
     /* home gets a ring, so "which of these is mine" never needs asking */
     if(b.id==='apt'){
-      cx.strokeStyle='#FFE7B0'; cx.lineWidth=1.6;
-      cx.beginPath(); cx.arc(x,y,6.4,0,7); cx.stroke();
+      cx.strokeStyle='#FFE7B0'; cx.lineWidth=1.8;
+      cx.beginPath(); cx.arc(x,y,R+3,0,7); cx.stroke();
     }
   }
 
